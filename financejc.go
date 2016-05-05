@@ -8,4 +8,5 @@ import (
 
 func init() {
 	http.HandleFunc("/auth", handlers.AuthUser)
+	http.HandleFunc("/currencies", handlers.GetCurrencies)
 }
