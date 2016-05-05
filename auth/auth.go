@@ -5,7 +5,8 @@ import (
 	"google.golang.org/api/oauth2/v2"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
-	"server/user"
+
+	"user"
 )
 
 type Request struct {

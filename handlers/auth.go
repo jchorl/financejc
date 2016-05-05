@@ -1,4 +1,4 @@
-package financejc
+package handlers
 
 import (
 	"encoding/json"
@@ -6,26 +6,25 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"net/http"
-	"server/auth"
-	"server/credentials"
-	"server/util"
+
+	"auth"
+	"credentials"
+	"util"
 )
 
-func init() {
-	http.HandleFunc("/auth", authUser)
-}
-
-func authUser(w http.ResponseWriter, r *http.Request) {
+func AuthUser(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	decoder := json.NewDecoder(r.Body)
 	var req auth.Request
 	log.Debugf(c, "received request to auth user")
+
 	err := decoder.Decode(&req)
 	if err != nil {
 		log.Errorf(c, "error decoding auth json: %+v", err)
 		util.WriteJSONError(w, err)
 		return
 	}
+
 	userId, err := auth.AuthUser(c, req)
 	if err != nil {
 		log.Errorf(c, "error authenticating user: %+v", err)
@@ -33,6 +32,7 @@ func authUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Debugf(c, "authed with userId: %s", userId)
+
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims["userId"] = userId
 	tokenStr, err := token.SignedString([]byte(credentials.JWT_SIGNING_KEY))
@@ -42,6 +42,7 @@ func authUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Debugf(c, "Token: %s", tokenStr)
+
 	cookie := http.Cookie{
 		Name:   "auth",
 		Value:  tokenStr,
