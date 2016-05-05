@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"server/auth"
 	"server/credentials"
+	"server/util"
 )
 
 func init() {
@@ -21,21 +22,24 @@ func authUser(w http.ResponseWriter, r *http.Request) {
 	log.Debugf(c, "received request to auth user")
 	err := decoder.Decode(&req)
 	if err != nil {
-		log.Errorf(c, err.Error())
-		panic(err)
+		log.Errorf(c, "error decoding auth json: %+v", err)
+		util.WriteJSONError(w, err)
+		return
 	}
 	userId, err := auth.AuthUser(c, req)
-	log.Debugf(c, "authed with userId: %s", userId)
 	if err != nil {
-		log.Errorf(c, err.Error())
-		panic(err)
+		log.Errorf(c, "error authenticating user: %+v", err)
+		util.WriteJSONError(w, err)
+		return
 	}
+	log.Debugf(c, "authed with userId: %s", userId)
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims["userId"] = userId
 	tokenStr, err := token.SignedString([]byte(credentials.JWT_SIGNING_KEY))
 	if err != nil {
-		log.Errorf(c, err.Error())
-		panic(err)
+		log.Errorf(c, "error getting signed jwt: %+v", err)
+		util.WriteJSONError(w, err)
+		return
 	}
 	log.Debugf(c, "Token: %s", tokenStr)
 	cookie := http.Cookie{
