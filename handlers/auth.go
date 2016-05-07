@@ -1,34 +1,31 @@
 package handlers
 
 import (
-	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/emicklei/go-restful"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 	"net/http"
 
 	"auth"
 	"credentials"
-	"util"
 )
 
-func AuthUser(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	decoder := json.NewDecoder(r.Body)
+func AuthUser(request *restful.Request, response *restful.Response) {
+	c := appengine.NewContext(request.Request)
 	var req auth.Request
-	log.Debugf(c, "received request to auth user")
 
-	err := decoder.Decode(&req)
+	err := request.ReadEntity(&req)
 	if err != nil {
-		log.Errorf(c, "error decoding auth json: %+v", err)
-		util.WriteJSONError(w, err)
+		log.Errorf(c, "error decoding auth request: %+v", err)
+		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
 
 	userId, err := auth.AuthUser(c, req)
 	if err != nil {
 		log.Errorf(c, "error authenticating user: %+v", err)
-		util.WriteJSONError(w, err)
+		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
 	log.Debugf(c, "authed with userId: %s", userId)
@@ -38,7 +35,7 @@ func AuthUser(w http.ResponseWriter, r *http.Request) {
 	tokenStr, err := token.SignedString([]byte(credentials.JWT_SIGNING_KEY))
 	if err != nil {
 		log.Errorf(c, "error getting signed jwt: %+v", err)
-		util.WriteJSONError(w, err)
+		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
 	log.Debugf(c, "Token: %s", tokenStr)
@@ -51,5 +48,5 @@ func AuthUser(w http.ResponseWriter, r *http.Request) {
 		// Secure:   true,
 		// HttpOnly: true,
 	}
-	http.SetCookie(w, &cookie)
+	http.SetCookie(response, &cookie)
 }

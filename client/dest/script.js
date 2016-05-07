@@ -8,12 +8,16 @@ window.onload = function() {
 		auth2.attachClickHandler(document.getElementById('googleBtn'), {},
 								 function(googleUser) {
 									 console.log('fetching');
+									 var headers = new Headers();
+									 headers.append("Accept", "application/json");
+									 headers.append("Content-Type", "application/json");
 									 fetch('/auth', {
 										 method: 'POST',
 										 body: JSON.stringify({
 											 token: googleUser.getAuthResponse().id_token
 										 }),
-										 credentials: 'same-origin'
+										 credentials: 'same-origin',
+										 headers: headers
 									 });
 								 }, function(error) {
 									 alert(JSON.stringify(error, undefined, 2));

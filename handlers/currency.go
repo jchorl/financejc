@@ -1,12 +1,11 @@
 package handlers
 
 import (
-	"net/http"
+	"github.com/emicklei/go-restful"
 
 	"currency"
-	"util"
 )
 
-func GetCurrencies(w http.ResponseWriter, r *http.Request) {
-	util.WriteJSONResponse(w, currency.CodeToName)
+func GetCurrencies(request *restful.Request, response *restful.Response) {
+	response.WriteEntity(currency.CodeToName)
 }
