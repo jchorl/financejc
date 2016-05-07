@@ -2,6 +2,9 @@ runtime: go
 api_version: go1
 
 handlers:
+  - url: /apidocs/(.*\.(js|html|css|png))
+    static_files: client/swagger/\1
+    upload: client/swagger/(.*\.(js|html|css|png))
   - url: /(.*\.(css|js|jpg|png))$
     static_files: client/dest/\1
     upload: client/dest/.*\.(css|js|jpg|png)$

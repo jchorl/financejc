@@ -10,7 +10,7 @@ import (
 )
 
 type Request struct {
-	Token string `json:"token"`
+	Token string `json:"token" description:"Google ID token provided by sign-in flow"`
 }
 
 func AuthUser(c context.Context, req Request) (string, error) {
