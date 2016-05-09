@@ -11,6 +11,10 @@ type User struct {
 	GoogleId string `datastore:"google",json:"-"`
 }
 
+func Key(userId string) (*datastore.Key, error) {
+	return datastore.DecodeKey(userId)
+}
+
 func FindOrCreateByGoogleId(c context.Context, googleId string) (string, error) {
 	q := datastore.NewQuery(dbKey).
 		Filter("GoogleId =", googleId).

@@ -3,6 +3,7 @@ package financejc
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/emicklei/go-restful"
@@ -10,6 +11,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
+	"account"
 	"auth"
 	"credentials"
 	"handlers"
@@ -44,7 +46,6 @@ func getUserId(unparsed string) (string, error) {
 // only accept logged in users
 func loggedInFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 	c := appengine.NewContext(request.Request)
-	log.Debugf(c, "starting auth")
 	cookie, err := request.Request.Cookie("auth")
 	if err != nil {
 		log.Errorf(c, "could not get auth cookie: %+v", err)
@@ -64,7 +65,6 @@ func loggedInFilter(request *restful.Request, response *restful.Response, chain 
 // only accept logged out users
 func loggedOutFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 	c := appengine.NewContext(request.Request)
-	log.Debugf(c, "starting auth")
 	cookie, err := request.Request.Cookie("auth")
 	if err == nil {
 		_, err := getUserId(cookie.Value)
@@ -92,9 +92,18 @@ func init() {
 		Doc("Get all currencies").
 		Operation("GetCurrencies").
 		Writes(struct{ ISO4217 string }{"Name"}))
-	ws.Route(ws.GET("/accountGroup").Filter(loggedInFilter).To(handlers.GetAccountGroups).
-		Doc("Get all account groups").
-		Operation("GetAccountGroups"))
+	ws.Route(ws.GET("/account").Filter(loggedInFilter).To(handlers.GetAccounts).
+		Doc("Get all accounts").
+		Operation("GetAccounts").
+		Returns(http.StatusUnauthorized, "User is not authorized", nil).
+		Writes(account.Account{}))
+	ws.Route(ws.POST("/account").Filter(loggedInFilter).To(handlers.NewAccount).
+		Doc("Create new accounts").
+		Operation("NewAccount").
+		Returns(http.StatusUnauthorized, "User is not authorized", nil).
+		Returns(http.StatusForbidden, "Invalid currency", nil).
+		Reads(account.Account{}).
+		Writes(account.Account{}))
 	restful.Add(ws)
 
 	config := swagger.Config{
