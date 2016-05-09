@@ -9,7 +9,6 @@ import (
 	"google.golang.org/appengine/log"
 
 	"currency"
-	"user"
 )
 
 const dbKey string = "Account"
@@ -26,7 +25,7 @@ type Account struct {
 }
 
 func Get(c context.Context, userId string) ([]*Account, error) {
-	userKey, err := user.Key(userId)
+	userKey, err := datastore.DecodeKey(userId)
 	if err != nil {
 		log.Errorf(c, "could not get user key: %+v", err)
 		return nil, err
@@ -78,7 +77,7 @@ func putAccount(c context.Context, userId string, account *Account, newAccount b
 
 	var accountKey *datastore.Key
 	if newAccount {
-		userKey, err := user.Key(userId)
+		userKey, err := datastore.DecodeKey(userId)
 		if err != nil {
 			log.Errorf(c, "could not get user key: %+v", err)
 			return nil, err

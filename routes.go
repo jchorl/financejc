@@ -15,6 +15,7 @@ import (
 	"auth"
 	"credentials"
 	"handlers"
+	"transaction"
 )
 
 var NotLoggedIn = errors.New("User is not logged in")
@@ -116,8 +117,32 @@ func init() {
 		Doc("Delete account").
 		Operation("DeleteAccount").
 		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
+		Returns(http.StatusUnauthorized, "User is not authorized", nil))
+	ws.Route(ws.GET("/account/{account-id}/transactions").Filter(loggedInFilter).To(handlers.GetTransactions).
+		Doc("Get all transactions for an account").
+		Operation("GetTransactions").
+		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
-		Returns(http.StatusForbidden, "Invalid currency", nil))
+		Writes(transaction.Transaction{}))
+	ws.Route(ws.POST("/account/{account-id}/transactions").Filter(loggedInFilter).To(handlers.NewTransaction).
+		Doc("Create a new transaction").
+		Operation("NewTransaction").
+		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
+		Returns(http.StatusUnauthorized, "User is not authorized", nil).
+		Reads(transaction.Transaction{}).
+		Writes(transaction.Transaction{}))
+	ws.Route(ws.PUT("/transaction/{transaction-id}").Filter(loggedInFilter).To(handlers.UpdateTransaction).
+		Doc("Update transaction").
+		Operation("UpdateTransaction").
+		Param(ws.PathParameter("transaction-id", "id of the transaction").DataType("string")).
+		Returns(http.StatusUnauthorized, "User is not authorized", nil).
+		Reads(transaction.Transaction{}).
+		Writes(transaction.Transaction{}))
+	ws.Route(ws.DELETE("/transaction/{transaction-id}").Filter(loggedInFilter).To(handlers.DeleteTransaction).
+		Doc("Delete transaction").
+		Operation("DeleteTransaction").
+		Param(ws.PathParameter("transaction-id", "id of the transaction").DataType("string")).
+		Returns(http.StatusUnauthorized, "User is not authorized", nil))
 	restful.Add(ws)
 
 	config := swagger.Config{
