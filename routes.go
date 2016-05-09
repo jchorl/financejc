@@ -104,6 +104,14 @@ func init() {
 		Returns(http.StatusForbidden, "Invalid currency", nil).
 		Reads(account.Account{}).
 		Writes(account.Account{}))
+	ws.Route(ws.PUT("/account/{account-id}").Filter(loggedInFilter).To(handlers.UpdateAccount).
+		Doc("Create new accounts").
+		Operation("NewAccount").
+		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
+		Returns(http.StatusUnauthorized, "User is not authorized", nil).
+		Returns(http.StatusForbidden, "Invalid currency", nil).
+		Reads(account.Account{}).
+		Writes(account.Account{}))
 	restful.Add(ws)
 
 	config := swagger.Config{
