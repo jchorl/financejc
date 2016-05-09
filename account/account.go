@@ -50,17 +50,27 @@ func New(c context.Context, userId string, account *Account) (*Account, error) {
 	return putAccount(c, userId, account, true, "")
 }
 
-func Update(c context.Context, userId string, account *Account, accountId string) (*Account, error) {
-	return putAccount(c, userId, account, false, accountId)
+func Update(c context.Context, account *Account, accountId string) (*Account, error) {
+	return putAccount(c, "", account, false, accountId)
+}
+
+func Delete(c context.Context, accountId string) error {
+	key, err := datastore.DecodeKey(accountId)
+	if err != nil {
+		log.Errorf(c, "account id not valid: %+v", err)
+		return err
+	}
+
+	err = datastore.Delete(c, key)
+	if err != nil {
+		log.Errorf(c, "could not delete account: %+v", err)
+		return err
+	}
+
+	return nil
 }
 
 func putAccount(c context.Context, userId string, account *Account, newAccount bool, accountId string) (*Account, error) {
-	userKey, err := user.Key(userId)
-	if err != nil {
-		log.Errorf(c, "could not get user key: %+v", err)
-		return nil, err
-	}
-
 	_, valid := currency.CodeToName[account.Currency]
 	if !valid {
 		return nil, InvalidCurrency
@@ -68,11 +78,17 @@ func putAccount(c context.Context, userId string, account *Account, newAccount b
 
 	var accountKey *datastore.Key
 	if newAccount {
+		userKey, err := user.Key(userId)
+		if err != nil {
+			log.Errorf(c, "could not get user key: %+v", err)
+			return nil, err
+		}
 		accountKey = datastore.NewIncompleteKey(c, dbKey, userKey)
 		account.Balance = 0
 		account.FutureBalance = 0
 		account.BalancesCalculated = time.Now()
 	} else {
+		var err error
 		accountKey, err = datastore.DecodeKey(accountId)
 		if err != nil {
 			log.Errorf(c, "account id not valid: %+v", err)

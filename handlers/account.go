@@ -23,8 +23,8 @@ func GetAccounts(request *restful.Request, response *restful.Response) {
 }
 
 func NewAccount(request *restful.Request, response *restful.Response) {
-	userId := request.Attribute("userId").(string)
 	c := appengine.NewContext(request.Request)
+	userId := request.Attribute("userId").(string)
 	acc := new(account.Account)
 	err := request.ReadEntity(acc)
 	if err != nil {
@@ -46,9 +46,8 @@ func NewAccount(request *restful.Request, response *restful.Response) {
 }
 
 func UpdateAccount(request *restful.Request, response *restful.Response) {
-	userId := request.Attribute("userId").(string)
-	accountId := request.PathParameter("account-id")
 	c := appengine.NewContext(request.Request)
+	accountId := request.PathParameter("account-id")
 	acc := new(account.Account)
 	err := request.ReadEntity(acc)
 	if err != nil {
@@ -57,7 +56,7 @@ func UpdateAccount(request *restful.Request, response *restful.Response) {
 		return
 	}
 
-	acc, err = account.Update(c, userId, acc, accountId)
+	acc, err = account.Update(c, acc, accountId)
 	if err == account.InvalidCurrency {
 		response.WriteError(http.StatusForbidden, err)
 		return
@@ -67,4 +66,16 @@ func UpdateAccount(request *restful.Request, response *restful.Response) {
 		return
 	}
 	response.WriteEntity(acc)
+}
+
+func DeleteAccount(request *restful.Request, response *restful.Response) {
+	c := appengine.NewContext(request.Request)
+	accountId := request.PathParameter("account-id")
+	err := account.Delete(c, accountId)
+	if err != nil {
+		log.Errorf(c, "error deleting account: %+v", err)
+		response.WriteError(http.StatusInternalServerError, err)
+		return
+	}
+	response.WriteHeader(http.StatusOK)
 }
