@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"time"
+
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
@@ -9,9 +11,17 @@ import (
 const dbKey string = "Transaction"
 
 type Transaction struct {
-	Id        string `datastore:"-" json:"id,omitempty" description:"Id of the transaction"`
-	Title     string `json:"title" description:"Transaction title"`
-	AccountId string `json:"accountId,omitempty" description:"Id of the account holding the transaction"`
+	Id                 string    `datastore:"-" json:"id,omitempty" description:"Id of the transaction"`
+	Title              string    `json:"title" description:"Transaction title"`
+	AccountId          string    `json:"accountId,omitempty" description:"Id of the account holding the transaction"`
+	Type               string    `json:"type" description:"Type of transaction"`
+	Date               time.Time `json:"time" description:"Date of transaction"`
+	Name               string    `json:"name" description:"Name of payer/payee"`
+	Category           string    `json:"category" description:"Category of the transaction"`
+	Incoming           int       `json:"incoming" description:"Amount incoming"`
+	Outgoing           int       `json:"outgoing" description:"Amount outgoing"`
+	Note               string    `json:"note" description:"Note on the transaction"`
+	RelatedTransaction string    `json:"relatedTransaction,omitempty" description:"A related transaction"`
 }
 
 func Get(c context.Context, accountId string) ([]*Transaction, error) {
