@@ -12,11 +12,10 @@ const dbKey string = "Transaction"
 
 type Transaction struct {
 	Id                 string    `datastore:"-" json:"id,omitempty" description:"Id of the transaction"`
-	Title              string    `json:"title" description:"Transaction title"`
+	Name               string    `json:"name" description:"Name of payer/payee"`
 	AccountId          string    `json:"accountId,omitempty" description:"Id of the account holding the transaction"`
 	Type               string    `json:"type" description:"Type of transaction"`
 	Date               time.Time `json:"time" description:"Date of transaction"`
-	Name               string    `json:"name" description:"Name of payer/payee"`
 	Category           string    `json:"category" description:"Category of the transaction"`
 	Incoming           int       `json:"incoming" description:"Amount incoming"`
 	Outgoing           int       `json:"outgoing" description:"Amount outgoing"`
@@ -25,13 +24,21 @@ type Transaction struct {
 }
 
 func Get(c context.Context, accountId string) ([]*Transaction, error) {
-	accountKey, err := datastore.DecodeKey(accountId)
+	return getByAncestorId(c, accountId)
+}
+
+func GetByUser(c context.Context, userId string) ([]*Transaction, error) {
+	return getByAncestorId(c, userId)
+}
+
+func getByAncestorId(c context.Context, id string) ([]*Transaction, error) {
+	key, err := datastore.DecodeKey(id)
 	if err != nil {
-		log.Errorf(c, "could not get account key: %+v", err)
+		log.Errorf(c, "could not get key: %+v", err)
 		return nil, err
 	}
 	transactions := make([]*Transaction, 0)
-	q := datastore.NewQuery(dbKey).Ancestor(accountKey)
+	q := datastore.NewQuery(dbKey).Ancestor(key).Order("-Date")
 	keys, err := q.GetAll(c, &transactions)
 	if err != nil {
 		log.Errorf(c, "failed to fetch transactions: %+v", err)
