@@ -19,8 +19,6 @@ let store = createStore(reducers,
 						)
 );
 
-store.dispatch(fetchAccounts()).then(() => console.log(store.getState()))
-
 render(
 	<Provider store={store}>
 		<App/>

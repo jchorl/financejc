@@ -15,7 +15,14 @@ var config = {
 			{
 				test : /\.jsx?/,
 				include : APP_DIR,
-				loader : 'babel'
+				loader : 'babel',
+				query: {
+					cacheDirectory: true,
+					plugins: [
+						'transform-decorators-legacy'
+					],
+					presets: ['es2015', 'react', 'stage-1']
+				}
 			}
 		]
 	}

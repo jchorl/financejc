@@ -2,7 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { login } from '../../actions'
 
-class GoogleLoginButton extends React.Component {
+@connect()
+export default class GoogleLoginButton extends React.Component {
 	constructor(props) {
 		super(props);
 		window.onload = function() {
@@ -32,5 +33,3 @@ class GoogleLoginButton extends React.Component {
 		);
 	}
 }
-
-export default connect()(GoogleLoginButton)

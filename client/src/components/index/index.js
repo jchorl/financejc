@@ -4,11 +4,10 @@ import { connect } from 'react-redux';
 import { fetchAuth } from '../../actions'
 import GoogleLoginButton from '../googleLoginButton'
 
-function mapStateToProps(state) {
+@connect((state) => {
 	  return { auth: state.auth }
-}
-
-class App extends React.Component {
+})
+export default class App extends React.Component {
 	constructor(props) {
 		super(props);
 		props.dispatch(fetchAuth());
@@ -21,5 +20,3 @@ class App extends React.Component {
 		return <GoogleLoginButton />;
 	}
 }
-
-export default connect(mapStateToProps)(App)
