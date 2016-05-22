@@ -2,10 +2,10 @@ var webpack = require('webpack');
 var path = require('path');
 
 var BUILD_DIR = path.resolve(__dirname, 'dest');
-var APP_DIR = path.resolve(__dirname, 'src/script/components');
+var APP_DIR = path.resolve(__dirname, 'src');
 
 var config = {
-	entry: APP_DIR + '/index',
+	entry: APP_DIR,
 	output: {
 		path: BUILD_DIR,
 		filename: 'bundle.js'
