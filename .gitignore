@@ -1,2 +1,4 @@
 credentials
 client/node_modules
+client/dest/bundle.js
+client/dest/bundle.js.map

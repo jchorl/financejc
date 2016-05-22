@@ -17,7 +17,9 @@ export function fetchAccounts() {
 	return function(dispatch) {
 		dispatch(requestAccounts());
 
-		return fetch(`/account`)
+		return fetch(`/account`, {
+			credentials: 'include'
+		})
 		.then(response => response.json())
 		.then(json => dispatch(receivePosts(json)))
 	}
