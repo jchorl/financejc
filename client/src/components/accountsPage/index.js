@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { fetchAccounts } from '../../actions';
 import AccountList from '../accountList';
 import Loader from '../loader';
+import styles from './accountsPage.css';
 
 @connect((state) => {
 	return { accounts: state.accounts }
@@ -17,7 +18,9 @@ export default class AccountsPage extends React.Component {
 	render () {
 		return (
 			<Loader loading={ this.props.accounts.isFetching }>
-				<AccountList accounts={ this.props.accounts.items }/>
+				<div className={ styles.accountList }>
+					<AccountList accounts={ this.props.accounts.items } />
+				</div>
 			</Loader>
 		)
 	}

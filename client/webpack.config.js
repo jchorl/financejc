@@ -11,7 +11,7 @@ var config = {
 		filename: 'bundle.js'
 	},
 	module: {
-		loaders : [
+		loaders: [
 			{
 				test : /\.jsx?/,
 				include : APP_DIR,
@@ -23,9 +23,19 @@ var config = {
 					],
 					presets: ['es2015', 'react', 'stage-1']
 				}
+			},
+			{
+				test : /\.css$/,
+				loader: 'style-loader!css-loader?modules&importLoaders=1&localIdentName=[name]_[local]_[hash:base64:5]!postcss-loader'
 			}
 		]
-	}
+	},
+	postcss: [
+		require('autoprefixer'),
+		require('precss'),
+		require('postcss-nested'),
+		require('lost')
+	]
 };
 
 module.exports = config;
