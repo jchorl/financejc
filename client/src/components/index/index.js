@@ -5,6 +5,7 @@ import { fetchAuth } from '../../actions';
 import AccountsPage from '../accountsPage';
 import GoogleLoginButton from '../googleLoginButton';
 import Loader from '../loader';
+import styles from './styles.css';
 
 @connect((state) => {
 	return { auth: state.auth }
