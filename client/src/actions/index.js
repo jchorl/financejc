@@ -1,3 +1,10 @@
+export const REQUEST_LOGIN = 'REQUEST_LOGIN';
+export const requestLogin = () => {
+	return {
+		type: REQUEST_LOGIN
+	}
+}
+
 export const REQUEST_ACCOUNTS = 'REQUEST_ACCOUNTS';
 export const requestAccounts = () => {
 	return {
@@ -13,6 +20,21 @@ export const receiveAccounts = (json) => {
 	}
 }
 
+export const CHECK_AUTH = 'CHECK_AUTH';
+export const checkAuth = () => {
+	return {
+		type: CHECK_AUTH
+	}
+}
+
+export const RECEIVE_AUTH = 'RECEIVE_AUTH';
+export const receiveAuth = (authd) => {
+	return {
+		type: RECEIVE_AUTH,
+		authd
+	}
+}
+
 export function fetchAccounts() {
 	return function(dispatch) {
 		dispatch(requestAccounts());
@@ -21,6 +43,48 @@ export function fetchAccounts() {
 			credentials: 'include'
 		})
 		.then(response => response.json())
-		.then(json => dispatch(receivePosts(json)))
+		.then(json => dispatch(receiveAccounts(json)));
+	}
+}
+
+export function fetchAuth() {
+	return function(dispatch) {
+		dispatch(checkAuth());
+
+		return fetch(`/auth`, {
+			credentials: 'include'
+		})
+		.then((resp) => {
+			if (resp.ok) {
+				dispatch(receiveAuth(true));
+			} else {
+				dispatch(receiveAuth(false));
+			}
+		})
+		.catch(() => dispatch(receiveAuth(false)));
+	}
+}
+
+export function login(googleUser) {
+	return function(dispatch) {
+		let headers = new Headers();
+		headers.append("Accept", "application/json");
+		headers.append("Content-Type", "application/json");
+		fetch('/auth', {
+			method: 'POST',
+			body: JSON.stringify({
+				token: googleUser.getAuthResponse().id_token
+			}),
+			credentials: 'same-origin',
+			headers: headers
+		})
+		.then((resp) => {
+			if (resp.ok) {
+				dispatch(receiveAuth(true));
+			} else {
+				dispatch(receiveAuth(false));
+			}
+		})
+		.catch(() => dispatch(receiveAuth(false)));
 	}
 }

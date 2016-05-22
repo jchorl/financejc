@@ -11,6 +11,11 @@ import (
 	"credentials"
 )
 
+func CheckAuth(request *restful.Request, response *restful.Response) {
+	// if already passed the logged out filter, return 401
+	response.WriteErrorString(401, "401: Not Authorized")
+}
+
 func AuthUser(request *restful.Request, response *restful.Response) {
 	c := appengine.NewContext(request.Request)
 	var req auth.Request

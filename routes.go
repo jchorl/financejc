@@ -85,6 +85,9 @@ func init() {
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
+	ws.Route(ws.GET("/auth").Filter(loggedOutFilter).To(handlers.CheckAuth).
+		Doc("Check if a user is authenticated").
+		Operation("CheckAuth"))
 	ws.Route(ws.POST("/auth").Filter(loggedOutFilter).To(handlers.AuthUser).
 		Doc("Authenticate a user").
 		Operation("AuthUser").

@@ -1,6 +1,8 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { login } from '../../actions'
 
-export default class GoogleLoginButton extends React.Component {
+class GoogleLoginButton extends React.Component {
 	constructor(props) {
 		super(props);
 		window.onload = function() {
@@ -9,30 +11,26 @@ export default class GoogleLoginButton extends React.Component {
 					client_id: '900762983843-0ih1hv6b4mf4ql847ini51hhfc4svqoc.apps.googleusercontent.com',
 					scope: 'email'
 				});
-				auth2.attachClickHandler(document.getElementById('googleBtn'), {},
-										 function(googleUser) {
-											 var headers = new Headers();
-											 headers.append("Accept", "application/json");
-											 headers.append("Content-Type", "application/json");
-											 fetch('/auth', {
-												 method: 'POST',
-												 body: JSON.stringify({
-													 token: googleUser.getAuthResponse().id_token
-												 }),
-												 credentials: 'same-origin',
-												 headers: headers
+				let btnEl = document.getElementById('googleBtn');
+				if (btnEl) {
+					auth2.attachClickHandler(btnEl, {},
+											 function(googleUser) {
+												 props.dispatch(login(googleUser));
+											 }, function(error) {
+												 console.log(error);
 											 });
-										 }, function(error) {
-											 alert(JSON.stringify(error, undefined, 2));
-										 });
+				}
 			});
 		};
 	}
+
 	render () {
 		return (
 			<div id="googleBtn">
-				<span>Google</span>
+				<span>Login with Google</span>
 			</div>
-		)
+		);
 	}
 }
+
+export default connect()(GoogleLoginButton)
