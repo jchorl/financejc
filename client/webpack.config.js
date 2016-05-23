@@ -4,6 +4,8 @@ var path = require('path');
 var BUILD_DIR = path.resolve(__dirname, 'dest');
 var APP_DIR = path.resolve(__dirname, 'src');
 
+var constants = require('./src/components/index/constants');
+
 var config = {
 	entry: APP_DIR,
 	output: {
@@ -31,6 +33,9 @@ var config = {
 		]
 	},
 	postcss: [
+		require('postcss-constants')({
+			defaults: constants
+		}),
 		require('autoprefixer'),
 		require('precss'),
 		require('postcss-nested'),
