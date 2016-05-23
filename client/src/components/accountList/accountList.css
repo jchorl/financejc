@@ -3,17 +3,17 @@
 }
 
 .accountButton {
-  background: #e3e3e3;
+  background: ~colors.primaryLight;
   border: none;
   width: 100%;
   text-align: left;
 
-  &:focus {
-    outline: none;
+  &:nth-child(odd) {
+    background: ~colors.secondaryLight;
   }
 
-  &:first-child:nth-last-child(n+2) {
-    border-bottom: 1px solid #707070;
+  &:focus {
+    outline: none;
   }
 
   .accountName {
@@ -22,7 +22,7 @@
   }
 
   .accountBalance {
-    color: #808080;
+    color: ~colors.secondaryDark;
     margin: 10px;
   }
 }
