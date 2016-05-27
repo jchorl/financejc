@@ -3,13 +3,18 @@ import { render } from 'react-dom';
 
 export default class Loader extends React.Component {
 	static propTypes = {
-		loading: React.PropTypes.bool.isRequired
+		loading: React.PropTypes.bool.isRequired,
+		children: React.PropTypes.any
 	}
 
 	render () {
 		if (this.props.loading) {
 			return <span>Loading</span>
 		}
-		return <div>{this.props.children}</div>;
+		return (
+			<div>
+				{ this.props.children }
+			</div>
+		)
 	}
 }

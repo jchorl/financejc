@@ -1,3 +1,7 @@
 .accountList {
   lost-column: 1/4;
 }
+
+.transactionList {
+  lost-column: 3/4;
+}

@@ -25,4 +25,12 @@
     color: ~colors.secondaryDark;
     margin: 10px;
   }
+
+  &.selected {
+    background: ~colors.primaryDark;
+
+    .accountName, .accountBalance {
+      color: white;
+    }
+  }
 }
