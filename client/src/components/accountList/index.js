@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import classNames from 'classnames';
+import { toCurrency } from '../../utils';
 import styles from './accountList.css';
 
 export default class AccountList extends React.Component {
@@ -30,7 +31,7 @@ export default class AccountList extends React.Component {
 									{ account.name }
 								</div>
 								<div className={ styles.accountBalance }>
-									Balance: { account.balance.toLocaleString(window.navigator.language, {style: 'currency', currency: account.currency}) }
+									Balance: { toCurrency(account.balance, account.currency) }
 								</div>
 							</button>
 						)

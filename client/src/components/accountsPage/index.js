@@ -31,8 +31,10 @@ class AccountsPage extends React.Component {
 		} = this.props;
 
 		let transactions = [];
+		let currency;
 		if (this.state.selected < accounts.length) {
 			transactions = accounts[this.state.selected].transactions;
+			currency = accounts[this.state.selected].currency;
 		}
 
 		return (
@@ -41,7 +43,7 @@ class AccountsPage extends React.Component {
 					<AccountList accounts={ accounts } selected={ this.state.selected } onSelect={ this.selectAccount }/>
 				</div>
 				<div className={ styles.transactionList }>
-					<TransactionList transactions={ transactions } />
+					<TransactionList transactions={ transactions } currency={ currency } />
 				</div>
 			</div>
 		)
