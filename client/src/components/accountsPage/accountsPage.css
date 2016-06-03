@@ -1,7 +1,11 @@
-.accountList {
-  lost-column: 1/4;
-}
+.accountsPage {
+  lost-flex-container: row;
 
-.transactionList {
-  lost-column: 3/4;
+  .accountList {
+    lost-column: 1/4;
+  }
+
+  .transactionList {
+    lost-column: 3/4;
+  }
 }

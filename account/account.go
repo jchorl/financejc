@@ -20,8 +20,8 @@ type Account struct {
 	Id            string                     `datastore:"-" json:"id,omitempty" description:"Id of the account"`
 	Name          string                     `json:"name" description:"Name of the account"`
 	Currency      string                     `json:"currency" description:"Currency for the account"`
-	Balance       int                        `json:"balance" description:"Current balance" datastore:"-"`
-	FutureBalance int                        `json:"futureBalance" description:"Balance including future transactions" datastore:"-"`
+	Balance       float64                    `json:"balance" description:"Current balance" datastore:"-"`
+	FutureBalance float64                    `json:"futureBalance" description:"Balance including future transactions" datastore:"-"`
 	Transactions  []*transaction.Transaction `json:"transactions" datastore:"-" description:"Transactions for the account"`
 }
 
@@ -74,9 +74,9 @@ func setBalancesAndTransactions(c context.Context, userId string, accounts []*Ac
 	for _, tr := range transactions {
 		account = keyToAccount[tr.AccountId]
 		account.Transactions = append(account.Transactions, tr)
-		account.FutureBalance += (tr.Incoming - tr.Outgoing)
+		account.FutureBalance += (tr.Incoming + tr.Outgoing)
 		if tr.Date.Before(now) {
-			account.Balance += (tr.Incoming - tr.Outgoing)
+			account.Balance += (tr.Incoming + tr.Outgoing)
 		}
 	}
 

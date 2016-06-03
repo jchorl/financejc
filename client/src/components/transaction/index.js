@@ -15,7 +15,7 @@ export default class Transaction extends React.Component {
 		} = this.props;
 
 		return (
-			<div>
+			<div className={ styles.transaction }>
 				<span className={ styles.transactionField }>{ transaction.name }</span>
 				<span className={ styles.transactionField }>{ transaction.type }</span>
 				<span className={ styles.transactionField }>{ toDate(transaction.time) }</span>

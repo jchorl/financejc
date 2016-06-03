@@ -38,7 +38,7 @@ class AccountsPage extends React.Component {
 		}
 
 		return (
-			<div>
+			<div className={ styles.accountsPage }>
 				<div className={ styles.accountList }>
 					<AccountList accounts={ accounts } selected={ this.state.selected } onSelect={ this.selectAccount }/>
 				</div>

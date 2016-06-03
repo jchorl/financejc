@@ -1,7 +1,7 @@
 .headings {
   margin: 10px 0;
-  lost-utility: clearfix;
   font-weight: bold;
+  lost-flex-container: row;
 
   .column {
     lost-column: 1/6;

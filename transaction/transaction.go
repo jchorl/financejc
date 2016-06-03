@@ -14,11 +14,10 @@ type Transaction struct {
 	Id                 string    `datastore:"-" json:"id,omitempty" description:"Id of the transaction"`
 	Name               string    `json:"name" description:"Name of payer/payee"`
 	AccountId          string    `json:"accountId,omitempty" description:"Id of the account holding the transaction"`
-	Type               string    `json:"type" description:"Type of transaction"`
 	Date               time.Time `json:"time" description:"Date of transaction"`
 	Category           string    `json:"category" description:"Category of the transaction"`
-	Incoming           int       `json:"incoming" description:"Amount incoming"`
-	Outgoing           int       `json:"outgoing" description:"Amount outgoing"`
+	Incoming           float64   `json:"incoming" description:"Amount incoming"`
+	Outgoing           float64   `json:"outgoing" description:"Amount outgoing"`
 	Note               string    `json:"note" description:"Note on the transaction"`
 	RelatedTransaction string    `json:"relatedTransaction,omitempty" description:"A related transaction"`
 }

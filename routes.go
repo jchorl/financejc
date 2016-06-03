@@ -146,6 +146,9 @@ func init() {
 		Operation("DeleteTransaction").
 		Param(ws.PathParameter("transaction-id", "id of the transaction").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil))
+	ws.Route(ws.POST("/upload").Filter(loggedInFilter).To(handlers.Upload).
+		Doc("Upload a file to import").
+		Operation("Upload"))
 	restful.Add(ws)
 
 	config := swagger.Config{
