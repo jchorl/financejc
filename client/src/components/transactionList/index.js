@@ -23,14 +23,12 @@ export default class TransactionList extends React.Component {
 			<div>
 				<div className={ styles.headings }>
 					<span className={ styles.column }>Name</span>
-					<span className={ styles.column }>Type</span>
 					<span className={ styles.column }>Date</span>
 					<span className={ styles.column }>Category</span>
-					<span className={ styles.column }>Incoming</span>
-					<span className={ styles.column }>Outgoing</span>
+					<span className={ styles.column }>Amount</span>
 				</div>
 				<div>
-					{ transactions.map(transaction => (<Transaction transaction={ transaction } currency={ currency }/>)) }
+					{ transactions.map(transaction => (<Transaction key={ transaction.id } transaction={ transaction } currency={ currency }/>)) }
 				</div>
 			</div>
 		)

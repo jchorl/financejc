@@ -7,5 +7,7 @@
 
   .transactionList {
     lost-column: 3/4;
+    box-sizing: border-box;
+    border-left: 2px solid ~colors.primaryDark;
   }
 }

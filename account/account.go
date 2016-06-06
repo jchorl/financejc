@@ -74,9 +74,9 @@ func setBalancesAndTransactions(c context.Context, userId string, accounts []*Ac
 	for _, tr := range transactions {
 		account = keyToAccount[tr.AccountId]
 		account.Transactions = append(account.Transactions, tr)
-		account.FutureBalance += (tr.Incoming + tr.Outgoing)
+		account.FutureBalance += tr.Amount
 		if tr.Date.Before(now) {
-			account.Balance += (tr.Incoming + tr.Outgoing)
+			account.Balance += tr.Amount
 		}
 	}
 

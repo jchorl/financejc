@@ -96,11 +96,7 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 						return err
 					}
 
-					if amt > 0 {
-						tr.Incoming = amt
-					} else {
-						tr.Outgoing = amt
-					}
+					tr.Amount = amt
 				case 'M':
 					tr.Note = line[1:]
 				case '^':

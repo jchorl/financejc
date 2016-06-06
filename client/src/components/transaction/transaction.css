@@ -1,13 +1,24 @@
 .transaction {
-  lost-flex-container: row;
-
   &:nth-child(odd) {
     background: ~colors.secondaryLight;
   }
 
-  .transactionField {
-    lost-column: 1/6;
-    box-sizing: border-box;
+  .transactionFields {
+    lost-flex-container: row;
     padding: 5px;
+
+    .transactionField {
+      lost-column: 1/4;
+      box-sizing: border-box;
+      padding: 5px;
+
+      &.nonEdit {
+        cursor: pointer;
+      }
+    }
+  }
+
+  .saveExit {
+    lost-align: right;
   }
 }
