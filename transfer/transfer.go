@@ -28,10 +28,11 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 	state := NONE
 	acc := &account.Account{}
 	tr := &transaction.Transaction{}
+	uncategorized := make([]*transaction.Transaction, 0)
 
 	scanner := bufio.NewScanner(file)
 
-	return datastore.RunInTransaction(c, func(c context.Context) error {
+	err = datastore.RunInTransaction(c, func(c context.Context) error {
 		for scanner.Scan() {
 			line := scanner.Text()
 
@@ -103,6 +104,11 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 					tr, err = transaction.New(c, acc.Id, tr)
 					if err != nil {
 						log.Debugf(c, "Error creating account: %s", err.Error())
+						return err
+					}
+
+					if tr.Category == "" {
+						uncategorized = append(uncategorized, tr)
 					}
 					tr = &transaction.Transaction{}
 				}
@@ -112,6 +118,49 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 		if err := scanner.Err(); err != nil {
 			return err
 		}
+		return nil
+	}, nil)
+
+	if err != nil {
+		log.Debugf(c, "Error executing transaction: %s", err.Error())
+		return err
+	}
+
+	return datastore.RunInTransaction(c, func(c context.Context) error {
+		// now take all the uncategorized transactions and try to pair them up based on date
+		for _, tr := range uncategorized {
+			if tr.Category == "" {
+				// try to find matching transaction
+				var tr2 *transaction.Transaction
+				found := false
+				for _, t := range uncategorized {
+					if t.Date == tr.Date && t.Amount == -tr.Amount {
+						tr2 = t
+						found = true
+						break
+					}
+				}
+
+				if found {
+					tr.RelatedTransaction = tr2.Id
+					tr.Category = "Credit Card Payment"
+					tr2.RelatedTransaction = tr.Id
+					tr2.Category = "Credit Card Payment"
+
+					_, err = transaction.Update(c, tr, tr.Id)
+					if err != nil {
+						log.Debugf(c, "Error updating transaction: %s", err.Error())
+						return err
+					}
+					_, err = transaction.Update(c, tr2, tr2.Id)
+					if err != nil {
+						log.Debugf(c, "Error updating transaction: %s", err.Error())
+						return err
+					}
+				}
+			}
+		}
+
 		return nil
 	}, nil)
 }
