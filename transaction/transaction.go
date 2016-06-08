@@ -14,7 +14,7 @@ type Transaction struct {
 	Id                 string    `datastore:"-" json:"id,omitempty" description:"Id of the transaction"`
 	Name               string    `json:"name" description:"Name of payer/payee"`
 	AccountId          string    `json:"accountId,omitempty" description:"Id of the account holding the transaction"`
-	Date               time.Time `json:"time" description:"Date of transaction"`
+	Date               time.Time `json:"date" description:"Date of transaction"`
 	Category           string    `json:"category" description:"Category of the transaction"`
 	Amount             float64   `json:"amount" description:"Amount"`
 	Note               string    `json:"note" description:"Note on the transaction"`

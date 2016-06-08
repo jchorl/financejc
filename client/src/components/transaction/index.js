@@ -1,5 +1,6 @@
 import React from 'react';
 import classNames from 'classnames';
+import { reduxForm } from 'redux-form';
 import styles from './transaction.css';
 import { toCurrency, toDate } from '../../utils';
 
@@ -35,7 +36,7 @@ export default class Transaction extends React.Component {
 		let fields = (
 			<div className={ styles.transactionFields }>
 				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.name }</span>
-				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.time) }</span>
+				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.date) }</span>
 				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.category }</span>
 				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(transaction.amount, currency) }</span>
 			</div>
@@ -43,28 +44,77 @@ export default class Transaction extends React.Component {
 
 		if (this.state.editMode) {
 			fields = (
-				<div className={ styles.transactionFields }>
-					<input type="text" className={ styles.transactionField } defaultValue={ transaction.name }/>
-					<input type="date" className={ styles.transactionField } defaultValue={ toDate(transaction.time) }/>
-					<input type="text" className={ styles.transactionField } defaultValue={ transaction.category }/>
-					<input type="text" className={ styles.transactionField } defaultValue={ transaction.amount }/>
-				</div>
+				<TransactionForm form={ transaction.id } transaction={ transaction }/>
 			);
 		}
 
 		return (
 			<div className={ styles.transaction }>
 				{ fields }
-				{ this.state.editMode && (
-					<div className={ styles.saveExit }>
-						<div>
-							<button onClick={ this.exitEditMode }>Cancel</button>
-							<button onClick={ this.save }>Save</button>
-						</div>
-					</div>
-				)}
 			</div>
 		)
 	}
 }
 
+function pad(n) {
+	return n<10 ? '0'+n : n
+}
+
+function toRFC3339(datestring) {
+	let d = new Date(datestring)
+	return d.getFullYear()+'-'
+	+ pad(d.getMonth()+1)+'-'
+	+ pad(d.getDate());
+}
+
+@reduxForm({
+	fields: [
+		'name',
+		'date',
+		'category',
+		'amount'
+	]
+},
+(state, props) => {
+	return {
+		initialValues: {
+			name: props.transaction.name,
+			date: toRFC3339(props.transaction.date),
+			category: props.transaction.category,
+			amount: props.transaction.amount
+		}
+	}
+})
+class TransactionForm extends React.Component {
+	static propTypes = {
+		fields: React.PropTypes.object.isRequired,
+		transaction: React.PropTypes.object.isRequired
+	};
+
+	render () {
+		const {
+			fields: {
+				name,
+				date,
+				category,
+				amount
+			},
+			handleSubmit
+		} = this.props;
+
+		return (
+			<form className={ styles.transactionFields } onSubmit={ handleSubmit }>
+				<input type="text" placeholder="Name" className={ styles.transactionField } { ...name }/>
+				<input type="date" placeholder={ toRFC3339() } className={ styles.transactionField } { ...date }/>
+				<input type="text" placeholder="Category" className={ styles.transactionField } { ...category }/>
+				<input type="text" placeholder="0" className={ styles.transactionField } { ...amount }/>
+				<div className={ styles.saveExit }>
+					<div>
+						<button onClick={ this.props.handleCancel }>Cancel</button>
+						<button type="submit">Save</button>
+					</div>
+				</div>
+			</form>
+		);
+	}
+}
