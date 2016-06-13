@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import { reduxForm } from 'redux-form';
 import styles from './transaction.css';
 import { toCurrency, toDate } from '../../utils';
+import { putTransaction } from '../../actions';
 
 export default class Transaction extends React.Component {
 	static propTypes = {
@@ -44,7 +45,7 @@ export default class Transaction extends React.Component {
 
 		if (this.state.editMode) {
 			fields = (
-				<TransactionForm form={ transaction.id } transaction={ transaction }/>
+				<TransactionForm form={ transaction.id } transaction={ transaction } done={ this.exitEditMode }/>
 			);
 		}
 
@@ -88,8 +89,16 @@ function toRFC3339(datestring) {
 class TransactionForm extends React.Component {
 	static propTypes = {
 		fields: React.PropTypes.object.isRequired,
-		transaction: React.PropTypes.object.isRequired
+		transaction: React.PropTypes.object.isRequired,
+		done: React.PropTypes.func.isRequired
 	};
+
+	submit = (data) => {
+		let obj = Object.assign({}, this.props.transaction, data);
+		obj.date = new Date(obj.date);
+		this.props.dispatch(putTransaction(obj));
+		this.props.done();
+	}
 
 	render () {
 		const {
@@ -103,14 +112,14 @@ class TransactionForm extends React.Component {
 		} = this.props;
 
 		return (
-			<form className={ styles.transactionFields } onSubmit={ handleSubmit }>
+			<form className={ styles.transactionFields } onSubmit={ handleSubmit(this.submit) }>
 				<input type="text" placeholder="Name" className={ styles.transactionField } { ...name }/>
 				<input type="date" placeholder={ toRFC3339() } className={ styles.transactionField } { ...date }/>
 				<input type="text" placeholder="Category" className={ styles.transactionField } { ...category }/>
 				<input type="text" placeholder="0" className={ styles.transactionField } { ...amount }/>
 				<div className={ styles.saveExit }>
 					<div>
-						<button onClick={ this.props.handleCancel }>Cancel</button>
+						<button type="button" onClick={ this.props.done }>Cancel</button>
 						<button type="submit">Save</button>
 					</div>
 				</div>
