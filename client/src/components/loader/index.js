@@ -8,12 +8,15 @@ export default class Loader extends React.Component {
 	}
 
 	render () {
-		if (this.props.loading) {
-			return <span>Loading</span>
-		}
 		return (
 			<div>
-				{ this.props.children }
+				{ this.props.loading
+					? (<span>Loading</span>)
+					: (
+						<div>
+							{ this.props.children }
+						</div>
+					)}
 			</div>
 		)
 	}

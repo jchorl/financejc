@@ -1,3 +1,12 @@
+import { normalize, Schema, arrayOf } from 'normalizr';
+
+const accountSchema = new Schema('accounts');
+const transactionSchema = new Schema('transactions');
+
+accountSchema.define({
+	transactions: arrayOf(transactionSchema)
+});
+
 export const REQUEST_LOGIN = 'REQUEST_LOGIN';
 export const requestLogin = () => {
 	return {
@@ -13,10 +22,10 @@ export const requestAccounts = () => {
 }
 
 export const RECEIVE_ACCOUNTS = 'RECEIVE_ACCOUNTS';
-export const receiveAccounts = (json) => {
+export const receiveAccounts = (accounts) => {
 	return {
 		type: RECEIVE_ACCOUNTS,
-		accounts: json
+		accounts
 	};
 }
 
@@ -35,10 +44,18 @@ export const receiveAuth = (authd) => {
 	};
 }
 
+export const RECEIVE_TRANSACTIONS = 'RECEIVE_TRANSACTION';
+export const receiveTransactions = (transactions) => {
+	return {
+		type: RECEIVE_TRANSACTIONS,
+		transactions
+	};
+}
+
 export const UPDATE_TRANSACTION = 'UPDATE_TRANSACTION';
 export const updateTransaction = (transaction) => {
 	return {
-		type: updateTransaction,
+		type: UPDATE_TRANSACTION,
 		transaction
 	};
 }
@@ -51,7 +68,11 @@ export function fetchAccounts() {
 			credentials: 'include'
 		})
 		.then(response => response.json())
-		.then(json => dispatch(receiveAccounts(json)));
+		.then(json => {
+			let normalized = normalize(json, arrayOf(accountSchema));
+			dispatch(receiveAccounts(normalized.entities.accounts))
+			dispatch(receiveTransactions(normalized.entities.transactions))
+		});
 	}
 }
 
@@ -97,7 +118,7 @@ export function login(googleUser) {
 	}
 }
 
-export function putTransaction(transaction) {
+export function putTransaction(index, transaction) {
 	return function(dispatch) {
 		let headers = new Headers();
 		headers.append("Accept", "application/json");
@@ -109,6 +130,6 @@ export function putTransaction(transaction) {
 			headers: headers
 		})
 		.then(response => response.json())
-		.then(json => dispatch(updateTransaction(transaction)));
+		.then(json => dispatch(updateTransaction(index, transaction)));
 	}
 }

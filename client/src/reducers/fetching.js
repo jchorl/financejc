@@ -1,11 +1,14 @@
 import {
+	REQUEST_ACCOUNTS,
 	RECEIVE_ACCOUNTS
 } from '../actions'
 
-export default (state = {}, action) => {
+export default (state = false, action) => {
 	switch (action.type) {
+		case REQUEST_ACCOUNTS:
+			return true;
 		case RECEIVE_ACCOUNTS:
-			return action.accounts
+			return false;
 		default:
 			return state
 	}

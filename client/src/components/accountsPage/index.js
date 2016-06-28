@@ -7,55 +7,87 @@ import TransactionList from '../transactionList';
 import Loader from '../loader';
 import styles from './accountsPage.css';
 
+@connect((state) => {
+	return {
+		accounts: state.accounts,
+	}
+})
 class AccountsPage extends React.Component {
 	static propTypes = {
-		accounts: React.PropTypes.array.isRequired
+		accounts: React.PropTypes.object.isRequired
 	}
 
 	constructor (props) {
 		super(props);
+		let selected = props.accounts.length
+			? Object.keys(props.accounts)[0]
+			: "";
 		this.state = {
-			selected: 0
+			selected: selected
 		};
 	}
 
-	selectAccount = (index) => {
+	selectAccount = (id) => {
 		this.setState({
-			selected: index
+			selected: id
 		});
 	}
 
-	render () {
-		const {
-			accounts
-		} = this.props;
+	componentWillReceiveProps (nextProps) {
+		console.log('comp will receive called');
+		if (!this.state.selected && nextProps.accounts.length) {
+			this.selectAccount(Object.keys(nextProps.accounts)[0]);
+		}
+	}
 
-		let transactions = [];
+	render () {
+		const accounts = this.props.accounts
+		const selected = this.state.selected;
+
+		let transactionIds = [];
 		let currency;
-		if (this.state.selected < accounts.length) {
-			transactions = accounts[this.state.selected].transactions;
-			currency = accounts[this.state.selected].currency;
+		if (selected) {
+			transactionIds = accounts[selected].transactions;
+			currency = accounts[selected].currency;
 		}
 
 		return (
 			<div className={ styles.accountsPage }>
-				<div className={ styles.accountList }>
-					<AccountList accounts={ accounts } selected={ this.state.selected } onSelect={ this.selectAccount }/>
-				</div>
-				<div className={ styles.transactionList }>
-					<TransactionList transactions={ transactions } currency={ currency } />
-				</div>
+				{
+					(() => {
+						if (Object.keys(accounts).length) {
+							return (
+								<div className={ styles.accountList }>
+									<AccountList selected={ selected } onSelect={ this.selectAccount }/>
+								</div>
+							);
+						}
+					})()
+				}
+				{
+					(() => {
+						if (transactionIds.length) {
+							return (
+								<div className={ styles.transactionList }>
+									<TransactionList transactionIds={ transactionIds } currency={ currency } />
+								</div>
+							);
+						}
+					})()
+				}
 			</div>
 		)
 	}
 }
 
 @connect((state) => {
-	return { accounts: state.accounts }
+	return {
+		fetching: state.fetching
+	}
 })
 export default class AccountsPageWrapper extends React.Component {
 	static propTypes = {
-		accounts: React.PropTypes.object.isRequired
+		fetching: React.PropTypes.bool.isRequired
 	}
 
 	constructor (props) {
@@ -65,8 +97,8 @@ export default class AccountsPageWrapper extends React.Component {
 
 	render () {
 		return (
-			<Loader loading={ this.props.accounts.isFetching }>
-				<AccountsPage accounts={ this.props.accounts.items } />
+			<Loader loading={ this.props.fetching }>
+				<AccountsPage />
 			</Loader>
 		)
 	}

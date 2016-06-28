@@ -1,13 +1,20 @@
 import React from 'react';
 import classNames from 'classnames';
+import { connect } from 'react-redux';
 import { reduxForm } from 'redux-form';
 import styles from './transaction.css';
 import { toCurrency, toDate } from '../../utils';
 import { putTransaction } from '../../actions';
 
+@connect((state) => {
+	return {
+		transactions: state.transactions
+	}
+})
 export default class Transaction extends React.Component {
 	static propTypes = {
-		transaction: React.PropTypes.object.isRequired,
+		transactionId: React.PropTypes.string.isRequired,
+		transactions: React.PropTypes.object.isRequired,
 		currency: React.PropTypes.string.isRequired
 	};
 
@@ -30,28 +37,25 @@ export default class Transaction extends React.Component {
 
 	render () {
 		const {
-			transaction,
+			transactions,
+			transactionId,
 			currency
 		} = this.props;
 
-		let fields = (
-			<div className={ styles.transactionFields }>
-				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.name }</span>
-				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.date) }</span>
-				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.category }</span>
-				<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(transaction.amount, currency) }</span>
-			</div>
-		);
-
-		if (this.state.editMode) {
-			fields = (
-				<TransactionForm form={ transaction.id } transaction={ transaction } done={ this.exitEditMode }/>
-			);
-		}
+		let transaction = transactions[transactionId];
 
 		return (
 			<div className={ styles.transaction }>
-				{ fields }
+				{ this.state.editMode ? (
+					<TransactionForm form={ transactionId } transaction={ transaction } done={ this.exitEditMode }/>
+				) : (
+					<div className={ styles.transactionFields }>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.name }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.date) }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.category }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(transaction.amount, currency) }</span>
+					</div>
+				) }
 			</div>
 		)
 	}
@@ -63,8 +67,8 @@ function pad(n) {
 
 function toRFC3339(datestring) {
 	let d = new Date(datestring)
-	return d.getFullYear()+'-'
-	+ pad(d.getMonth()+1)+'-'
+	return d.getFullYear() + '-'
+	+ pad(d.getMonth() + 1) + '-'
 	+ pad(d.getDate());
 }
 
@@ -94,10 +98,16 @@ class TransactionForm extends React.Component {
 	};
 
 	submit = (data) => {
-		let obj = Object.assign({}, this.props.transaction, data);
+		const {
+			dispatch,
+			done,
+			transaction
+		} = this.props;
+
+		let obj = Object.assign({}, transaction, data);
 		obj.date = new Date(obj.date);
-		this.props.dispatch(putTransaction(obj));
-		this.props.done();
+		dispatch(putTransaction(obj));
+		done();
 	}
 
 	render () {

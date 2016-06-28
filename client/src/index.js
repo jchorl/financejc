@@ -12,11 +12,12 @@ const initialState = window.__INITIAL_STATE__
 const rootElement = document.getElementById('app')
 const loggerMiddleware = createLogger()
 
-let store = createStore(reducers,
-						applyMiddleware(
-							thunkMiddleware,
-							loggerMiddleware
-						)
+let store = createStore(
+	reducers,
+	applyMiddleware(
+		thunkMiddleware,
+		loggerMiddleware
+	)
 );
 
 render(

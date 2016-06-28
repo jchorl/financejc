@@ -4,17 +4,13 @@ import styles from './transactionList.css';
 
 export default class TransactionList extends React.Component {
 	static propTypes = {
-		transactions: React.PropTypes.array.isRequired,
+		transactionIds: React.PropTypes.array.isRequired,
 		currency: React.PropTypes.string.isRequired
-	};
-
-	static defaultProps = {
-		transactions: [],
-		currency: 'USD'
 	};
 
 	render () {
 		const {
+			transactionIds,
 			transactions,
 			currency
 		} = this.props;
@@ -28,7 +24,7 @@ export default class TransactionList extends React.Component {
 					<span className={ styles.column }>Amount</span>
 				</div>
 				<div>
-					{ transactions.map(transaction => (<Transaction key={ transaction.id } transaction={ transaction } currency={ currency }/>)) }
+					{ transactionIds.map(transactionId => (<Transaction key={ transactionId } transactionId={ transactionId } currency={ currency }/>)) }
 				</div>
 			</div>
 		)
