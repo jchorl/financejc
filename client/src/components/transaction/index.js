@@ -44,7 +44,7 @@ export default class Transaction extends React.Component {
 
 		let transaction = transactions[transactionId];
 
-		return (
+		return transaction ? (
 			<div className={ styles.transaction }>
 				{ this.state.editMode ? (
 					<TransactionForm form={ transactionId } transaction={ transaction } done={ this.exitEditMode }/>
@@ -57,7 +57,7 @@ export default class Transaction extends React.Component {
 					</div>
 				) }
 			</div>
-		)
+		) : null
 	}
 }
 

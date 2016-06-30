@@ -7,3 +7,14 @@
     lost-column: 1/4;
   }
 }
+
+.newTransaction {
+  lost-column: 1/1;
+  border: none;
+  background: ~colors.primaryLight;
+  padding: 5px;
+
+  &:focus {
+    outline: none;
+  }
+}

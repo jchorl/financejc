@@ -8,6 +8,19 @@ export default class TransactionList extends React.Component {
 		currency: React.PropTypes.string.isRequired
 	};
 
+	constructor (props) {
+		super(props);
+		this.state = {
+			newTransaction: false
+		};
+	}
+
+	startNewTransaction = () => {
+		this.setState({
+			newTransaction: true
+		});
+	}
+
 	render () {
 		const {
 			transactionIds,
@@ -23,6 +36,17 @@ export default class TransactionList extends React.Component {
 					<span className={ styles.column }>Category</span>
 					<span className={ styles.column }>Amount</span>
 				</div>
+				{ !this.state.newTransaction ?
+					(
+						<button className={ styles.newTransaction } onClick={ this.startNewTransaction }>
+							New
+						</button>
+					) : (
+						<div>
+							New Transaction Form
+						</div>
+					)
+				}
 				<div>
 					{ transactionIds.map(transactionId => (<Transaction key={ transactionId } transactionId={ transactionId } currency={ currency }/>)) }
 				</div>

@@ -19,7 +19,7 @@ class AccountsPage extends React.Component {
 
 	constructor (props) {
 		super(props);
-		let selected = props.accounts.length
+		let selected = Object.keys(props.accounts).length !== 0
 			? Object.keys(props.accounts)[0]
 			: "";
 		this.state = {
@@ -31,13 +31,6 @@ class AccountsPage extends React.Component {
 		this.setState({
 			selected: id
 		});
-	}
-
-	componentWillReceiveProps (nextProps) {
-		console.log('comp will receive called');
-		if (!this.state.selected && nextProps.accounts.length) {
-			this.selectAccount(Object.keys(nextProps.accounts)[0]);
-		}
 	}
 
 	render () {
@@ -54,26 +47,18 @@ class AccountsPage extends React.Component {
 		return (
 			<div className={ styles.accountsPage }>
 				{
-					(() => {
-						if (Object.keys(accounts).length) {
-							return (
-								<div className={ styles.accountList }>
-									<AccountList selected={ selected } onSelect={ this.selectAccount }/>
-								</div>
-							);
-						}
-					})()
+					Object.keys(accounts).length !== 0 ? (
+						<div className={ styles.accountList }>
+							<AccountList selected={ selected } onSelect={ this.selectAccount }/>
+						</div>
+					) : null
 				}
 				{
-					(() => {
-						if (transactionIds.length) {
-							return (
-								<div className={ styles.transactionList }>
-									<TransactionList transactionIds={ transactionIds } currency={ currency } />
-								</div>
-							);
-						}
-					})()
+					transactionIds.length !== 0 ? (
+						<div className={ styles.transactionList }>
+							<TransactionList transactionIds={ transactionIds } currency={ currency } />
+						</div>
+					) : null
 				}
 			</div>
 		)
