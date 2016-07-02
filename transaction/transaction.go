@@ -84,7 +84,7 @@ func Update(c context.Context, transaction *Transaction, transactionId string) (
 	newTransactionKey := oldTransactionKey
 
 	// check if parent has changed
-	if transaction.AccountId != old.AccountId {
+	if transaction.AccountId != "" && transaction.AccountId != old.AccountId {
 		accountKey, err := datastore.DecodeKey(transaction.AccountId)
 		if err != nil {
 			log.Errorf(c, "could not decode new account id: %+v", err)

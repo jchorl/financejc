@@ -13,6 +13,7 @@
   border: none;
   background: ~colors.primaryLight;
   padding: 5px;
+  cursor: pointer;
 
   &:focus {
     outline: none;

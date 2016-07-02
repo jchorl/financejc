@@ -56,7 +56,7 @@ class AccountsPage extends React.Component {
 				{
 					transactionIds.length !== 0 ? (
 						<div className={ styles.transactionList }>
-							<TransactionList transactionIds={ transactionIds } currency={ currency } />
+							<TransactionList accountId={ selected } transactionIds={ transactionIds } currency={ currency } />
 						</div>
 					) : null
 				}

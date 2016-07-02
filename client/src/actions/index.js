@@ -52,10 +52,10 @@ export const receiveTransactions = (transactions) => {
 	};
 }
 
-export const UPDATE_TRANSACTION = 'UPDATE_TRANSACTION';
-export const updateTransaction = (transaction) => {
+export const PUT_TRANSACTION = 'PUT_TRANSACTION';
+export const updateTransactions = (transaction) => {
 	return {
-		type: UPDATE_TRANSACTION,
+		type: PUT_TRANSACTION,
 		transaction
 	};
 }
@@ -70,8 +70,10 @@ export function fetchAccounts() {
 		.then(response => response.json())
 		.then(json => {
 			let normalized = normalize(json, arrayOf(accountSchema));
-			dispatch(receiveAccounts(normalized.entities.accounts))
-			dispatch(receiveTransactions(normalized.entities.transactions))
+			let accounts = normalized.entities.accounts || {};
+			let transactions = normalized.entities.transactions || {};
+			dispatch(receiveAccounts(accounts));
+			dispatch(receiveTransactions(transactions));
 		});
 	}
 }
@@ -118,18 +120,34 @@ export function login(googleUser) {
 	}
 }
 
-export function putTransaction(index, transaction) {
+export function putTransaction(transaction) {
+	let headers = new Headers();
+	headers.append("Accept", "application/json");
+	headers.append("Content-Type", "application/json");
+
+	// if editing a transaction
+	if (transaction.id) {
+		return function(dispatch) {
+			return fetch(`/transaction/${transaction.id}`, {
+				method: 'PUT',
+				body: JSON.stringify(transaction),
+				credentials: 'include',
+				headers: headers
+			})
+			.then(response => response.json())
+			.then(json => dispatch(updateTransactions(json)));
+		}
+	}
+
+	// new transaction
 	return function(dispatch) {
-		let headers = new Headers();
-		headers.append("Accept", "application/json");
-		headers.append("Content-Type", "application/json");
-		return fetch(`/transaction/${transaction.id}`, {
-			method: 'PUT',
+		return fetch(`/account/${transaction.accountId}/transactions`, {
+			method: 'POST',
 			body: JSON.stringify(transaction),
 			credentials: 'include',
 			headers: headers
 		})
 		.then(response => response.json())
-		.then(json => dispatch(updateTransaction(index, transaction)));
+		.then(json => dispatch(updateTransactions(json)));
 	}
 }

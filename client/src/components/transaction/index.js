@@ -11,7 +11,7 @@ import { putTransaction } from '../../actions';
 		transactions: state.transactions
 	}
 })
-export default class Transaction extends React.Component {
+export class Transaction extends React.Component {
 	static propTypes = {
 		transactionId: React.PropTypes.string.isRequired,
 		transactions: React.PropTypes.object.isRequired,
@@ -81,33 +81,50 @@ function toRFC3339(datestring) {
 	]
 },
 (state, props) => {
+	if (props.transaction) {
+		return {
+			initialValues: {
+				name: props.transaction.name,
+				date: toRFC3339(props.transaction.date),
+				category: props.transaction.category,
+				amount: props.transaction.amount
+			}
+		};
+	}
 	return {
 		initialValues: {
-			name: props.transaction.name,
-			date: toRFC3339(props.transaction.date),
-			category: props.transaction.category,
-			amount: props.transaction.amount
+			name: "",
+			date: toRFC3339(new Date()),
+			category: "",
+			amount: 0
 		}
-	}
+	};
 })
-class TransactionForm extends React.Component {
+export class TransactionForm extends React.Component {
 	static propTypes = {
 		fields: React.PropTypes.object.isRequired,
-		transaction: React.PropTypes.object.isRequired,
-		done: React.PropTypes.func.isRequired
+		// either transaction (for editing) or accountId (for new transactions) should be passed
+		transaction: React.PropTypes.object,
+		accountId: React.PropTypes.string,
+		done: React.PropTypes.func
 	};
 
 	submit = (data) => {
 		const {
+			accountId,
 			dispatch,
 			done,
 			transaction
 		} = this.props;
 
+		console.log(`about to submit accountId: ${accountId}`);
+
 		let obj = Object.assign({}, transaction, data);
 		obj.date = new Date(obj.date);
+		obj.accountId = accountId;
+		obj.amount = parseFloat(obj.amount);
 		dispatch(putTransaction(obj));
-		done();
+		done && done();
 	}
 
 	render () {
@@ -126,7 +143,7 @@ class TransactionForm extends React.Component {
 				<input type="text" placeholder="Name" className={ styles.transactionField } { ...name }/>
 				<input type="date" placeholder={ toRFC3339() } className={ styles.transactionField } { ...date }/>
 				<input type="text" placeholder="Category" className={ styles.transactionField } { ...category }/>
-				<input type="text" placeholder="0" className={ styles.transactionField } { ...amount }/>
+				<input type="number" placeholder="0" step="0.01" className={ styles.transactionField } { ...amount }/>
 				<div className={ styles.saveExit }>
 					<div>
 						<button type="button" onClick={ this.props.done }>Cancel</button>

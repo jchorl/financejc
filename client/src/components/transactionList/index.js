@@ -1,9 +1,10 @@
 import React from 'react';
-import Transaction from '../transaction';
 import styles from './transactionList.css';
+import { Transaction, TransactionForm } from '../transaction';
 
 export default class TransactionList extends React.Component {
 	static propTypes = {
+		accountId: React.PropTypes.string.isRequired,
 		transactionIds: React.PropTypes.array.isRequired,
 		currency: React.PropTypes.string.isRequired
 	};
@@ -21,10 +22,16 @@ export default class TransactionList extends React.Component {
 		});
 	}
 
+	exitNewTransaction = () => {
+		this.setState({
+			newTransaction: false
+		});
+	}
+
 	render () {
 		const {
+			accountId,
 			transactionIds,
-			transactions,
 			currency
 		} = this.props;
 
@@ -42,9 +49,7 @@ export default class TransactionList extends React.Component {
 							New
 						</button>
 					) : (
-						<div>
-							New Transaction Form
-						</div>
+						<TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction }/>
 					)
 				}
 				<div>
