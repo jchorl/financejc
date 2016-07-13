@@ -72,7 +72,7 @@ func loggedOutFilter(request *restful.Request, response *restful.Response, chain
 	chain.ProcessFilter(request, response)
 }
 
-func init() {
+func Run() {
 	ws := new(restful.WebService)
 
 	ws.
