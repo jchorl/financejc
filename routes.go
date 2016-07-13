@@ -2,7 +2,6 @@ package financejc
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -11,11 +10,11 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
-	"account"
-	"auth"
-	"credentials"
-	"handlers"
-	"transaction"
+	"github.com/jchorl/financejc/account"
+	"github.com/jchorl/financejc/auth"
+	"github.com/jchorl/financejc/credentials"
+	"github.com/jchorl/financejc/handlers"
+	"github.com/jchorl/financejc/transaction"
 )
 
 var NotLoggedIn = errors.New("User is not logged in")
@@ -29,16 +28,12 @@ func getGaeURL() string {
 }
 
 func getUserId(unparsed string) (string, error) {
-	token, err := jwt.Parse(unparsed, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New(fmt.Sprintf("Unexpected signing method: %v", token.Header["alg"]))
-		}
+	token, err := jwt.ParseWithClaims(unparsed, &handlers.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(credentials.JWT_SIGNING_KEY), nil
 	})
-	if err == nil && token.Valid {
-		return token.Claims["userId"].(string), nil
-	} else if err != nil {
+	if claims, ok := token.Claims.(*handlers.JWTClaims); ok && token.Valid {
+		return claims.UserId, nil
+	} else {
 		return "", err
 	}
 	return "", NotLoggedIn

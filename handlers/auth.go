@@ -7,9 +7,14 @@ import (
 	"google.golang.org/appengine/log"
 	"net/http"
 
-	"auth"
-	"credentials"
+	"github.com/jchorl/financejc/auth"
+	"github.com/jchorl/financejc/credentials"
 )
+
+type JWTClaims struct {
+	UserId string `json:"userId"`
+	jwt.StandardClaims
+}
 
 func CheckAuth(request *restful.Request, response *restful.Response) {
 	// if already passed the logged out filter, return 401
@@ -35,8 +40,7 @@ func AuthUser(request *restful.Request, response *restful.Response) {
 	}
 	log.Debugf(c, "authed with userId: %s", userId)
 
-	token := jwt.New(jwt.SigningMethodHS256)
-	token.Claims["userId"] = userId
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{userId, jwt.StandardClaims{}})
 	tokenStr, err := token.SignedString([]byte(credentials.JWT_SIGNING_KEY))
 	if err != nil {
 		log.Errorf(c, "error getting signed jwt: %+v", err)

@@ -8,7 +8,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
-	"transfer"
+	"github.com/jchorl/financejc/transfer"
 )
 
 func Transfer(request *restful.Request, response *restful.Response) {

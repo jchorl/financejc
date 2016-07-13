@@ -7,7 +7,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
-	"transaction"
+	"github.com/jchorl/financejc/transaction"
 )
 
 func GetTransactions(request *restful.Request, response *restful.Response) {

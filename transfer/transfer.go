@@ -12,8 +12,8 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 
-	"account"
-	"transaction"
+	"github.com/jchorl/financejc/account"
+	"github.com/jchorl/financejc/transaction"
 )
 
 const (

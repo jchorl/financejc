@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/emicklei/go-restful"
 
-	"currency"
+	"github.com/jchorl/financejc/currency"
 )
 
 func GetCurrencies(request *restful.Request, response *restful.Response) {
