@@ -1,4 +1,4 @@
 credentials
-client/node_modules
-client/dest/bundle.js
-client/dest/bundle.js.map
+appengine/client/node_modules
+appengine/client/dest/bundle.js
+appengine/client/dest/bundle.js.map

@@ -7,7 +7,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
-	"account"
+	"github.com/jchorl/financejc/account"
 )
 
 func GetAccounts(request *restful.Request, response *restful.Response) {

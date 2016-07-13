@@ -8,8 +8,8 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 
-	"currency"
-	"transaction"
+	"github.com/jchorl/financejc/currency"
+	"github.com/jchorl/financejc/transaction"
 )
 
 const dbKey string = "Account"

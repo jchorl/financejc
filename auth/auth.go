@@ -6,7 +6,7 @@ import (
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/urlfetch"
 
-	"user"
+	"github.com/jchorl/financejc/user"
 )
 
 type Request struct {
