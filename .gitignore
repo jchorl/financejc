@@ -1,4 +1,4 @@
-credentials
+import/*
 appengine/client/node_modules
 appengine/client/dest/bundle.js
 appengine/client/dest/bundle.js.map
