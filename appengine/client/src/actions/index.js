@@ -78,6 +78,23 @@ export function fetchAccounts() {
 	}
 }
 
+export function importData() {
+	return function(dispatch) {
+		let headers = new Headers();
+		headers.append("Accept", "application/json");
+		headers.append("Content-Type", "application/json");
+		return fetch(`/import`, {
+			method: 'POST',
+			credentials: 'include',
+			headers: headers
+		}).then((resp) => {
+			if (resp.ok) {
+				dispatch(fetchAccounts());
+			}
+		});
+	}
+}
+
 export function fetchAuth() {
 	return function(dispatch) {
 		dispatch(checkAuth());
@@ -106,7 +123,7 @@ export function login(googleUser) {
 			body: JSON.stringify({
 				token: googleUser.getAuthResponse().id_token
 			}),
-			credentials: 'same-origin',
+			credentials: 'include',
 			headers: headers
 		})
 		.then((resp) => {

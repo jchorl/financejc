@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
-import { fetchAccounts } from '../../actions';
+import { fetchAccounts, importData } from '../../actions';
 import AccountList from '../accountList';
 import TransactionList from '../transactionList';
 import Loader from '../loader';
@@ -33,6 +33,10 @@ class AccountsPage extends React.Component {
 		});
 	}
 
+	importButton = () => {
+		this.props.dispatch(importData());
+	}
+
 	render () {
 		const accounts = this.props.accounts
 		const selected = this.state.selected;
@@ -51,7 +55,11 @@ class AccountsPage extends React.Component {
 						<div className={ styles.accountList }>
 							<AccountList selected={ selected } onSelect={ this.selectAccount }/>
 						</div>
-					) : null
+					) : (
+						<div>
+							Place QIF files in the /import folder and click <button onClick={ this.importButton }>Import</button>
+						</div>
+					)
 				}
 				{
 					transactionIds.length !== 0 ? (
