@@ -137,7 +137,7 @@ export function login(googleUser) {
 	}
 }
 
-export function putTransaction(transaction, accountId) {
+export function putTransaction(transaction) {
 	let headers = new Headers();
 	headers.append("Accept", "application/json");
 	headers.append("Content-Type", "application/json");
@@ -158,7 +158,7 @@ export function putTransaction(transaction, accountId) {
 
 	// new transaction
 	return function(dispatch) {
-		return fetch(`/account/${accountId}/transactions`, {
+		return fetch(`/account/${transaction.accountId}/transactions`, {
 			method: 'POST',
 			body: JSON.stringify(transaction),
 			credentials: 'include',
