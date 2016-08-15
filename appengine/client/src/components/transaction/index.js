@@ -117,13 +117,10 @@ export class TransactionForm extends React.Component {
 			transaction
 		} = this.props;
 
-		console.log(`about to submit accountId: ${accountId}`);
-
 		let obj = Object.assign({}, transaction, data);
 		obj.date = new Date(obj.date);
-		obj.accountId = accountId;
 		obj.amount = parseFloat(obj.amount);
-		dispatch(putTransaction(obj));
+		dispatch(putTransaction(obj, accountId));
 		done && done();
 	}
 
