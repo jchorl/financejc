@@ -4,5 +4,5 @@ export function toCurrency(num, currency) {
 
 export function toDate(date) {
 	let d = new Date(date);
-	return d.toLocaleDateString();
+	return d.toLocaleDateString(undefined, {timeZone: "UTC"});
 }
