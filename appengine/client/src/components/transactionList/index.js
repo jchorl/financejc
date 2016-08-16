@@ -5,7 +5,7 @@ import { Transaction, TransactionForm } from '../transaction';
 export default class TransactionList extends React.Component {
 	static propTypes = {
 		accountId: React.PropTypes.string.isRequired,
-		transactionIds: React.PropTypes.array.isRequired,
+		transactionIds: React.PropTypes.object.isRequired,
 		currency: React.PropTypes.string.isRequired
 	};
 
@@ -53,7 +53,7 @@ export default class TransactionList extends React.Component {
 					)
 				}
 				<div>
-					{ transactionIds.map(transactionId => (<Transaction key={ transactionId } transactionId={ transactionId } currency={ currency }/>)) }
+					{ transactionIds.map(transactionId => (<Transaction key={ transactionId } transactionId={ transactionId } currency={ currency }/>)).toArray() }
 				</div>
 			</div>
 		)

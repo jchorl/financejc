@@ -8,7 +8,7 @@ import { putTransaction } from '../../actions';
 
 @connect((state) => {
 	return {
-		transactions: state.transactions
+		transactions: state.accountTransaction.get('transaction')
 	}
 })
 export class Transaction extends React.Component {
@@ -42,7 +42,7 @@ export class Transaction extends React.Component {
 			currency
 		} = this.props;
 
-		let transaction = transactions[transactionId];
+		let transaction = transactions.get(transactionId);
 
 		return transaction ? (
 			<div className={ styles.transaction }>
@@ -50,10 +50,10 @@ export class Transaction extends React.Component {
 					<TransactionForm form={ transactionId } transaction={ transaction } done={ this.exitEditMode }/>
 				) : (
 					<div className={ styles.transactionFields }>
-						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.name }</span>
-						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.date) }</span>
-						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.category }</span>
-						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(transaction.amount, currency) }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.get('date')) }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('category') }</span>
+						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(transaction.get('amount'), currency) }</span>
 					</div>
 				) }
 			</div>
@@ -65,11 +65,10 @@ function pad(n) {
 	return n<10 ? '0'+n : n
 }
 
-function toRFC3339(datestring) {
-	let d = new Date(datestring)
-	return d.getFullYear() + '-'
-	+ pad(d.getMonth() + 1) + '-'
-	+ pad(d.getDate());
+function toRFC3339(d) {
+	return d.getUTCFullYear() + '-'
+	+ pad(d.getUTCMonth() + 1) + '-'
+	+ pad(d.getUTCDate());
 }
 
 @reduxForm({
@@ -84,10 +83,10 @@ function toRFC3339(datestring) {
 	if (props.transaction) {
 		return {
 			initialValues: {
-				name: props.transaction.name,
-				date: toRFC3339(props.transaction.date),
-				category: props.transaction.category,
-				amount: props.transaction.amount
+				name: props.transaction.get('name'),
+				date: toRFC3339(props.transaction.get('date')),
+				category: props.transaction.get('category'),
+				amount: props.transaction.get('amount')
 			}
 		};
 	}
@@ -117,9 +116,10 @@ export class TransactionForm extends React.Component {
 			transaction
 		} = this.props;
 
-		console.log(`about to submit accountId: ${accountId}`);
-
-		let obj = Object.assign({}, transaction, data);
+		let obj = data;
+		if (transaction) {
+			obj = Object.assign(transaction.toObject(), data);
+		}
 		obj.date = new Date(obj.date);
 		obj.accountId = accountId;
 		obj.amount = parseFloat(obj.amount);
@@ -141,9 +141,9 @@ export class TransactionForm extends React.Component {
 		return (
 			<form className={ styles.transactionFields } onSubmit={ handleSubmit(this.submit) }>
 				<input type="text" placeholder="Name" className={ styles.transactionField } { ...name }/>
-				<input type="date" placeholder={ toRFC3339() } className={ styles.transactionField } { ...date }/>
+				<input type="date" placeholder={ toRFC3339(new Date()) } className={ styles.transactionField } { ...date }/>
 				<input type="text" placeholder="Category" className={ styles.transactionField } { ...category }/>
-				<input type="number" placeholder="0" step="0.01" className={ styles.transactionField } { ...amount }/>
+				<input type="text" placeholder="0" className={ styles.transactionField } { ...amount }/>
 				<div className={ styles.saveExit }>
 					<div>
 						<button type="button" onClick={ this.props.done }>Cancel</button>

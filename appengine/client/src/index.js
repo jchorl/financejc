@@ -15,8 +15,7 @@ const loggerMiddleware = createLogger()
 let store = createStore(
 	reducers,
 	applyMiddleware(
-		thunkMiddleware,
-		loggerMiddleware
+		thunkMiddleware
 	)
 );
 

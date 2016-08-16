@@ -7,7 +7,7 @@ import styles from './accountList.css';
 
 @connect((state) => {
 	return {
-		accounts: state.accounts
+		accounts: state.accountTransaction.get('account')
 	}
 })
 export default class AccountList extends React.Component {
@@ -28,21 +28,20 @@ export default class AccountList extends React.Component {
 			<div>
 				<h3 className={ styles.accountsTitle }>Accounts</h3>
 				<div>
-					{ Object.keys(accounts).map(id => {
-						let account = accounts[id];
+					{ accounts.map(account => {
 						let selectedClass = {};
-						selectedClass[styles.selected] = selected === account.id;
+						selectedClass[styles.selected] = selected === account.get('id');
 						return (
-							<button key={ account.id } className={ classNames(styles.accountButton, selectedClass) } onClick={ onSelect.bind(this, id) }>
+							<button key={ account.get('id') } className={ classNames(styles.accountButton, selectedClass) } onClick={ onSelect.bind(this, account.get('id')) }>
 								<div className={ styles.accountName }>
-									{ account.name }
+									{ account.get('name') }
 								</div>
 								<div className={ styles.accountBalance }>
-									Balance: { toCurrency(account.balance, account.currency) }
+									Balance: { toCurrency(account.get('balance'), account.get('currency')) }
 								</div>
 							</button>
 						)
-					}) }
+					}).valueSeq().toArray() }
 				</div>
 			</div>
 		)

@@ -50,6 +50,23 @@ func getByAncestorId(c context.Context, id string) ([]*Transaction, error) {
 	return transactions, nil
 }
 
+func getById(c context.Context, id string) (*Transaction, error) {
+	key, err := datastore.DecodeKey(id)
+	if err != nil {
+		log.Errorf(c, "could not get key: %+v", err)
+		return nil, err
+	}
+	t := Transaction{}
+	err = datastore.Get(c, key, &t)
+	if err != nil {
+		log.Errorf(c, "failed to fetch transaction: %+v", err)
+		return nil, err
+	}
+
+	t.Id = id
+	return &t, nil
+}
+
 func New(c context.Context, accountId string, transaction *Transaction) (*Transaction, error) {
 	accountKey, err := datastore.DecodeKey(accountId)
 	if err != nil {
@@ -68,44 +85,22 @@ func New(c context.Context, accountId string, transaction *Transaction) (*Transa
 }
 
 func Update(c context.Context, transaction *Transaction, transactionId string) (*Transaction, error) {
-	oldTransactionKey, err := datastore.DecodeKey(transactionId)
+	transactionKey, err := datastore.DecodeKey(transactionId)
 	if err != nil {
 		log.Errorf(c, "transaction id not valid: %+v", err)
 		return nil, err
 	}
 
-	old := &Transaction{}
-	err = datastore.Get(c, oldTransactionKey, old)
+	saved, err := getById(c, transactionId)
 	if err != nil {
-		log.Errorf(c, "could not fetch transaction: %+v", err)
 		return nil, err
 	}
+	transaction.AccountId = saved.AccountId
 
-	newTransactionKey := oldTransactionKey
-
-	// check if parent has changed
-	if transaction.AccountId != "" && transaction.AccountId != old.AccountId {
-		accountKey, err := datastore.DecodeKey(transaction.AccountId)
-		if err != nil {
-			log.Errorf(c, "could not decode new account id: %+v", err)
-			return nil, err
-		}
-		newTransactionKey = datastore.NewIncompleteKey(c, dbKey, accountKey)
-	}
-
-	key, err := datastore.Put(c, newTransactionKey, transaction)
+	key, err := datastore.Put(c, transactionKey, transaction)
 	if err != nil {
 		log.Errorf(c, "could not save new transaction: %+v", err)
 		return nil, err
-	}
-
-	// if parent changed, clean up old transaction
-	if transaction.AccountId != old.AccountId {
-		err = datastore.Delete(c, oldTransactionKey)
-		if err != nil {
-			log.Errorf(c, "saved new transaction but could not delete old one: %+v", err)
-			return nil, err
-		}
 	}
 
 	transaction.Id = key.Encode()

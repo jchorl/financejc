@@ -1,4 +1,5 @@
 import React from 'react';
+import Immutable from 'immutable';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
 import { fetchAccounts, importData } from '../../actions';
@@ -9,7 +10,7 @@ import styles from './accountsPage.css';
 
 @connect((state) => {
 	return {
-		accounts: state.accounts,
+		accounts: state.accountTransaction.get('account')
 	}
 })
 class AccountsPage extends React.Component {
@@ -19,8 +20,8 @@ class AccountsPage extends React.Component {
 
 	constructor (props) {
 		super(props);
-		let selected = Object.keys(props.accounts).length !== 0
-			? Object.keys(props.accounts)[0]
+		let selected = props.accounts.size !== 0
+			? props.accounts.first().get('id')
 			: "";
 		this.state = {
 			selected: selected
@@ -41,17 +42,17 @@ class AccountsPage extends React.Component {
 		const accounts = this.props.accounts
 		const selected = this.state.selected;
 
-		let transactionIds = [];
+		let transactionIds = Immutable.List();
 		let currency;
 		if (selected) {
-			transactionIds = accounts[selected].transactions;
-			currency = accounts[selected].currency;
+			transactionIds = accounts.get(selected).get('transactions');
+			currency = accounts.get(selected).get('currency');
 		}
 
 		return (
 			<div className={ styles.accountsPage }>
 				{
-					Object.keys(accounts).length !== 0 ? (
+					accounts.size !== 0 ? (
 						<div className={ styles.accountList }>
 							<AccountList selected={ selected } onSelect={ this.selectAccount }/>
 						</div>
@@ -62,7 +63,7 @@ class AccountsPage extends React.Component {
 					)
 				}
 				{
-					transactionIds.length !== 0 ? (
+					transactionIds.size !== 0 ? (
 						<div className={ styles.transactionList }>
 							<TransactionList accountId={ selected } transactionIds={ transactionIds } currency={ currency } />
 						</div>

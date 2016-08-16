@@ -1,14 +1,12 @@
 import { combineReducers } from 'redux';
 import {reducer as form} from 'redux-form';
-import accounts from './accounts';
 import auth from './auth';
 import fetching from './fetching';
-import transactions from './transactions';
+import accountTransaction from './accountTransaction.js';
 
 export default combineReducers({
 	fetching,
-	accounts,
 	auth,
-	transactions,
+	accountTransaction,
 	form
 });
