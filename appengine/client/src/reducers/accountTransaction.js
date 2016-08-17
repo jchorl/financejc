@@ -6,7 +6,7 @@ import {
 } from '../actions'
 
 function insert(transaction, transactionList, transactionState) {
-  return transactionList.insert(locationOf(transaction, transactionList, transactionState, dateCompare) + 1, transaction.get('id'));
+  return transactionList.insert(locationOf(transaction, transactionList, transactionState, dateCompare), transaction.get('id'));
 }
 
 function locationOf(transaction, transactionList, transactionState, comparer, start, end) {
@@ -50,24 +50,16 @@ function reorderAccountTransactions(transaction, accountState, transactionState)
 }
 
 export default (state = Immutable.Map(), action) => {
+	let reorder = false;
+	// if action is transaction update and either the transaction is new or the date changed
+	if (action.type === PUT_TRANSACTION
+		&& (!state.get('transaction').has(action.transaction.id) || (new Date(action.transaction.date)).getTime() !== state.get('transaction').get(action.transaction.id).get('date').getTime())) {
+		reorder = true;
+	}
 	let accountData = accounts(state.get('account'), action);
 	const transactionData = transactions(state.get('transaction'), action);
-	if (action.type === PUT_TRANSACTION) {
-		// console.log('before: ');
-		// let z = accountData["aghkZXZ-Tm9uZXIlCxIEVXNlchiAgICAgICACgwLEgdBY2NvdW50GICAgICAgJsIDA"].transactions[0];
-		// let f = accountData["aghkZXZ-Tm9uZXIlCxIEVXNlchiAgICAgICACgwLEgdBY2NvdW50GICAgICAgJsIDA"].transactions[1];
-		// console.log(z);
-		// console.log(transactionData[z]);
-		// console.log(f);
-		// console.log(transactionData[f]);
+	if (reorder) {
 		accountData = reorderAccountTransactions(transactionData.get(action.transaction.id), accountData, transactionData);
-		// console.log('after: ');
-		// z = accountData["aghkZXZ-Tm9uZXIlCxIEVXNlchiAgICAgICACgwLEgdBY2NvdW50GICAgICAgJsIDA"].transactions[0];
-		// f = accountData["aghkZXZ-Tm9uZXIlCxIEVXNlchiAgICAgICACgwLEgdBY2NvdW50GICAgICAgJsIDA"].transactions[1];
-		// console.log(z);
-		// console.log(transactionData[z]);
-		// console.log(f);
-		// console.log(transactionData[f]);
 	}
 	return Immutable.fromJS({
 		account: accountData,
