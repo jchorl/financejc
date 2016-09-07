@@ -4,28 +4,43 @@ import { login } from '../../actions'
 
 @connect()
 export default class GoogleLoginButton extends React.Component {
-	constructor(props) {
-		super(props);
-		window.onload = function() {
-			gapi.load('auth2', function(){
-				let auth2 = gapi.auth2.init({
-					client_id: '900762983843-0ih1hv6b4mf4ql847ini51hhfc4svqoc.apps.googleusercontent.com',
-					scope: 'email'
-				});
-				let btnEl = document.getElementById('googleBtn');
-				if (btnEl) {
-					auth2.attachClickHandler(btnEl, {},
-											 function(googleUser) {
-												 props.dispatch(login(googleUser));
-											 }, function(error) {
-												 console.log(error);
-											 });
-				}
-			});
-		};
+	static propTypes = {
+		dispatch: React.PropTypes.func.isRequired
 	}
 
-	render () {
+	attachToButton(dispatcher) {
+		gapi.load('auth2', function(){
+			let auth2 = gapi.auth2.init({
+				client_id: '900762983843-0ih1hv6b4mf4ql847ini51hhfc4svqoc.apps.googleusercontent.com',
+				scope: 'email'
+			});
+			let btnEl = document.getElementById("googleBtn");
+			if (btnEl) {
+				auth2.attachClickHandler(btnEl, {},
+										 function(googleUser) {
+											 dispatcher(login(googleUser));
+										 }, function(error) {
+											 console.log(error);
+										 });
+			}
+		});
+	}
+
+	componentDidMount() {
+		if (document.readyState === 'complete') {
+			this.attachToButton(this.props.dispatch);
+		} else {
+			window.onload = function() {
+				this.attachToButton(this.props.dispatch);
+			};
+		}
+	}
+
+	componentWillUnmount() {
+		window.onload = undefined;
+	}
+
+	render() {
 		return (
 			<div id="googleBtn">
 				<span>Login with Google</span>

@@ -7,7 +7,7 @@ import styles from './accountList.css';
 
 @connect((state) => {
 	return {
-		accounts: state.accountTransaction.get('account')
+		accounts: state.account
 	}
 })
 export default class AccountList extends React.Component {
@@ -37,7 +37,7 @@ export default class AccountList extends React.Component {
 									{ account.get('name') }
 								</div>
 								<div className={ styles.accountBalance }>
-									Balance: { toCurrency(account.get('balance'), account.get('currency')) }
+									Balance: { toCurrency(45, account.get('currency')) }
 								</div>
 							</button>
 						)

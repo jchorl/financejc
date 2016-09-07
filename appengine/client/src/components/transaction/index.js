@@ -1,20 +1,13 @@
 import React from 'react';
 import classNames from 'classnames';
-import { connect } from 'react-redux';
 import { reduxForm } from 'redux-form';
 import styles from './transaction.css';
 import { toCurrency, toDate } from '../../utils';
 import { putTransaction } from '../../actions';
 
-@connect((state) => {
-	return {
-		transactions: state.accountTransaction.get('transaction')
-	}
-})
 export class Transaction extends React.Component {
 	static propTypes = {
-		transactionId: React.PropTypes.string.isRequired,
-		transactions: React.PropTypes.object.isRequired,
+		transaction: React.PropTypes.object,
 		currency: React.PropTypes.string.isRequired
 	};
 
@@ -37,17 +30,14 @@ export class Transaction extends React.Component {
 
 	render () {
 		const {
-			transactions,
-			transactionId,
+			transaction,
 			currency
 		} = this.props;
-
-		let transaction = transactions.get(transactionId);
 
 		return transaction ? (
 			<div className={ styles.transaction }>
 				{ this.state.editMode ? (
-					<TransactionForm form={ transactionId } transaction={ transaction } done={ this.exitEditMode }/>
+					<TransactionForm form={ transaction.id } transaction={ transaction } done={ this.exitEditMode }/>
 				) : (
 					<div className={ styles.transactionFields }>
 						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>

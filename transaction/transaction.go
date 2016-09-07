@@ -8,7 +8,15 @@ import (
 	"google.golang.org/appengine/log"
 )
 
-const dbKey string = "Transaction"
+const (
+	dbKey         = "Transaction"
+	limitPerQuery = 25
+)
+
+type Transactions struct {
+	Next         string
+	Transactions []*Transaction `json:"transactions" description:"The transactions returned"`
+}
 
 type Transaction struct {
 	Id                 string    `datastore:"-" json:"id,omitempty" description:"Id of the transaction"`
@@ -21,30 +29,50 @@ type Transaction struct {
 	RelatedTransaction string    `json:"relatedTransaction,omitempty" description:"A related transaction"`
 }
 
-func Get(c context.Context, accountId string) ([]*Transaction, error) {
-	return getByAncestorId(c, accountId)
-}
-
-func GetByUser(c context.Context, userId string) ([]*Transaction, error) {
-	return getByAncestorId(c, userId)
-}
-
-func getByAncestorId(c context.Context, id string) ([]*Transaction, error) {
-	key, err := datastore.DecodeKey(id)
+func Get(c context.Context, accountId, cursorEncoded string) (Transactions, error) {
+	accountKey, err := datastore.DecodeKey(accountId)
 	if err != nil {
-		log.Errorf(c, "could not get key: %+v", err)
-		return nil, err
-	}
-	transactions := make([]*Transaction, 0)
-	q := datastore.NewQuery(dbKey).Ancestor(key).Order("-Date")
-	keys, err := q.GetAll(c, &transactions)
-	if err != nil {
-		log.Errorf(c, "failed to fetch transactions: %+v", err)
-		return nil, err
+		log.Errorf(c, "could not get account key: %+v", err)
+		return Transactions{}, err
 	}
 
-	for idx, transaction := range transactions {
-		transaction.Id = keys[idx].Encode()
+	transactions := Transactions{
+		Transactions: make([]*Transaction, 0),
+	}
+
+	q := datastore.NewQuery(dbKey).Ancestor(accountKey).Order("-Date")
+
+	if cursorEncoded != "" {
+		cursor, err := datastore.DecodeCursor(cursorEncoded)
+		if err != nil {
+			log.Errorf(c, "could not get key: %+v", err)
+			return Transactions{}, err
+		}
+
+		q = q.Start(cursor)
+	}
+
+	for i, it := 0, q.Run(c); i < limitPerQuery; i++ {
+		var transaction Transaction
+		key, err := it.Next(&transaction)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			log.Errorf(c, "could not get next transaction: %+v", err)
+			return Transactions{}, err
+		}
+		transaction.Id = key.Encode()
+		transactions.Transactions = append(transactions.Transactions, &transaction)
+
+		if i+1 == limitPerQuery {
+			cursor, err := it.Cursor()
+			if err != nil {
+				log.Errorf(c, "could not get cursor from iterator: %+v", err)
+				return Transactions{}, err
+			}
+			transactions.Next = cursor.String()
+		}
 	}
 
 	return transactions, nil

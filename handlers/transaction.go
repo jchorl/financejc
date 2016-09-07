@@ -13,7 +13,8 @@ import (
 func GetTransactions(request *restful.Request, response *restful.Response) {
 	c := appengine.NewContext(request.Request)
 	accountId := request.PathParameter("account-id")
-	transactions, err := transaction.Get(c, accountId)
+	next := request.QueryParameter("start")
+	transactions, err := transaction.Get(c, accountId, next)
 	if err != nil {
 		log.Errorf(c, "error getting transactions: %+v", err)
 		response.WriteError(http.StatusInternalServerError, err)

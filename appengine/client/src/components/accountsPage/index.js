@@ -10,7 +10,7 @@ import styles from './accountsPage.css';
 
 @connect((state) => {
 	return {
-		accounts: state.accountTransaction.get('account')
+		accounts: state.account
 	}
 })
 class AccountsPage extends React.Component {
@@ -42,10 +42,8 @@ class AccountsPage extends React.Component {
 		const accounts = this.props.accounts
 		const selected = this.state.selected;
 
-		let transactionIds = Immutable.List();
 		let currency;
 		if (selected) {
-			transactionIds = accounts.get(selected).get('transactions');
 			currency = accounts.get(selected).get('currency');
 		}
 
@@ -63,9 +61,9 @@ class AccountsPage extends React.Component {
 					)
 				}
 				{
-					transactionIds.size !== 0 ? (
+					selected !== "" ? (
 						<div className={ styles.transactionList }>
-							<TransactionList accountId={ selected } transactionIds={ transactionIds } currency={ currency } />
+							<TransactionList accountId={ selected } currency={ currency } />
 						</div>
 					) : null
 				}

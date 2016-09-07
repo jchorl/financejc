@@ -1,12 +1,3 @@
-import { normalize, Schema, arrayOf } from 'normalizr';
-
-const accountSchema = new Schema('accounts');
-const transactionSchema = new Schema('transactions');
-
-accountSchema.define({
-	transactions: arrayOf(transactionSchema)
-});
-
 export const REQUEST_LOGIN = 'REQUEST_LOGIN';
 export const requestLogin = () => {
 	return {
@@ -45,9 +36,10 @@ export const receiveAuth = (authd) => {
 }
 
 export const RECEIVE_TRANSACTIONS = 'RECEIVE_TRANSACTION';
-export const receiveTransactions = (transactions) => {
+export const receiveTransactions = (transactions, accountId) => {
 	return {
 		type: RECEIVE_TRANSACTIONS,
+		accountId,
 		transactions
 	};
 }
@@ -69,11 +61,7 @@ export function fetchAccounts() {
 		})
 		.then(response => response.json())
 		.then(json => {
-			let normalized = normalize(json, arrayOf(accountSchema));
-			let accounts = normalized.entities.accounts || {};
-			let transactions = normalized.entities.transactions || {};
-			dispatch(receiveAccounts(accounts));
-			dispatch(receiveTransactions(transactions));
+			dispatch(receiveAccounts(json));
 		});
 	}
 }

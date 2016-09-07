@@ -2,14 +2,12 @@ package account
 
 import (
 	"errors"
-	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 
 	"github.com/jchorl/financejc/currency"
-	"github.com/jchorl/financejc/transaction"
 )
 
 const dbKey string = "Account"
@@ -17,12 +15,9 @@ const dbKey string = "Account"
 var InvalidCurrency = errors.New("Currency is invalid")
 
 type Account struct {
-	Id            string                     `datastore:"-" json:"id,omitempty" description:"Id of the account"`
-	Name          string                     `json:"name" description:"Name of the account"`
-	Currency      string                     `json:"currency" description:"Currency for the account"`
-	Balance       float64                    `json:"balance" description:"Current balance" datastore:"-"`
-	FutureBalance float64                    `json:"futureBalance" description:"Balance including future transactions" datastore:"-"`
-	Transactions  []*transaction.Transaction `json:"transactions" datastore:"-" description:"Transactions for the account"`
+	Id       string `datastore:"-" json:"id,omitempty" description:"Id of the account"`
+	Name     string `json:"name" description:"Name of the account"`
+	Currency string `json:"currency" description:"Currency for the account"`
 }
 
 func Get(c context.Context, userId string) ([]*Account, error) {
@@ -43,44 +38,7 @@ func Get(c context.Context, userId string) ([]*Account, error) {
 		acc.Id = keys[idx].Encode()
 	}
 
-	err = setBalancesAndTransactions(c, userId, accounts)
-	if err != nil {
-		log.Errorf(c, "failed to set balances and transactions: %+v", err)
-		return nil, err
-	}
-
 	return accounts, nil
-}
-
-func setBalancesAndTransactions(c context.Context, userId string, accounts []*Account) error {
-	keyToAccount := make(map[string]*Account)
-	for _, acc := range accounts {
-		keyToAccount[acc.Id] = acc
-		acc.Balance = 0
-		acc.FutureBalance = 0
-		acc.Transactions = make([]*transaction.Transaction, 0)
-	}
-
-	transactions, err := transaction.GetByUser(c, userId)
-	if err != nil {
-		log.Errorf(c, "failed to fetch transactions: %+v", err)
-		return err
-	}
-
-	now := time.Now()
-
-	var account *Account
-
-	for _, tr := range transactions {
-		account = keyToAccount[tr.AccountId]
-		account.Transactions = append(account.Transactions, tr)
-		account.FutureBalance += tr.Amount
-		if tr.Date.Before(now) {
-			account.Balance += tr.Amount
-		}
-	}
-
-	return nil
 }
 
 func New(c context.Context, userId string, account *Account) (*Account, error) {
@@ -137,6 +95,5 @@ func putAccount(c context.Context, userId string, account *Account, newAccount b
 	}
 
 	account.Id = key.Encode()
-	account.Transactions = make([]*transaction.Transaction, 0)
 	return account, nil
 }

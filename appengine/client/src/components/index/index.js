@@ -11,6 +11,10 @@ import styles from './styles.css';
 	return { auth: state.auth }
 })
 export default class App extends React.Component {
+	static propTypes = {
+		auth: React.PropTypes.object.isRequired
+	}
+
 	constructor(props) {
 		super(props);
 		props.dispatch(fetchAuth());
@@ -18,7 +22,7 @@ export default class App extends React.Component {
 
 	render () {
 		return (
-			<Loader loading={ this.props.auth.isFetching }>
+			<Loader loading={ !this.props.auth.fetched }>
 				{ this.props.auth.authd ? <AccountsPage /> : <GoogleLoginButton /> }
 			</Loader>
 		)

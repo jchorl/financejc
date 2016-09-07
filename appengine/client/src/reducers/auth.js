@@ -5,21 +5,21 @@ import {
 } from '../actions'
 
 export default (state = {
-	isFetching: false,
+	fetched: false,
 	authd: false
 }, action) => {
 	switch (action.type) {
 		case CHECK_AUTH:
 			return Object.assign({}, state, {
-				isFetching: true
+				fetched: false
 			});
 		case REQUEST_LOGIN:
 			return Object.assign({}, state, {
-				isFetching: true
+				fetched: false
 			});
 		case RECEIVE_AUTH:
 			return Object.assign({}, state, {
-				isFetching: false,
+				fetched: true,
 				authd: action.authd
 			});
 		default:
