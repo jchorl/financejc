@@ -28,6 +28,16 @@ class AccountsPage extends React.Component {
 		this.state = {
 			selected: selected
 		};
+
+		this.fetchTransactionsIfNecessary(selected);
+	}
+
+	fetchTransactionsIfNecessary = (id) => {
+		// reload transactions if necessary
+		if (this.state.selected === '') return
+		if (this.props.accountTransaction.get(id).get("transactions").isEmpty()) {
+			this.props.dispatch(fetchTransactions(id));
+		}
 	}
 
 	selectAccount = (id) => {
@@ -35,10 +45,7 @@ class AccountsPage extends React.Component {
 			selected: id
 		});
 
-		// reload transactions if necessary
-		if (this.props.accountTransaction.get(id).get("transactions").isEmpty()) {
-			this.props.dispatch(fetchTransactions(id));
-		}
+		this.fetchTransactionsIfNecessary(id);
 	}
 
 	importButton = () => {

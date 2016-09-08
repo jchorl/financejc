@@ -37,7 +37,7 @@ export class Transaction extends React.Component {
 		return transaction ? (
 			<div className={ styles.transaction }>
 				{ this.state.editMode ? (
-					<TransactionForm form={ transaction.id } transaction={ transaction } done={ this.exitEditMode }/>
+					<TransactionForm form={ transaction.get('id') } transaction={ transaction } done={ this.exitEditMode }/>
 				) : (
 					<div className={ styles.transactionFields }>
 						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
@@ -82,9 +82,9 @@ function toRFC3339(d) {
 	}
 	return {
 		initialValues: {
-			name: "",
+			name: '',
 			date: toRFC3339(new Date()),
-			category: "",
+			category: '',
 			amount: 0
 		}
 	};
