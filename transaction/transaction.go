@@ -14,7 +14,7 @@ const (
 )
 
 type Transactions struct {
-	Next         string
+	NextLink     string
 	Transactions []*Transaction `json:"transactions" description:"The transactions returned"`
 }
 
@@ -27,6 +27,18 @@ type Transaction struct {
 	Amount             float64   `json:"amount" description:"Amount"`
 	Note               string    `json:"note" description:"Note on the transaction"`
 	RelatedTransaction string    `json:"relatedTransaction,omitempty" description:"A related transaction"`
+}
+
+func (t Transactions) Next() string {
+	return t.NextLink
+}
+
+func (t Transactions) Values() (ret []interface{}) {
+	for _, tr := range t.Transactions {
+		ret = append(ret, tr)
+	}
+
+	return ret
 }
 
 func Get(c context.Context, accountId, cursorEncoded string) (Transactions, error) {
@@ -71,7 +83,7 @@ func Get(c context.Context, accountId, cursorEncoded string) (Transactions, erro
 				log.Errorf(c, "could not get cursor from iterator: %+v", err)
 				return Transactions{}, err
 			}
-			transactions.Next = cursor.String()
+			transactions.NextLink = cursor.String()
 		}
 	}
 

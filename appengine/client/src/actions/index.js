@@ -36,11 +36,12 @@ export const receiveAuth = (authd) => {
 }
 
 export const RECEIVE_TRANSACTIONS = 'RECEIVE_TRANSACTION';
-export const receiveTransactions = (transactions, accountId) => {
+export const receiveTransactions = (transactions, accountId, link) => {
 	return {
 		type: RECEIVE_TRANSACTIONS,
 		accountId,
-		transactions
+		transactions,
+		link
 	};
 }
 
@@ -62,6 +63,18 @@ export function fetchAccounts() {
 		.then(response => response.json())
 		.then(json => {
 			dispatch(receiveAccounts(json));
+		});
+	}
+}
+
+export function fetchTransactions(accountId) {
+	return function(dispatch) {
+		return fetch(`/account/${accountId}/transactions`, {
+			credentials: 'include'
+		})
+		.then(response => Promise.all([response.json(), response.headers.get('Link')]))
+		.then(parsed => {
+			dispatch(receiveTransactions(parsed[0], accountId, parsed[1]));
 		});
 	}
 }

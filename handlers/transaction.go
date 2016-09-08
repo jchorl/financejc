@@ -3,11 +3,11 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/jchorl/financejc/transaction"
+
 	"github.com/emicklei/go-restful"
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
-
-	"github.com/jchorl/financejc/transaction"
 )
 
 func GetTransactions(request *restful.Request, response *restful.Response) {
@@ -20,7 +20,7 @@ func GetTransactions(request *restful.Request, response *restful.Response) {
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
-	response.WriteEntity(transactions)
+	writePaginatedEntity(request, response, transactions)
 }
 
 func NewTransaction(request *restful.Request, response *restful.Response) {

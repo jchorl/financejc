@@ -4,17 +4,17 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/swagger"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
-
 	"github.com/jchorl/financejc/account"
 	"github.com/jchorl/financejc/auth"
 	"github.com/jchorl/financejc/credentials"
 	"github.com/jchorl/financejc/handlers"
 	"github.com/jchorl/financejc/transaction"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/swagger"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
 )
 
 var NotLoggedIn = errors.New("User is not logged in")

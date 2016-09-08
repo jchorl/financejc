@@ -2,7 +2,7 @@ import React from 'react';
 import Immutable from 'immutable';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
-import { fetchAccounts, importData } from '../../actions';
+import { fetchAccounts, fetchTransactions, importData } from '../../actions';
 import AccountList from '../accountList';
 import TransactionList from '../transactionList';
 import Loader from '../loader';
@@ -10,12 +10,14 @@ import styles from './accountsPage.css';
 
 @connect((state) => {
 	return {
-		accounts: state.account
+		accounts: state.account,
+		accountTransaction: state.accountTransaction
 	}
 })
 class AccountsPage extends React.Component {
 	static propTypes = {
-		accounts: React.PropTypes.object.isRequired
+		accounts: React.PropTypes.object.isRequired,
+		accountTransaction: React.PropTypes.object.isRequired
 	}
 
 	constructor (props) {
@@ -32,6 +34,11 @@ class AccountsPage extends React.Component {
 		this.setState({
 			selected: id
 		});
+
+		// reload transactions if necessary
+		if (this.props.accountTransaction.get(id).get("transactions").isEmpty()) {
+			this.props.dispatch(fetchTransactions(id));
+		}
 	}
 
 	importButton = () => {

@@ -41,7 +41,7 @@ export default class TransactionList extends React.Component {
 			currency
 		} = this.props;
 
-		let transactions = accountTransaction.get(accountId);
+		let transactions = accountTransaction.get(accountId).get("transactions");
 
 		return (
 			<div>
@@ -61,7 +61,7 @@ export default class TransactionList extends React.Component {
 					)
 				}
 				<div>
-					{ transactions.map(transaction => (<Transaction key={ transaction.id } transaction={ transaction } currency={ currency }/>)).toArray() }
+					{ transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toArray() }
 				</div>
 			</div>
 		)
