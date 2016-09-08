@@ -61,7 +61,7 @@ export default class TransactionList extends React.Component {
 					)
 				}
 				<div>
-					{ transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toArray() }
+					{ transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
 				</div>
 			</div>
 		)
