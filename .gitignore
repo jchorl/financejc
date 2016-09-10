@@ -1,4 +1,4 @@
 import/*
-appengine/client/node_modules
-appengine/client/dest/bundle.js
-appengine/client/dest/bundle.js.map
+client/node_modules
+client/dest/bundle.js
+client/dest/bundle.js.map
