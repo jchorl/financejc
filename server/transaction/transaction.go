@@ -60,11 +60,18 @@ func (t Transactions) Values() (ret []interface{}) {
 	return ret
 }
 
-func Get(c context.Context, accountId, nextEncoded string) (Transactions, error) {
+func Get(c context.Context, accountId int, nextEncoded string) (Transactions, error) {
+	userId := c.Value(constants.CTX_USER).(int)
 	db := c.Value(constants.CTX_DB).(util.DB)
-	transactions := Transactions{
-		Transactions: make([]*Transaction, 0),
+
+	valid, err := userOwnsAccount(c, userId, accountId)
+	if err != nil {
+		return Transactions{}, constants.Forbidden
+	} else if !valid {
+		return Transactions{}, constants.Forbidden
 	}
+
+	transactions := Transactions{}
 
 	reference := time.Now()
 	offset := 0
@@ -120,11 +127,19 @@ func Get(c context.Context, accountId, nextEncoded string) (Transactions, error)
 }
 
 func New(c context.Context, transaction *Transaction) (*Transaction, error) {
+	userId := c.Value(constants.CTX_USER).(int)
 	db := c.Value(constants.CTX_DB).(util.DB)
+
+	valid, err := userOwnsAccount(c, userId, transaction.Account)
+	if err != nil {
+		return nil, constants.Forbidden
+	} else if !valid {
+		return nil, constants.Forbidden
+	}
 
 	tdb := toDB(*transaction)
 	var id int
-	err := db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransaction, account) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Account).Scan(&id)
+	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransaction, account) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Account).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":         err,
@@ -139,9 +154,18 @@ func New(c context.Context, transaction *Transaction) (*Transaction, error) {
 }
 
 func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
+	userId := c.Value(constants.CTX_USER).(int)
 	db := c.Value(constants.CTX_DB).(util.DB)
+
+	valid, err := userOwnsAccount(c, userId, transaction.Account)
+	if err != nil {
+		return nil, constants.Forbidden
+	} else if !valid {
+		return nil, constants.Forbidden
+	}
+
 	tdb := toDB(*transaction)
-	_, err := db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransaction = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Id)
+	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransaction = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":         err,
@@ -155,9 +179,17 @@ func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
 }
 
 func Delete(c context.Context, transactionId int) error {
+	userId := c.Value(constants.CTX_USER).(int)
 	db := c.Value(constants.CTX_DB).(util.DB)
 
-	_, err := db.Exec("DELETE FROM transactions WHERE id = $1", transactionId)
+	valid, err := userOwnsTransaction(c, userId, transactionId)
+	if err != nil {
+		return constants.Forbidden
+	} else if !valid {
+		return constants.Forbidden
+	}
+
+	_, err = db.Exec("DELETE FROM transactions WHERE id = $1", transactionId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":          err,
@@ -167,6 +199,38 @@ func Delete(c context.Context, transactionId int) error {
 	}
 
 	return nil
+}
+
+func userOwnsAccount(c context.Context, user int, account int) (bool, error) {
+	db := c.Value(constants.CTX_DB).(util.DB)
+	var owner int
+	err := db.QueryRow("SELECT userId FROM accounts WHERE id = $1", account).Scan(&owner)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"User":    user,
+			"Account": account,
+		}).Error("error checking owner of account")
+		return false, err
+	}
+
+	return owner == user, nil
+}
+
+func userOwnsTransaction(c context.Context, user int, transaction int) (bool, error) {
+	db := c.Value(constants.CTX_DB).(util.DB)
+	var owner int
+	err := db.QueryRow("SELECT a.userId FROM accounts a JOIN transactions t ON t.account = a.id WHERE t.id = $1", transaction).Scan(&owner)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error":       err,
+			"User":        user,
+			"Transaction": transaction,
+		}).Error("error checking owner of transaction")
+		return false, err
+	}
+
+	return owner == user, nil
 }
 
 func encodeNextPage(decoded nextPageParams) (string, error) {

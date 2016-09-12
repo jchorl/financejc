@@ -1,7 +1,16 @@
 package constants
 
+import (
+	"errors"
+)
+
 const (
-	CTX_DB = "database"
+	CTX_DB   = "database"
+	CTX_USER = "user"
+)
+
+var (
+	Forbidden = errors.New("User does not have permission to access this resource.")
 )
 
 var CurrencyCodeToName = map[string]string{

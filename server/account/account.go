@@ -20,10 +20,11 @@ type Account struct {
 	FutureValue float64 `json:"futureValue" description:"Future value of the account"`
 }
 
-func Get(c context.Context, userId int) ([]*Account, error) {
+func Get(c context.Context) ([]*Account, error) {
+	userId := c.Value(constants.CTX_USER).(int)
 	accounts := make([]*Account, 0)
 	db := c.Value(constants.CTX_DB).(util.DB)
-	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, SUM(t.amount) FROM accounts a JOIN transactions t on t.account=a.id WHERE a.userId = $1 GROUP BY a.id", userId)
+	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.account=a.id WHERE a.userId = $1 GROUP BY a.id", userId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":   err,
@@ -56,6 +57,9 @@ func Get(c context.Context, userId int) ([]*Account, error) {
 }
 
 func New(c context.Context, account *Account) (*Account, error) {
+	userId := c.Value(constants.CTX_USER).(int)
+	account.User = userId
+
 	_, valid := constants.CurrencyCodeToName[account.Currency]
 	if !valid {
 		return nil, InvalidCurrency
@@ -77,13 +81,14 @@ func New(c context.Context, account *Account) (*Account, error) {
 }
 
 func Update(c context.Context, account *Account) (*Account, error) {
+	userId := c.Value(constants.CTX_USER).(int)
 	_, valid := constants.CurrencyCodeToName[account.Currency]
 	if !valid {
 		return nil, InvalidCurrency
 	}
 
 	db := c.Value(constants.CTX_DB).(util.DB)
-	_, err := db.Exec("UPDATE accounts SET name = $1, currency = $2 WHERE id = $3", account.Name, account.Currency, account.Id)
+	_, err := db.Exec("UPDATE accounts SET name = $1, currency = $2 WHERE id = $3 AND userId = $4", account.Name, account.Currency, account.Id, userId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":   err,
@@ -95,10 +100,11 @@ func Update(c context.Context, account *Account) (*Account, error) {
 	return account, nil
 }
 
-func Delete(c context.Context, accountId string) error {
+func Delete(c context.Context, accountId int) error {
+	userId := c.Value(constants.CTX_USER).(int)
 	db := c.Value(constants.CTX_DB).(util.DB)
 
-	_, err := db.Exec("DELETE FROM accounts WHERE id = $1", accountId)
+	_, err := db.Exec("DELETE FROM accounts WHERE id = $1 AND userId = $2", accountId, userId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":      err,

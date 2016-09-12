@@ -24,7 +24,7 @@ func FindOrCreateByGoogleId(c context.Context, googleId string) (int, error) {
 	db := c.Value(constants.CTX_DB).(util.DB)
 
 	var id int
-	err := db.QueryRow("SELECT id FROM users where googleId = $1", googleId).Scan(&id)
+	err := db.QueryRow("SELECT id FROM users WHERE googleId = $1", googleId).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.WithFields(logrus.Fields{
 			"Error":     err,

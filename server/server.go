@@ -31,3 +31,7 @@ func (s server) Context() context.Context {
 	c := context.Background()
 	return context.WithValue(c, constants.CTX_DB, s.DB())
 }
+
+func (s server) ContextWithUser(user int) context.Context {
+	return context.WithValue(s.Context(), constants.CTX_USER, user)
+}
