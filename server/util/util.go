@@ -36,3 +36,13 @@ func FromNullInt(i sql.NullInt64) int {
 	}
 	return int(i.Int64)
 }
+
+func FirstNonEmpty(vals ...string) string {
+	for _, val := range vals {
+		if val != "" {
+			return val
+		}
+	}
+
+	return ""
+}
