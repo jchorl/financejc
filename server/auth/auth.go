@@ -15,7 +15,6 @@ type Request struct {
 }
 
 func AuthUser(c context.Context, token string) (int, error) {
-	logrus.WithField("Token", token).Debug("attempting to get google ID from token")
 	googleId, err := getGoogleIDFromToken(token)
 	if err != nil {
 		return -1, err
@@ -25,7 +24,6 @@ func AuthUser(c context.Context, token string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	logrus.WithField("User ID", userId).Debug("fetched/created user")
 
 	return userId, nil
 }
@@ -36,10 +34,12 @@ func getGoogleIDFromToken(token string) (string, error) {
 	tokenInfoCall.IdToken(token)
 	tokenInfo, err := tokenInfoCall.Do()
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"Error": err,
+			"Token": token,
+		}).Error("error calling google to validate token")
 		return "", err
 	}
 
-	logrus.Debugf("google responded with tokeninfo: %+v", tokenInfo)
-	logrus.WithField("Token Info", tokenInfo).Debug("Google responded")
 	return tokenInfo.UserId, nil
 }

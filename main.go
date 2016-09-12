@@ -18,51 +18,6 @@ import (
 	"github.com/emicklei/go-restful/swagger"
 )
 
-var NotLoggedIn = errors.New("User is not logged in")
-
-func getUserId(unparsed string) (int, error) {
-	token, err := jwt.ParseWithClaims(unparsed, &server.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(constants.JWT_SIGNING_KEY), nil
-	})
-	if claims, ok := token.Claims.(*server.JWTClaims); ok && token.Valid {
-		return claims.UserId, nil
-	} else {
-		return -1, err
-	}
-	return -1, NotLoggedIn
-}
-
-// only accept logged in users
-func loggedInFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
-	cookie, err := request.Request.Cookie("auth")
-	if err != nil {
-		logrus.Errorf("could not get auth cookie: %+v", err)
-	} else {
-		userId, err := getUserId(cookie.Value)
-		if err == nil {
-			request.SetAttribute("userId", userId)
-			chain.ProcessFilter(request, response)
-			return
-		} else if err != NotLoggedIn {
-			logrus.Errorf("error parsing jwt: %+v", err)
-		}
-	}
-	response.WriteErrorString(401, "401: Not Authorized")
-}
-
-// only accept logged out users
-func loggedOutFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
-	cookie, err := request.Request.Cookie("auth")
-	if err == nil {
-		_, err := getUserId(cookie.Value)
-		if err == nil {
-			return
-		}
-	}
-	logrus.Debugf("passed through logged out filter and proceeding")
-	chain.ProcessFilter(request, response)
-}
-
 func staticHandler(req *restful.Request, resp *restful.Response) {
 	actual := path.Join("client/dest", req.PathParameter("subpath"))
 	http.ServeFile(resp.ResponseWriter, req.Request, actual)
