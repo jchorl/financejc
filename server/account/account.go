@@ -2,15 +2,12 @@ package account
 
 import (
 	"context"
-	"errors"
 
 	"github.com/jchorl/financejc/constants"
 	"github.com/jchorl/financejc/server/util"
 
 	"github.com/Sirupsen/logrus"
 )
-
-var InvalidCurrency = errors.New("Currency is invalid")
 
 type Account struct {
 	Id          int     `json:"id,omitempty" description:"Id of the account"`
@@ -62,7 +59,7 @@ func New(c context.Context, account *Account) (*Account, error) {
 
 	_, valid := constants.CurrencyCodeToName[account.Currency]
 	if !valid {
-		return nil, InvalidCurrency
+		return nil, constants.InvalidCurrency
 	}
 
 	db := c.Value(constants.CTX_DB).(util.DB)
@@ -84,7 +81,7 @@ func Update(c context.Context, account *Account) (*Account, error) {
 	userId := c.Value(constants.CTX_USER).(int)
 	_, valid := constants.CurrencyCodeToName[account.Currency]
 	if !valid {
-		return nil, InvalidCurrency
+		return nil, constants.InvalidCurrency
 	}
 
 	db := c.Value(constants.CTX_DB).(util.DB)

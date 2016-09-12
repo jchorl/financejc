@@ -11,16 +11,15 @@ import (
 	"github.com/emicklei/go-restful"
 )
 
-var NotLoggedIn = errors.New("User is not logged in")
-
 type JWTClaims struct {
 	UserId int `json:"userId"`
-	*jwt.StandardClaims
+	jwt.StandardClaims
 }
 
 func (s server) CheckAuth(request *restful.Request, response *restful.Response) {
 	// if already passed the logged out filter, return 401
-	response.WriteErrorString(401, "401: Not Authorized")
+	writeError(response, constants.NotLoggedIn)
+	return
 }
 
 func (s server) AuthUser(request *restful.Request, response *restful.Response) {
@@ -32,13 +31,13 @@ func (s server) AuthUser(request *restful.Request, response *restful.Response) {
 			"Error":   err,
 			"Request": request,
 		}).Error("error decoding auth request")
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	userId, err := auth.AuthUser(s.Context(), req.Token)
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 
@@ -49,7 +48,7 @@ func (s server) AuthUser(request *restful.Request, response *restful.Response) {
 			"Error": err,
 			"Token": token,
 		}).Error("error getting signed jwt")
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 
@@ -64,42 +63,45 @@ func (s server) AuthUser(request *restful.Request, response *restful.Response) {
 }
 
 func getUserId(unparsedJWT string) (int, error) {
-	token, err := jwt.ParseWithClaims(unparsedJWT, &server.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(unparsedJWT, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(constants.JWT_SIGNING_KEY), nil
 	})
-	if claims, ok := token.Claims.(*server.JWTClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*JWTClaims); ok && token.Valid {
 		return claims.UserId, nil
 	} else {
 		return -1, err
 	}
-	return -1, NotLoggedIn
+	return -1, constants.NotLoggedIn
 }
 
 // only accept logged in users
-func loggedInFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+func LoggedInFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 	cookie, err := request.Request.Cookie("auth")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error": err,
 		}).Error("could not get auth cookie")
-	} else {
-		userId, err := getUserId(cookie.Value)
-		if err == nil {
-			request.SetAttribute("userId", userId)
-			chain.ProcessFilter(request, response)
-			return
-		} else if err != NotLoggedIn {
-			logrus.WithFields(logrus.Fields{
-				"Error":  err,
-				"Cookie": cookie,
-			}).Error("error parsing jwt")
-		}
+		writeError(response, constants.NotLoggedIn)
+		return
 	}
-	response.WriteErrorString(401, "401: Not Authorized")
+	userId, err := getUserId(cookie.Value)
+	if err != nil && err != constants.NotLoggedIn {
+		logrus.WithFields(logrus.Fields{
+			"Error":  err,
+			"Cookie": cookie,
+		}).Error("error parsing jwt")
+		writeError(response, constants.NotLoggedIn)
+		return
+	} else if err == constants.NotLoggedIn {
+		writeError(response, constants.NotLoggedIn)
+		return
+	}
+	request.SetAttribute("userId", userId)
+	chain.ProcessFilter(request, response)
 }
 
 // only accept logged out users
-func loggedOutFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
+func LoggedOutFilter(request *restful.Request, response *restful.Response, chain *restful.FilterChain) {
 	cookie, err := request.Request.Cookie("auth")
 	if err == nil {
 		_, err := getUserId(cookie.Value)

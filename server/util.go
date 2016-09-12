@@ -2,6 +2,9 @@ package server
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/jchorl/financejc/constants"
 
 	"github.com/emicklei/go-restful"
 )
@@ -21,4 +24,17 @@ func writePaginatedEntity(request *restful.Request, response *restful.Response, 
 	}
 
 	response.WriteEntity([]interface{}{})
+}
+
+func writeError(response *restful.Response, err error) {
+	switch err {
+	case constants.NotLoggedIn:
+		response.WriteError(http.StatusUnauthorized, err)
+	case constants.Forbidden:
+		response.WriteError(http.StatusForbidden, err)
+	case constants.BadRequest:
+		response.WriteError(http.StatusBadRequest, err)
+	default:
+		response.WriteError(http.StatusInternalServerError, err)
+	}
 }

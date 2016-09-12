@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jchorl/financejc/constants"
 	"github.com/jchorl/financejc/server/transaction"
 
 	"github.com/Sirupsen/logrus"
@@ -19,14 +20,14 @@ func (s server) GetTransactions(request *restful.Request, response *restful.Resp
 			"Error":      err,
 			"Account ID": accountIdStr,
 		}).Error("error parsing account ID to int")
-		response.WriteError(http.StatusBadRequest, err)
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	next := request.QueryParameter("start")
 	transactions, err := transaction.Get(s.ContextWithUser(userId), accountId, next)
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 	writePaginatedEntity(request, response, transactions)
@@ -41,22 +42,25 @@ func (s server) NewTransaction(request *restful.Request, response *restful.Respo
 			"Error":      err,
 			"Account ID": accountIdStr,
 		}).Error("error parsing account ID to int")
-		response.WriteError(http.StatusBadRequest, err)
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	tr := new(transaction.Transaction)
 	err = request.ReadEntity(tr)
 	if err != nil {
-		logrus.WithField("Error", err).Error("unable to parse request to create transaction")
-		response.WriteError(http.StatusInternalServerError, err)
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"Request": request,
+		}).Error("unable to parse request to create transaction")
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	tr.Account = accountId
 	tr, err = transaction.New(s.ContextWithUser(userId), tr)
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 	response.WriteEntity(tr)
@@ -67,14 +71,17 @@ func (s server) UpdateTransaction(request *restful.Request, response *restful.Re
 	tr := &transaction.Transaction{}
 	err := request.ReadEntity(tr)
 	if err != nil {
-		logrus.WithField("Error", err).Error("unable to parse request to update transaction")
-		response.WriteError(http.StatusInternalServerError, err)
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"Request": request,
+		}).Error("unable to parse request to update transaction")
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	tr, err = transaction.Update(s.ContextWithUser(userId), tr)
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 	response.WriteEntity(tr)
@@ -89,13 +96,13 @@ func (s server) DeleteTransaction(request *restful.Request, response *restful.Re
 			"Error":          err,
 			"Transaction ID": transactionIdStr,
 		}).Error("error parsing transaction ID to int")
-		response.WriteError(http.StatusBadRequest, err)
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	err = transaction.Delete(s.ContextWithUser(userId), transactionId)
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 	response.WriteHeader(http.StatusOK)

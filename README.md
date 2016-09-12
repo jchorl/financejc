@@ -27,3 +27,5 @@ The app should be served on https://localhost:4443
 `make serve` serves the site
 
 `make build` builds the Go server
+
+`make clean` kills the db, webserver, postgres container connected to the db, and network

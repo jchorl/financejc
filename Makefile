@@ -10,9 +10,14 @@ ui-watch:
 db: network
 	docker ps | grep financejcdb || docker run --name financejcdb --network financejcnet -h financejcdb --expose=5432 -v $(PWD)/db:/docker-entrypoint-initdb.d -e POSTGRES_USER=financejc -e POSTGRES_PASSWORD=financejc -d postgres
 connect-db:
-	docker run -it --rm --network financejcnet postgres psql -h financejcdb -U financejc
+	docker run -it --name financejcdbcon --rm --network financejcnet postgres psql -h financejcdb -U financejc
 serve: network
 	docker run -it --name financejc --rm --network financejcnet -p 4443:443 -e PORT=443 -v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest jchorl/financejc
 build: ui
 	docker build -t jchorl/financejc .
-.PHONY: all ui ui-watch network db connect-db serve build
+clean:
+	-docker rm -f financejcdbcon
+	-docker rm -f financejcdb
+	-docker rm -f financejc
+	-docker network rm financejcnet
+.PHONY: all ui ui-watch network db connect-db serve build clean

@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"context"
 	"database/sql"
+	"io/ioutil"
 	"os"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,7 +26,48 @@ const (
 	OPTION      = "OPTION"
 )
 
-func TransferQIF(c context.Context, userId int, file *os.File) error {
+func AutoImport(c context.Context) error {
+	files, err := ioutil.ReadDir(constants.IMPORT_PATH)
+	if err != nil {
+		currDir, err2 := os.Getwd()
+		if err2 != nil {
+			logrus.WithField("Error", err2).Error("error listing working dir while reporting listing error")
+		}
+		logrus.WithFields(logrus.Fields{
+			"Error":             err,
+			"Import path":       constants.IMPORT_PATH,
+			"Current directory": currDir,
+		}).Error("error listing files")
+		return err
+	}
+	for _, f := range files {
+		// skip gitkeep
+		if f.Name() == ".gitkeep" {
+			continue
+		}
+
+		file, err := os.Open(path.Join(constants.IMPORT_PATH, f.Name()))
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"Error":     err,
+				"File":      f.Name(),
+				"Full path": path.Join(constants.IMPORT_PATH, f.Name()),
+			}).Error("error opening files")
+			return err
+		}
+		defer file.Close()
+
+		err = TransferQIF(c, file)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func TransferQIF(c context.Context, file *os.File) error {
+	userId := c.Value(constants.CTX_USER).(int)
 	db := c.Value(constants.CTX_DB).(*sql.DB)
 	state := NONE
 	acc := &account.Account{}
@@ -84,7 +127,10 @@ func TransferQIF(c context.Context, userId int, file *os.File) error {
 			case 'D':
 				date, err := time.Parse("2006-01-02", line[1:])
 				if err != nil {
-					logrus.WithField("Error", err).Error("could not parse date from QIF")
+					logrus.WithFields(logrus.Fields{
+						"Error":    err,
+						"Unparsed": line[1:],
+					}).Error("could not parse date from QIF")
 					return err
 				}
 				tr.Date = date
@@ -101,7 +147,10 @@ func TransferQIF(c context.Context, userId int, file *os.File) error {
 				amtStr := strings.Replace(line[1:], ",", "", -1)
 				amt, err := strconv.ParseFloat(amtStr, 64)
 				if err != nil {
-					logrus.WithField("Error", err).Error("could not parse amount from QIF")
+					logrus.WithFields(logrus.Fields{
+						"Error":    err,
+						"Unparsed": amtStr,
+					}).Error("could not parse amount from QIF")
 					return err
 				}
 

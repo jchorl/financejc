@@ -7,10 +7,15 @@ import (
 const (
 	CTX_DB   = "database"
 	CTX_USER = "user"
+
+	IMPORT_PATH = "import"
 )
 
 var (
-	Forbidden = errors.New("User does not have permission to access this resource.")
+	Forbidden       = errors.New("User does not have permission to access this resource.")
+	NotLoggedIn     = errors.New("User is not logged in.")
+	BadRequest      = errors.New("Request contains malformed data.")
+	InvalidCurrency = errors.New("The specified currency is not recognized.")
 )
 
 var CurrencyCodeToName = map[string]string{

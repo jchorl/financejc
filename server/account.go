@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/jchorl/financejc/constants"
 	"github.com/jchorl/financejc/server/account"
 
 	"github.com/Sirupsen/logrus"
@@ -14,7 +15,7 @@ func (s server) GetAccounts(request *restful.Request, response *restful.Response
 	userId := request.Attribute("userId").(int)
 	accounts, err := account.Get(s.ContextWithUser(userId))
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 	response.WriteEntity(accounts)
@@ -25,17 +26,17 @@ func (s server) NewAccount(request *restful.Request, response *restful.Response)
 	acc := new(account.Account)
 	err := request.ReadEntity(acc)
 	if err != nil {
-		logrus.Errorf("error parsing request to create account: %+v", err)
-		response.WriteError(http.StatusInternalServerError, err)
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"Request": request,
+		}).Error("error parsing request to create account")
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	acc, err = account.New(s.ContextWithUser(userId), acc)
-	if err == account.InvalidCurrency {
-		response.WriteError(http.StatusForbidden, err)
-		return
-	} else if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+	if err != nil {
+		writeError(response, err)
 		return
 	}
 	response.WriteEntity(acc)
@@ -46,17 +47,17 @@ func (s server) UpdateAccount(request *restful.Request, response *restful.Respon
 	acc := &account.Account{}
 	err := request.ReadEntity(acc)
 	if err != nil {
-		logrus.Errorf("error parsing request to update account: %+v", err)
-		response.WriteError(http.StatusInternalServerError, err)
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"Request": request,
+		}).Error("error parsing request to update account")
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	acc, err = account.Update(s.ContextWithUser(userId), acc)
-	if err == account.InvalidCurrency {
-		response.WriteError(http.StatusForbidden, err)
-		return
-	} else if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+	if err != nil {
+		writeError(response, err)
 		return
 	}
 	response.WriteEntity(acc)
@@ -71,13 +72,13 @@ func (s server) DeleteAccount(request *restful.Request, response *restful.Respon
 			"Error":      err,
 			"Account ID": accountIdStr,
 		}).Error("error parsing account ID to int")
-		response.WriteError(http.StatusBadRequest, err)
+		writeError(response, constants.BadRequest)
 		return
 	}
 
 	err = account.Delete(s.ContextWithUser(userId), accountId)
 	if err != nil {
-		response.WriteError(http.StatusInternalServerError, err)
+		writeError(response, err)
 		return
 	}
 	response.WriteHeader(http.StatusOK)

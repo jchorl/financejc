@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 	"os"
 	"path"
@@ -13,7 +12,6 @@ import (
 	"github.com/jchorl/financejc/server/transaction"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/swagger"
 )
@@ -42,10 +40,10 @@ func main() {
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
-	apiWs.Route(apiWs.GET("/auth").Filter(loggedOutFilter).To(serv.CheckAuth).
+	apiWs.Route(apiWs.GET("/auth").Filter(server.LoggedOutFilter).To(serv.CheckAuth).
 		Doc("Check if a user is authenticated").
 		Operation("CheckAuth"))
-	apiWs.Route(apiWs.POST("/auth").Filter(loggedOutFilter).To(serv.AuthUser).
+	apiWs.Route(apiWs.POST("/auth").Filter(server.LoggedOutFilter).To(serv.AuthUser).
 		Doc("Authenticate a user").
 		Operation("AuthUser").
 		Reads(auth.Request{}))
@@ -53,55 +51,55 @@ func main() {
 		Doc("Get all currencies").
 		Operation("GetCurrencies").
 		Writes(struct{ ISO4217 string }{"Name"}))
-	apiWs.Route(apiWs.GET("/account").Filter(loggedInFilter).To(serv.GetAccounts).
+	apiWs.Route(apiWs.GET("/account").Filter(server.LoggedInFilter).To(serv.GetAccounts).
 		Doc("Get all accounts").
 		Operation("GetAccounts").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Writes(account.Account{}))
-	apiWs.Route(apiWs.POST("/account").Filter(loggedInFilter).To(serv.NewAccount).
+	apiWs.Route(apiWs.POST("/account").Filter(server.LoggedInFilter).To(serv.NewAccount).
 		Doc("Create a new account").
 		Operation("NewAccount").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Returns(http.StatusForbidden, "Invalid currency", nil).
 		Reads(account.Account{}).
 		Writes(account.Account{}))
-	apiWs.Route(apiWs.PUT("/account").Filter(loggedInFilter).To(serv.UpdateAccount).
+	apiWs.Route(apiWs.PUT("/account").Filter(server.LoggedInFilter).To(serv.UpdateAccount).
 		Doc("Update account").
 		Operation("UpdateAccount").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Returns(http.StatusForbidden, "Invalid currency", nil).
 		Reads(account.Account{}).
 		Writes(account.Account{}))
-	apiWs.Route(apiWs.DELETE("/account/{account-id}").Filter(loggedInFilter).To(serv.DeleteAccount).
+	apiWs.Route(apiWs.DELETE("/account/{account-id}").Filter(server.LoggedInFilter).To(serv.DeleteAccount).
 		Doc("Delete account").
 		Operation("DeleteAccount").
 		Param(apiWs.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil))
-	apiWs.Route(apiWs.GET("/account/{account-id}/transactions").Filter(loggedInFilter).To(serv.GetTransactions).
+	apiWs.Route(apiWs.GET("/account/{account-id}/transactions").Filter(server.LoggedInFilter).To(serv.GetTransactions).
 		Doc("Get all transactions for an account").
 		Operation("GetTransactions").
 		Param(apiWs.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Writes(transaction.Transaction{}))
-	apiWs.Route(apiWs.POST("/account/{account-id}/transactions").Filter(loggedInFilter).To(serv.NewTransaction).
+	apiWs.Route(apiWs.POST("/account/{account-id}/transactions").Filter(server.LoggedInFilter).To(serv.NewTransaction).
 		Doc("Create a new transaction").
 		Operation("NewTransaction").
 		Param(apiWs.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Reads(transaction.Transaction{}).
 		Writes(transaction.Transaction{}))
-	apiWs.Route(apiWs.PUT("/transaction").Filter(loggedInFilter).To(serv.UpdateTransaction).
+	apiWs.Route(apiWs.PUT("/transaction").Filter(server.LoggedInFilter).To(serv.UpdateTransaction).
 		Doc("Update transaction").
 		Operation("UpdateTransaction").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Reads(transaction.Transaction{}).
 		Writes(transaction.Transaction{}))
-	apiWs.Route(apiWs.DELETE("/transaction/{transaction-id}").Filter(loggedInFilter).To(serv.DeleteTransaction).
+	apiWs.Route(apiWs.DELETE("/transaction/{transaction-id}").Filter(server.LoggedInFilter).To(serv.DeleteTransaction).
 		Doc("Delete transaction").
 		Operation("DeleteTransaction").
 		Param(apiWs.PathParameter("transaction-id", "id of the transaction").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil))
-	apiWs.Route(apiWs.POST("/import").Filter(loggedInFilter).To(serv.Transfer).
+	apiWs.Route(apiWs.POST("/import").Filter(server.LoggedInFilter).To(serv.Transfer).
 		Doc("Import a file from QIF").
 		Operation("Transfer"))
 	restful.Add(apiWs)
