@@ -116,12 +116,14 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 		return Transactions{}, err
 	}
 
-	next, err := encodeNextPage(nextPageParams{reference, offset + limitPerQuery})
-	if err != nil {
-		return Transactions{}, err
-	}
+	if len(transactions.Transactions) == limitPerQuery {
+		next, err := encodeNextPage(nextPageParams{reference, offset + limitPerQuery})
+		if err != nil {
+			return Transactions{}, err
+		}
 
-	transactions.NextLink = next
+		transactions.NextLink = next
+	}
 
 	return transactions, nil
 }
