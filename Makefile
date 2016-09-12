@@ -2,7 +2,8 @@ all: network db ui build serve
 
 network:
 	docker network ls | grep financejcnet || docker network create financejcnet
-ui:
+ui: client/dest/bundle.js;
+client/dest/bundle.js: $(shell find client/src)
 	docker run --rm --name uibuild -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors"
 ui-watch:
 	docker run --rm --name uiwatch -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors --watch"
