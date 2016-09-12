@@ -57,7 +57,7 @@ export function fetchAccounts() {
 	return function(dispatch) {
 		dispatch(requestAccounts());
 
-		return fetch(`/account`, {
+		return fetch(`/api/account`, {
 			credentials: 'include'
 		})
 		.then(response => response.json())
@@ -69,7 +69,7 @@ export function fetchAccounts() {
 
 export function fetchTransactions(accountId) {
 	return function(dispatch) {
-		return fetch(`/account/${accountId}/transactions`, {
+		return fetch(`/api/account/${accountId}/transactions`, {
 			credentials: 'include'
 		})
 		.then(response => Promise.all([response.json(), response.headers.get('Link')]))
@@ -84,7 +84,7 @@ export function importData() {
 		let headers = new Headers();
 		headers.append("Accept", "application/json");
 		headers.append("Content-Type", "application/json");
-		return fetch(`/import`, {
+		return fetch(`/api/import`, {
 			method: 'POST',
 			credentials: 'include',
 			headers: headers
@@ -100,7 +100,7 @@ export function fetchAuth() {
 	return function(dispatch) {
 		dispatch(checkAuth());
 
-		return fetch(`/auth`, {
+		return fetch(`/api/auth`, {
 			credentials: 'include'
 		})
 		.then((resp) => {
@@ -119,7 +119,7 @@ export function login(googleUser) {
 		let headers = new Headers();
 		headers.append("Accept", "application/json");
 		headers.append("Content-Type", "application/json");
-		fetch('/auth', {
+		fetch('/api/auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				token: googleUser.getAuthResponse().id_token
@@ -146,7 +146,7 @@ export function putTransaction(transaction) {
 	// if editing a transaction
 	if (transaction.id) {
 		return function(dispatch) {
-			return fetch(`/transaction`, {
+			return fetch(`/api/transaction`, {
 				method: 'PUT',
 				body: JSON.stringify(transaction),
 				credentials: 'include',
@@ -159,7 +159,7 @@ export function putTransaction(transaction) {
 
 	// new transaction
 	return function(dispatch) {
-		return fetch(`/account/${transaction.accountId}/transactions`, {
+		return fetch(`/api/account/${transaction.accountId}/transactions`, {
 			method: 'POST',
 			body: JSON.stringify(transaction),
 			credentials: 'include',

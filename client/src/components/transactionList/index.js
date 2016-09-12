@@ -10,7 +10,7 @@ import { Transaction, TransactionForm } from '../transaction';
 })
 export default class TransactionList extends React.Component {
 	static propTypes = {
-		accountId: React.PropTypes.string.isRequired,
+		accountId: React.PropTypes.number.isRequired,
 		accountTransaction: React.PropTypes.object.isRequired,
 		currency: React.PropTypes.string.isRequired
 	};

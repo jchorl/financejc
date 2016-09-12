@@ -29,8 +29,8 @@ export default (state = Immutable.Map(), action) => {
 		case PUT_TRANSACTION:
 			let transaction = Immutable.fromJS(action.transaction);
 			transaction = transaction.set('date', new Date(transaction.get('date')));
-			let updated = state.get(transaction.get('accountId')).get('transactions').set(transaction.get('id'), transaction).sortBy(t => -t.get('date'));
-			return state.setIn([transaction.get('accountId'), 'transactions'], updated);
+			let updated = state.get(transaction.get('account')).get('transactions').set(transaction.get('id'), transaction).sortBy(t => -t.get('date'));
+			return state.setIn([transaction.get('account'), 'transactions'], updated);
 
 		case RECEIVE_ACCOUNTS:
 			return state.withMutations(map => {

@@ -5,25 +5,25 @@ This is a project I've been working on to track my finances
 1. Install `docker`
 2. Run `make`
 
-The app should be served on localhost:8080
+The app should be served on https://localhost:4443
 
 ## Importing Data
 1. Place one or more QIF files in a folder called import in the root directory
-2. Go to localhost:8080
+2. Go to https://localhost:4443
 3. Log in with Google if necessary
 4. Click the import button
 
 ## Makefile Targets
-`make` builds the UI, then builds and starts the server, watching for changes
+`make` creates the Docker network, builds the DB, then the UI, then the Go server, and then serves
 
 `make ui` builds the UI
 
 `make ui-watch` builds the UI and watches for changes
 
-`make serve` serves the site and watches for changes
+`make db` builds the database
 
-`make build` builds the main server image
+`make connect-db` creates a postgres container running psql and connects to the database
 
-If developing server code, run `make` and leave it running
+`make serve` serves the site
 
-For frontend, run `make build`, and when that completes, run `make ui-watch` and `make serve` in separate terminals to continuously rebuild the UI and update the server on change
+`make build` builds the Go server

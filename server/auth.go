@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/jchorl/financejc/constants"
 	"github.com/jchorl/financejc/server/auth"
@@ -13,7 +12,7 @@ import (
 )
 
 type JWTClaims struct {
-	UserId string `json:"userId"`
+	UserId int `json:"userId"`
 	jwt.StandardClaims
 }
 
@@ -39,7 +38,7 @@ func (s server) AuthUser(request *restful.Request, response *restful.Response) {
 	}
 	logrus.WithField("User ID", userId).Debug("authd with user id")
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{strconv.Itoa(userId), jwt.StandardClaims{}})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{userId, jwt.StandardClaims{}})
 	tokenStr, err := token.SignedString([]byte(constants.JWT_SIGNING_KEY))
 	if err != nil {
 		logrus.WithField("Error", err).Error("error getting signed jwt")

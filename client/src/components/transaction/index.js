@@ -37,7 +37,7 @@ export class Transaction extends React.Component {
 		return transaction ? (
 			<div className={ styles.transaction }>
 				{ this.state.editMode ? (
-					<TransactionForm form={ transaction.get('id') } transaction={ transaction } done={ this.exitEditMode }/>
+					<TransactionForm form={ transaction.get('id').toString() } transaction={ transaction } done={ this.exitEditMode }/>
 				) : (
 					<div className={ styles.transactionFields }>
 						<span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
@@ -94,7 +94,7 @@ export class TransactionForm extends React.Component {
 		fields: React.PropTypes.object.isRequired,
 		// either transaction (for editing) or accountId (for new transactions) should be passed
 		transaction: React.PropTypes.object,
-		accountId: React.PropTypes.string,
+		accountId: React.PropTypes.number,
 		done: React.PropTypes.func
 	};
 

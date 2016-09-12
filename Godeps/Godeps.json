@@ -1,0 +1,70 @@
+{
+	"ImportPath": "github.com/jchorl/financejc",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.10.0-38-g3ec0642",
+			"Rev": "3ec0642a7fb6488f65b06f9040adc67e3990296a"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v3.0.0-8-g24c63f5",
+			"Rev": "24c63f56522a87ec5339cc3567883f1039378fdb"
+		},
+		{
+			"ImportPath": "github.com/emicklei/go-restful",
+			"Comment": "v1.2-88-g7dd77ba",
+			"Rev": "7dd77babc0fbac18c02f6968b4dcf69e9c43bc73"
+		},
+		{
+			"ImportPath": "github.com/emicklei/go-restful/log",
+			"Comment": "v1.2-88-g7dd77ba",
+			"Rev": "7dd77babc0fbac18c02f6968b4dcf69e9c43bc73"
+		},
+		{
+			"ImportPath": "github.com/emicklei/go-restful/swagger",
+			"Comment": "v1.2-88-g7dd77ba",
+			"Rev": "7dd77babc0fbac18c02f6968b4dcf69e9c43bc73"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-117-g50761b0",
+			"Rev": "50761b0867bd1d9d069276790bcd4a3bccf2324a"
+		},
+		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-117-g50761b0",
+			"Rev": "50761b0867bd1d9d069276790bcd4a3bccf2324a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "cfe3c2a7525b50c3d707256e371c90938cfef98a"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "cfe3c2a7525b50c3d707256e371c90938cfef98a"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "30de6d19a3bd89a5f38ae4028e23aaa5582648af"
+		},
+		{
+			"ImportPath": "google.golang.org/api/gensupport",
+			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+		},
+		{
+			"ImportPath": "google.golang.org/api/googleapi",
+			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+		},
+		{
+			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
+			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+		},
+		{
+			"ImportPath": "google.golang.org/api/oauth2/v2",
+			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+		}
+	]
+}

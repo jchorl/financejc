@@ -1,9 +1,10 @@
-package financejc
+package main
 
 import (
 	"errors"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/jchorl/financejc/constants"
 	"github.com/jchorl/financejc/server"
@@ -19,16 +20,16 @@ import (
 
 var NotLoggedIn = errors.New("User is not logged in")
 
-func getUserId(unparsed string) (string, error) {
+func getUserId(unparsed string) (int, error) {
 	token, err := jwt.ParseWithClaims(unparsed, &server.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(constants.JWT_SIGNING_KEY), nil
 	})
 	if claims, ok := token.Claims.(*server.JWTClaims); ok && token.Valid {
 		return claims.UserId, nil
 	} else {
-		return "", err
+		return -1, err
 	}
-	return "", NotLoggedIn
+	return -1, NotLoggedIn
 }
 
 // only accept logged in users
@@ -62,82 +63,98 @@ func loggedOutFilter(request *restful.Request, response *restful.Response, chain
 	chain.ProcessFilter(request, response)
 }
 
+func staticHandler(req *restful.Request, resp *restful.Response) {
+	actual := path.Join("client/dest", req.PathParameter("subpath"))
+	http.ServeFile(resp.ResponseWriter, req.Request, actual)
+}
+
+func indexHandler(req *restful.Request, resp *restful.Response) {
+	actual := path.Join("client", "index.html")
+	http.ServeFile(resp.ResponseWriter, req.Request, actual)
+}
+
 func main() {
-	serv, err := server.NewServer("postgres", "postgresurl")
+	logrus.SetLevel(logrus.DebugLevel)
+	serv, err := server.NewServer(constants.DB_DRIVER, constants.DB_ADDRESS)
 	if err != nil {
 		logrus.WithField("Error", err).Fatal("Failed to start server")
 	}
 
-	ws := new(restful.WebService)
+	apiWs := new(restful.WebService)
 
-	ws.
-		Path("/").
+	apiWs.
+		Path("/api").
 		Consumes(restful.MIME_JSON).
 		Produces(restful.MIME_JSON)
 
-	ws.Route(ws.GET("/auth").Filter(loggedOutFilter).To(serv.CheckAuth).
+	apiWs.Route(apiWs.GET("/auth").Filter(loggedOutFilter).To(serv.CheckAuth).
 		Doc("Check if a user is authenticated").
 		Operation("CheckAuth"))
-	ws.Route(ws.POST("/auth").Filter(loggedOutFilter).To(serv.AuthUser).
+	apiWs.Route(apiWs.POST("/auth").Filter(loggedOutFilter).To(serv.AuthUser).
 		Doc("Authenticate a user").
 		Operation("AuthUser").
 		Reads(auth.Request{}))
-	ws.Route(ws.GET("/currencies").To(serv.GetCurrencies).
+	apiWs.Route(apiWs.GET("/currencies").To(serv.GetCurrencies).
 		Doc("Get all currencies").
 		Operation("GetCurrencies").
 		Writes(struct{ ISO4217 string }{"Name"}))
-	ws.Route(ws.GET("/account").Filter(loggedInFilter).To(serv.GetAccounts).
+	apiWs.Route(apiWs.GET("/account").Filter(loggedInFilter).To(serv.GetAccounts).
 		Doc("Get all accounts").
 		Operation("GetAccounts").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Writes(account.Account{}))
-	ws.Route(ws.POST("/account").Filter(loggedInFilter).To(serv.NewAccount).
+	apiWs.Route(apiWs.POST("/account").Filter(loggedInFilter).To(serv.NewAccount).
 		Doc("Create a new account").
 		Operation("NewAccount").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Returns(http.StatusForbidden, "Invalid currency", nil).
 		Reads(account.Account{}).
 		Writes(account.Account{}))
-	ws.Route(ws.PUT("/account").Filter(loggedInFilter).To(serv.UpdateAccount).
+	apiWs.Route(apiWs.PUT("/account").Filter(loggedInFilter).To(serv.UpdateAccount).
 		Doc("Update account").
 		Operation("UpdateAccount").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Returns(http.StatusForbidden, "Invalid currency", nil).
 		Reads(account.Account{}).
 		Writes(account.Account{}))
-	ws.Route(ws.DELETE("/account/{account-id}").Filter(loggedInFilter).To(serv.DeleteAccount).
+	apiWs.Route(apiWs.DELETE("/account/{account-id}").Filter(loggedInFilter).To(serv.DeleteAccount).
 		Doc("Delete account").
 		Operation("DeleteAccount").
-		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
+		Param(apiWs.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil))
-	ws.Route(ws.GET("/account/{account-id}/transactions").Filter(loggedInFilter).To(serv.GetTransactions).
+	apiWs.Route(apiWs.GET("/account/{account-id}/transactions").Filter(loggedInFilter).To(serv.GetTransactions).
 		Doc("Get all transactions for an account").
 		Operation("GetTransactions").
-		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
+		Param(apiWs.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Writes(transaction.Transaction{}))
-	ws.Route(ws.POST("/account/{account-id}/transactions").Filter(loggedInFilter).To(serv.NewTransaction).
+	apiWs.Route(apiWs.POST("/account/{account-id}/transactions").Filter(loggedInFilter).To(serv.NewTransaction).
 		Doc("Create a new transaction").
 		Operation("NewTransaction").
-		Param(ws.PathParameter("account-id", "id of the account").DataType("string")).
+		Param(apiWs.PathParameter("account-id", "id of the account").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Reads(transaction.Transaction{}).
 		Writes(transaction.Transaction{}))
-	ws.Route(ws.PUT("/transaction").Filter(loggedInFilter).To(serv.UpdateTransaction).
+	apiWs.Route(apiWs.PUT("/transaction").Filter(loggedInFilter).To(serv.UpdateTransaction).
 		Doc("Update transaction").
 		Operation("UpdateTransaction").
 		Returns(http.StatusUnauthorized, "User is not authorized", nil).
 		Reads(transaction.Transaction{}).
 		Writes(transaction.Transaction{}))
-	ws.Route(ws.DELETE("/transaction/{transaction-id}").Filter(loggedInFilter).To(serv.DeleteTransaction).
+	apiWs.Route(apiWs.DELETE("/transaction/{transaction-id}").Filter(loggedInFilter).To(serv.DeleteTransaction).
 		Doc("Delete transaction").
 		Operation("DeleteTransaction").
-		Param(ws.PathParameter("transaction-id", "id of the transaction").DataType("string")).
+		Param(apiWs.PathParameter("transaction-id", "id of the transaction").DataType("string")).
 		Returns(http.StatusUnauthorized, "User is not authorized", nil))
-	ws.Route(ws.POST("/import").Filter(loggedInFilter).To(serv.Transfer).
+	apiWs.Route(apiWs.POST("/import").Filter(loggedInFilter).To(serv.Transfer).
 		Doc("Import a file from QIF").
 		Operation("Transfer"))
-	restful.Add(ws)
+	restful.Add(apiWs)
+
+	staticWs := new(restful.WebService)
+	staticWs.Route(staticWs.GET("").To(indexHandler))
+	staticWs.Route(staticWs.GET("/{subpath}").To(staticHandler))
+	restful.Add(staticWs)
 
 	config := swagger.Config{
 		WebServices:     restful.RegisteredWebServices(),
@@ -148,5 +165,8 @@ func main() {
 	swagger.InstallSwaggerService(config)
 
 	port := os.Getenv("PORT")
-	http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServeTLS(":"+port, "server.pem", "server.key", nil)
+	if err != nil {
+		logrus.WithField("Error", err).Fatal("could not serve")
+	}
 }

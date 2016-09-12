@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jchorl/financejc/constants"
+	"github.com/jchorl/financejc/server/util"
 
 	"github.com/Sirupsen/logrus"
 )
@@ -28,7 +29,18 @@ type Transaction struct {
 	Amount             float64   `json:"amount" description:"Amount"`
 	Note               string    `json:"note" description:"Note on the transaction"`
 	RelatedTransaction int       `json:"relatedTransaction,omitempty" description:"A related transaction"`
-	Account            int       `json:"-"`
+	Account            int       `json:"account" description:"The account Id that the transaction belongs to"`
+}
+
+type transactionDB struct {
+	Id                 int
+	Name               string
+	Occurred           time.Time
+	Category           sql.NullString
+	Amount             float64
+	Note               sql.NullString
+	RelatedTransaction sql.NullInt64
+	Account            int
 }
 
 type nextPageParams struct {
@@ -49,7 +61,7 @@ func (t Transactions) Values() (ret []interface{}) {
 }
 
 func Get(c context.Context, accountId, nextEncoded string) (Transactions, error) {
-	db := c.Value(constants.CTX_DB).(sql.DB)
+	db := c.Value(constants.CTX_DB).(util.DB)
 	transactions := Transactions{
 		Transactions: make([]*Transaction, 0),
 	}
@@ -65,35 +77,60 @@ func Get(c context.Context, accountId, nextEncoded string) (Transactions, error)
 		reference, offset = decoded.Reference, decoded.Offset
 	}
 
-	rows, err := db.Query("SELECT * FROM transactions WHERE account = $1 AND date < $2 ORDER BY date DESC, id LIMIT $3 OFFSET $4", accountId, reference, limitPerQuery, offset)
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransaction, account FROM transactions WHERE account = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountId, reference, limitPerQuery, offset)
 	if err != nil {
-		logrus.WithField("Error", err).Error("failed to fetch transactions")
+		logrus.WithFields(logrus.Fields{
+			"Error":      err,
+			"Account ID": accountId,
+			"Next":       nextEncoded,
+		}).Error("failed to fetch transactions")
 		return Transactions{}, err
 	}
 
 	for rows.Next() {
-		var transaction Transaction
-		if err := rows.Scan(&transaction); err != nil {
-			logrus.WithField("Error", err).Error("failed to scan into transaction")
+		var transaction transactionDB
+		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransaction, &transaction.Account); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"Error":      err,
+				"Account ID": accountId,
+				"Next":       nextEncoded,
+			}).Error("failed to scan into transaction")
 			return Transactions{}, err
 		}
 
-		transactions.Transactions = append(transactions.Transactions, &transaction)
+		transactions.Transactions = append(transactions.Transactions, fromDB(transaction))
 	}
 	if err := rows.Err(); err != nil {
-		logrus.WithField("Error", err).Error("failed to get transactions from rows")
+		logrus.WithFields(logrus.Fields{
+			"Error":      err,
+			"Account ID": accountId,
+			"Next":       nextEncoded,
+		}).Error("failed to get transactions from rows")
 		return Transactions{}, err
 	}
+
+	next, err := encodeNextPage(nextPageParams{reference, offset + limitPerQuery})
+	if err != nil {
+		return Transactions{}, err
+	}
+
+	transactions.NextLink = next
 
 	return transactions, nil
 }
 
 func New(c context.Context, transaction *Transaction) (*Transaction, error) {
-	db := c.Value(constants.CTX_DB).(sql.DB)
+	db := c.Value(constants.CTX_DB).(util.DB)
+
+	tdb := toDB(*transaction)
 	var id int
-	err := db.QueryRow("INSERT INTO transactions(name, date, category, amount, note, relatedTransaction, account) VALUES($1, $2, $3, $4, $5, $6, %7) RETURNING id", transaction.Name, transaction.Date, transaction.Category, transaction.Amount, transaction.Note, transaction.RelatedTransaction, transaction.Account).Scan(&id)
+	err := db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransaction, account) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Account).Scan(&id)
 	if err != nil {
-		logrus.WithField("Error", err).Errorf("failed to insert transaction row")
+		logrus.WithFields(logrus.Fields{
+			"Error":         err,
+			"TransactionDB": tdb,
+			"Transaction":   transaction,
+		}).Errorf("failed to insert transaction row")
 		return nil, err
 	}
 
@@ -102,10 +139,15 @@ func New(c context.Context, transaction *Transaction) (*Transaction, error) {
 }
 
 func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
-	db := c.Value(constants.CTX_DB).(sql.DB)
-	_, err := db.Exec("UPDATE transactions SET name = $1, date = $2, category = $3, amount = $4, note = $5, relatedTransaction = $6, account = $7 WHERE id = $8", transaction.Name, transaction.Date, transaction.Category, transaction.Amount, transaction.Note, transaction.RelatedTransaction, transaction.Account, transaction.Id)
+	db := c.Value(constants.CTX_DB).(util.DB)
+	tdb := toDB(*transaction)
+	_, err := db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransaction = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Id)
 	if err != nil {
-		logrus.WithField("Error", err).Errorf("failed to update transaction row")
+		logrus.WithFields(logrus.Fields{
+			"Error":         err,
+			"TransactionDB": tdb,
+			"Transaction":   transaction,
+		}).Errorf("failed to update transaction row")
 		return nil, err
 	}
 
@@ -113,11 +155,14 @@ func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
 }
 
 func Delete(c context.Context, transactionId int) error {
-	db := c.Value(constants.CTX_DB).(sql.DB)
+	db := c.Value(constants.CTX_DB).(util.DB)
 
 	_, err := db.Exec("DELETE FROM transactions WHERE id = $1", transactionId)
 	if err != nil {
-		logrus.WithField("Error", err).Errorf("could not delete transaction")
+		logrus.WithFields(logrus.Fields{
+			"Error":          err,
+			"Transaction ID": transactionId,
+		}).Errorf("could not delete transaction")
 		return err
 	}
 
@@ -127,7 +172,10 @@ func Delete(c context.Context, transactionId int) error {
 func encodeNextPage(decoded nextPageParams) (string, error) {
 	bts, err := json.Marshal(decoded)
 	if err != nil {
-		logrus.WithField("Error", err).Error("could not encode next page parameter")
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"Decoded": decoded,
+		}).Error("could not encode next page parameter")
 		return "", err
 	}
 
@@ -138,9 +186,38 @@ func decodeNextPage(encoded string) (nextPageParams, error) {
 	var decoded nextPageParams
 	err := json.Unmarshal([]byte(encoded), &decoded)
 	if err != nil {
-		logrus.WithField("Error", err).Error("could not decode next page parameter")
+		logrus.WithFields(logrus.Fields{
+			"Error":   err,
+			"Encoded": encoded,
+		}).Error("could not decode next page parameter")
 		return nextPageParams{}, err
 	}
 
 	return decoded, nil
+}
+
+func toDB(transaction Transaction) *transactionDB {
+	return &transactionDB{
+		Id:                 transaction.Id,
+		Name:               transaction.Name,
+		Occurred:           transaction.Date,
+		Category:           util.ToNullString(transaction.Category),
+		Amount:             transaction.Amount,
+		Note:               util.ToNullString(transaction.Note),
+		RelatedTransaction: util.ToNullInt(transaction.RelatedTransaction),
+		Account:            transaction.Account,
+	}
+}
+
+func fromDB(transaction transactionDB) *Transaction {
+	return &Transaction{
+		Id:                 transaction.Id,
+		Name:               transaction.Name,
+		Date:               transaction.Occurred,
+		Category:           util.FromNullString(transaction.Category),
+		Amount:             transaction.Amount,
+		Note:               util.FromNullString(transaction.Note),
+		RelatedTransaction: util.FromNullInt(transaction.RelatedTransaction),
+		Account:            transaction.Account,
+	}
 }

@@ -14,7 +14,7 @@ export default class AccountList extends React.Component {
 	static propTypes = {
 		accounts: React.PropTypes.object.isRequired,
 		onSelect: React.PropTypes.func,
-		selected: React.PropTypes.string
+		selected: React.PropTypes.number
 	}
 
 	render () {
@@ -37,7 +37,7 @@ export default class AccountList extends React.Component {
 									{ account.get('name') }
 								</div>
 								<div className={ styles.accountBalance }>
-									Balance: { toCurrency(45, account.get('currency')) }
+									Balance: { toCurrency(account.get('futureValue'), account.get('currency')) }
 								</div>
 							</button>
 						)

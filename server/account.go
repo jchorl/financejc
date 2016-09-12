@@ -10,10 +10,9 @@ import (
 )
 
 func (s server) GetAccounts(request *restful.Request, response *restful.Response) {
-	userId := request.Attribute("userId").(string)
+	userId := request.Attribute("userId").(int)
 	accounts, err := account.Get(s.Context(), userId)
 	if err != nil {
-		logrus.Errorf("error getting accounts: %+v", err)
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
@@ -21,7 +20,7 @@ func (s server) GetAccounts(request *restful.Request, response *restful.Response
 }
 
 func (s server) NewAccount(request *restful.Request, response *restful.Response) {
-	userId := request.Attribute("userId").(string)
+	userId := request.Attribute("userId").(int)
 	acc := new(account.Account)
 	err := request.ReadEntity(acc)
 	if err != nil {
@@ -30,12 +29,12 @@ func (s server) NewAccount(request *restful.Request, response *restful.Response)
 		return
 	}
 
-	acc, err = account.New(s.Context(), userId, acc)
+	acc.User = userId
+	acc, err = account.New(s.Context(), acc)
 	if err == account.InvalidCurrency {
 		response.WriteError(http.StatusForbidden, err)
 		return
 	} else if err != nil {
-		logrus.Errorf("error creating account: %+v", err)
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
@@ -56,7 +55,6 @@ func (s server) UpdateAccount(request *restful.Request, response *restful.Respon
 		response.WriteError(http.StatusForbidden, err)
 		return
 	} else if err != nil {
-		logrus.Errorf("error creating account: %+v", err)
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}
@@ -67,7 +65,6 @@ func (s server) DeleteAccount(request *restful.Request, response *restful.Respon
 	accountId := request.PathParameter("account-id")
 	err := account.Delete(s.Context(), accountId)
 	if err != nil {
-		logrus.Errorf("error deleting account: %+v", err)
 		response.WriteError(http.StatusInternalServerError, err)
 		return
 	}

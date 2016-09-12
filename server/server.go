@@ -10,7 +10,7 @@ import (
 )
 
 type server struct {
-	db sql.DB
+	db *sql.DB
 }
 
 func NewServer(driver, address string) (server, error) {
@@ -19,11 +19,11 @@ func NewServer(driver, address string) (server, error) {
 		return server{}, err
 	}
 
-	s := server{*db}
+	s := server{db}
 	return s, nil
 }
 
-func (s server) DB() sql.DB {
+func (s server) DB() *sql.DB {
 	return s.db
 }
 

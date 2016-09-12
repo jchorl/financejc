@@ -24,9 +24,8 @@ const (
 	OPTION      = "OPTION"
 )
 
-func TransferQIF(c context.Context, userId string, file *os.File) error {
-	db := c.Value(constants.CTX_DB).(sql.DB)
-	var err error
+func TransferQIF(c context.Context, userId int, file *os.File) error {
+	db := c.Value(constants.CTX_DB).(*sql.DB)
 	state := NONE
 	acc := &account.Account{}
 	tr := &transaction.Transaction{}
@@ -38,6 +37,8 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 	if err != nil {
 		logrus.WithField("Error", err).Error("could not begin transaction")
 	}
+
+	c = context.WithValue(c, constants.CTX_DB, tx)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -70,7 +71,8 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 			case 'N':
 				acc.Name = line[1:]
 			case '^':
-				acc, err = account.New(c, userId, acc)
+				acc.User = userId
+				acc, err = account.New(c, acc)
 				if err != nil {
 					return err
 				}
@@ -110,7 +112,6 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 				tr.Account = acc.Id
 				tr, err = transaction.New(c, tr)
 				if err != nil {
-					logrus.WithField("Error", err).Error("could not create account during import")
 					return err
 				}
 
@@ -125,7 +126,6 @@ func TransferQIF(c context.Context, userId string, file *os.File) error {
 			logrus.WithField("Error", err).Error("scanner returned error during import")
 			return err
 		}
-		return nil
 	}
 
 	// now take all the uncategorized transactions and try to pair them up based on date
