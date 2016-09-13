@@ -1,6 +1,7 @@
 import Immutable from 'immutable';
 import {
-	RECEIVE_ACCOUNTS
+	RECEIVE_ACCOUNTS,
+	UPDATE_ACCOUNT_VALUE
 } from '../actions'
 
 export default (state = Immutable.Map(), action) => {
@@ -11,6 +12,8 @@ export default (state = Immutable.Map(), action) => {
 					map.set(account.id, Immutable.fromJS(account));
 				}
 			});
+		case UPDATE_ACCOUNT_VALUE:
+			return state.updateIn([action.accountId, 'futureValue'], val => val + action.delta);
 		default:
 			return state;
 	}

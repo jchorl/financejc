@@ -53,6 +53,15 @@ export const updateTransactions = (transaction) => {
 	};
 }
 
+export const UPDATE_ACCOUNT_VALUE = 'UPDATE_ACCOUNT_VALUE';
+export const updateAccountValue = (accountId, delta) => {
+	return {
+		type: UPDATE_ACCOUNT_VALUE,
+		accountId,
+		delta
+	}
+}
+
 export function fetchAccounts() {
 	return function(dispatch) {
 		dispatch(requestAccounts());
@@ -138,7 +147,8 @@ export function login(googleUser) {
 	}
 }
 
-export function putTransaction(transaction) {
+// amountDifference is the amount to change the account value by
+export function putTransaction(transaction, amountDifference) {
 	let headers = new Headers();
 	headers.append("Accept", "application/json");
 	headers.append("Content-Type", "application/json");
@@ -153,7 +163,8 @@ export function putTransaction(transaction) {
 				headers: headers
 			})
 			.then(response => response.json())
-			.then(json => dispatch(updateTransactions(json)));
+			.then(json => dispatch(updateTransactions(json)))
+			.then(resp => dispatch(updateAccountValue(resp.transaction.account, amountDifference)));
 		}
 	}
 
@@ -166,6 +177,7 @@ export function putTransaction(transaction) {
 			headers: headers
 		})
 		.then(response => response.json())
-		.then(json => dispatch(updateTransactions(json)));
+		.then(json => dispatch(updateTransactions(json)))
+		.then(resp => dispatch(updateAccountValue(resp.transaction.account, amountDifference)));
 	}
 }

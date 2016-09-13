@@ -107,13 +107,18 @@ export class TransactionForm extends React.Component {
 		} = this.props;
 
 		let obj = data;
+		let newAmount = parseFloat(data.amount);
+		let difference = newAmount;
+
 		if (transaction) {
 			obj = Object.assign(transaction.toObject(), data);
+			difference = difference - transaction.get('amount');
 		}
+
 		obj.date = new Date(obj.date);
 		obj.accountId = accountId;
-		obj.amount = parseFloat(obj.amount);
-		dispatch(putTransaction(obj));
+		obj.amount = newAmount;
+		dispatch(putTransaction(obj, difference));
 		done && done();
 	}
 

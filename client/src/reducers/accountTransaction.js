@@ -16,7 +16,7 @@ export default (state = Immutable.Map(), action) => {
 				Immutable.Map()
 			);
 
-			state = state.setIn([action.accountId, 'transactions'], state.get(action.accountId).get('transactions').merge(transactions).sortBy(t => -t.get('date')));
+			state = state.updateIn([action.accountId, 'transactions'], ts => ts.merge(transactions).sortBy(t => -t.get('date')));
 
 			let re = new RegExp('<(.*)>; rel="next"');
 			let result = re.exec(action.link)
@@ -29,8 +29,7 @@ export default (state = Immutable.Map(), action) => {
 		case PUT_TRANSACTION:
 			let transaction = Immutable.fromJS(action.transaction);
 			transaction = transaction.set('date', new Date(transaction.get('date')));
-			let updated = state.get(transaction.get('account')).get('transactions').set(transaction.get('id'), transaction).sortBy(t => -t.get('date'));
-			return state.setIn([transaction.get('account'), 'transactions'], updated);
+			return state.updateIn([transaction.get('account'), 'transactions'], transactions => transactions.set(transaction.get('id'), transaction).sortBy(t => -t.get('date')));
 
 		case RECEIVE_ACCOUNTS:
 			return state.withMutations(map => {
