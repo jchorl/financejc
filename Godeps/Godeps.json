@@ -2,6 +2,9 @@
 	"ImportPath": "github.com/jchorl/financejc",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -14,19 +17,54 @@
 			"Rev": "24c63f56522a87ec5339cc3567883f1039378fdb"
 		},
 		{
-			"ImportPath": "github.com/emicklei/go-restful",
-			"Comment": "v1.2-88-g7dd77ba",
-			"Rev": "7dd77babc0fbac18c02f6968b4dcf69e9c43bc73"
+			"ImportPath": "github.com/labstack/echo",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
 		},
 		{
-			"ImportPath": "github.com/emicklei/go-restful/log",
-			"Comment": "v1.2-88-g7dd77ba",
-			"Rev": "7dd77babc0fbac18c02f6968b4dcf69e9c43bc73"
+			"ImportPath": "github.com/labstack/echo/context",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
 		},
 		{
-			"ImportPath": "github.com/emicklei/go-restful/swagger",
-			"Comment": "v1.2-88-g7dd77ba",
-			"Rev": "7dd77babc0fbac18c02f6968b4dcf69e9c43bc73"
+			"ImportPath": "github.com/labstack/echo/engine",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/engine/standard",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/log",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/echo/middleware",
+			"Comment": "2.1-3-g9c0e9d6",
+			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/bytes",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/color",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/log",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+		},
+		{
+			"ImportPath": "github.com/labstack/gommon/random",
+			"Comment": "v0.0.3-64-gf3b1a1b",
+			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
@@ -39,32 +77,45 @@
 			"Rev": "50761b0867bd1d9d069276790bcd4a3bccf2324a"
 		},
 		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Comment": "v0.0.6-6-g6c903ff",
+			"Rev": "6c903ff4aa50920ca86087a280590b36b3152b9c"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Rev": "66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8"
+		},
+		{
+			"ImportPath": "github.com/valyala/fasttemplate",
+			"Rev": "3b874956e03f1636d171bda64b130f9135f42cff"
+		},
+		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "cfe3c2a7525b50c3d707256e371c90938cfef98a"
+			"Rev": "9b4f494e787b16cdbea624b6975b99ddd8cc1ebf"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "cfe3c2a7525b50c3d707256e371c90938cfef98a"
+			"Rev": "9b4f494e787b16cdbea624b6975b99ddd8cc1ebf"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "30de6d19a3bd89a5f38ae4028e23aaa5582648af"
+			"Rev": "8d1157a435470616f975ff9bb013bea8d0962067"
 		},
 		{
 			"ImportPath": "google.golang.org/api/gensupport",
-			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi",
-			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
-			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
 		},
 		{
 			"ImportPath": "google.golang.org/api/oauth2/v2",
-			"Rev": "a69f0f19d246419bb931b0ac8f4f8d3f3e6d4feb"
+			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
 		}
 	]
 }

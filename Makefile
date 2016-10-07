@@ -1,5 +1,7 @@
 all: network db ui build serve
 
+dev: network db ui build serve-dev
+
 network:
 	docker network ls | grep financejcnet || docker network create financejcnet
 ui: client/dest/bundle.js;
@@ -12,7 +14,25 @@ db: network
 connect-db:
 	docker run -it --name financejcdbcon --rm --network financejcnet postgres psql -h financejcdb -U financejc
 serve: network
-	docker run -it --name financejc --rm --network financejcnet -p 4443:443 -e PORT=443 -v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest jchorl/financejc
+	docker run -it --rm \
+		--name financejc \
+		--network financejcnet \
+		-p 4443:443 \
+		-e DOMAIN=finance.joshchorlton.com \
+		-e PORT=443 \
+		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
+		jchorl/financejc
+
+serve-dev: network
+	docker run -it --rm \
+		--name financejc \
+		--network financejcnet \
+		-p 4443:4443 \
+		-e DEV=1 \
+		-e DOMAIN=localhost \
+		-e PORT=4443 \
+		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
+		jchorl/financejc
 build: ui
 	docker build -t jchorl/financejc .
 clean:
