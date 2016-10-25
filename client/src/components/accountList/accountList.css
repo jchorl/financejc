@@ -21,7 +21,7 @@
     margin: 10px;
   }
 
-  .accountBalance {
+  .accountInfo {
     color: ~colors.secondaryDark;
     margin: 10px;
   }
@@ -29,7 +29,7 @@
   &.selected {
     background: ~colors.primaryDark;
 
-    .accountName, .accountBalance {
+    .accountName, .accountInfo {
       color: white;
     }
   }
