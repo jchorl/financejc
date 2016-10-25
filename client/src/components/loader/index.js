@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
+import styles from './loader.css';
 
 export default class Loader extends React.Component {
 	static propTypes = {
@@ -11,7 +12,7 @@ export default class Loader extends React.Component {
 		return (
 			<div>
 				{ this.props.loading
-					? (<span>Loading</span>)
+					? (<div className={ styles.loader }>Loading...</div>)
 					: (
 						<div>
 							{ this.props.children }
