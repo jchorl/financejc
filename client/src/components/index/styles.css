@@ -6,3 +6,11 @@ body {
   margin: 0;
   background: ~colors.background;
 }
+
+.navBar {
+  background: ~colors.primaryDark;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+}
