@@ -67,9 +67,7 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 	}
 
 	valid, err := userOwnsAccount(c, accountId)
-	if err != nil {
-		return Transactions{}, constants.Forbidden
-	} else if !valid {
+	if err != nil || !valid {
 		return Transactions{}, constants.Forbidden
 	}
 
