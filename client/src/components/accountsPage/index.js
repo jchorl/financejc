@@ -10,7 +10,7 @@ import styles from './accountsPage.css';
 
 @connect((state) => {
   return {
-    accounts: state.account,
+    accounts: state.accounts,
     accountTransaction: state.accountTransaction,
     currencies: state.currencies
   }
@@ -24,8 +24,8 @@ class AccountsPage extends React.Component {
 
   constructor (props) {
     super(props);
-    let selected = props.accounts.size !== 0
-      ? props.accounts.first().get('id')
+    let selected = props.accounts.get('accounts').size !== 0
+      ? props.accounts.get('accounts').first().get('id')
       : -1;
     this.state = {
       selected: selected
@@ -63,16 +63,16 @@ class AccountsPage extends React.Component {
 
     let currency;
     if (selected !== -1) {
-      let currencyCode = accounts.get(selected).get('currency');
+      let currencyCode = accounts.get('accounts').get(selected).get('currency');
       currency = currencies.get('currencies').get(currencyCode);
     }
 
     return (
       <div className={ styles.accountsPage }>
         {
-          accounts.size !== 0 ? (
+          accounts.get('accounts').size !== 0 ? (
             <div className={ styles.accountList }>
-              <AccountList selected={ selected } onSelect={ this.selectAccount } currency={ currency } />
+              <AccountList selected={ selected } onSelect={ this.selectAccount } />
             </div>
           ) : (
             <div>
@@ -94,13 +94,13 @@ class AccountsPage extends React.Component {
 
 @connect((state) => {
   return {
-    fetching: state.fetching,
+    accounts: state.accounts,
     currencies: state.currencies
   }
 })
 export default class AccountsPageWrapper extends React.Component {
   static propTypes = {
-    fetching: React.PropTypes.bool.isRequired
+    accounts: React.PropTypes.object.isRequired
   }
 
   constructor (props) {
@@ -111,7 +111,7 @@ export default class AccountsPageWrapper extends React.Component {
 
   render () {
     return (
-      <Loader loading={ this.props.fetching || !this.props.currencies.get('fetched') }>
+      <Loader loading={ !this.props.accounts.get('fetched') || !this.props.currencies.get('fetched') }>
         <AccountsPage />
       </Loader>
     )
