@@ -32,7 +32,7 @@ export default class GoogleLoginButton extends React.Component {
 
   componentDidMount() {
     if (document.readyState === 'complete') {
-      attachToButton(this.props.dispatch);
+      attachToButton(this.props.dispatch)();
     } else {
       window.onload = attachToButton(this.props.dispatch);
     }

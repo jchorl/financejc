@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
 import classNames from 'classnames';
-import { toCurrency } from '../../utils';
+import { toCurrency, toDecimal } from '../../utils';
 import styles from './accountList.css';
 
 @connect((state) => {
@@ -14,12 +14,14 @@ export default class AccountList extends React.Component {
   static propTypes = {
     accounts: React.PropTypes.object.isRequired,
     onSelect: React.PropTypes.func,
-    selected: React.PropTypes.number
+    selected: React.PropTypes.number,
+    currency: React.PropTypes.object
   }
 
   render () {
     const {
       accounts,
+      currency,
       onSelect,
       selected
     } = this.props;
@@ -37,7 +39,7 @@ export default class AccountList extends React.Component {
                   { account.get('name') }
                 </div>
                 <div className={ styles.accountInfo }>
-                  Balance: { toCurrency(account.get('futureValue'), account.get('currency')) }
+                  Balance: { toCurrency(toDecimal(account.get('futureValue'), currency.get('digitsAfterDecimal')), currency.get('code')) }
                 </div>
               </button>
             )

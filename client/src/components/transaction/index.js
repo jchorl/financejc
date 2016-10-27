@@ -2,13 +2,13 @@ import React from 'react';
 import classNames from 'classnames';
 import { reduxForm } from 'redux-form';
 import styles from './transaction.css';
-import { toCurrency, toDate } from '../../utils';
+import { toCurrency, toDate, toDecimal, toWhole } from '../../utils';
 import { putTransaction } from '../../actions';
 
 export class Transaction extends React.Component {
   static propTypes = {
     transaction: React.PropTypes.object,
-    currency: React.PropTypes.string.isRequired
+    currency: React.PropTypes.object.isRequired,
   };
 
   constructor(props) {
@@ -37,13 +37,13 @@ export class Transaction extends React.Component {
     return transaction ? (
       <div className={ styles.transaction }>
         { this.state.editMode ? (
-          <TransactionForm form={ transaction.get('id').toString() } transaction={ transaction } done={ this.exitEditMode }/>
+          <TransactionForm form={ transaction.get('id').toString() } transaction={ transaction } done={ this.exitEditMode } currency={ currency } />
         ) : (
           <div className={ styles.transactionFields }>
             <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
             <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.get('date')) }</span>
             <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('category') }</span>
-            <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(transaction.get('amount'), currency) }</span>
+            <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
           </div>
         ) }
       </div>
@@ -70,13 +70,19 @@ function toRFC3339(d) {
   ]
 },
   (state, props) => {
+    let {
+      accountId,
+      transaction,
+      currency
+    } = props;
+
     if (props.transaction) {
       return {
         initialValues: {
-          name: props.transaction.get('name'),
-          date: toRFC3339(props.transaction.get('date')),
-          category: props.transaction.get('category'),
-          amount: props.transaction.get('amount')
+          name: transaction.get('name'),
+          date: toRFC3339(transaction.get('date')),
+          category: transaction.get('category'),
+          amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
         }
       };
     }
@@ -91,6 +97,8 @@ function toRFC3339(d) {
   })
 export class TransactionForm extends React.Component {
   static propTypes = {
+    currency: React.PropTypes.object.isRequired,
+    dispatch: React.PropTypes.func.isRequired,
     fields: React.PropTypes.object.isRequired,
     // either transaction (for editing) or accountId (for new transactions) should be passed
     transaction: React.PropTypes.object,
@@ -101,13 +109,14 @@ export class TransactionForm extends React.Component {
   submit = (data) => {
     const {
       accountId,
+      currency,
       dispatch,
       done,
       transaction
     } = this.props;
 
     let obj = data;
-    let newAmount = parseFloat(data.amount);
+    let newAmount = toWhole(parseFloat(data.amount), currency.get('digitsAfterDecimal'));
     let difference = newAmount;
 
     if (transaction) {

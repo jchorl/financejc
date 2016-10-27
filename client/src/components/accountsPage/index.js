@@ -2,110 +2,118 @@ import React from 'react';
 import Immutable from 'immutable';
 import { render } from 'react-dom';
 import { connect } from 'react-redux';
-import { fetchAccounts, fetchTransactions, importData } from '../../actions';
+import { fetchAccounts, fetchCurrencies, fetchTransactions, importData } from '../../actions';
 import AccountList from '../accountList';
 import TransactionList from '../transactionList';
 import Loader from '../loader';
 import styles from './accountsPage.css';
 
 @connect((state) => {
-	return {
-		accounts: state.account,
-		accountTransaction: state.accountTransaction
-	}
+  return {
+    accounts: state.account,
+    accountTransaction: state.accountTransaction,
+    currencies: state.currencies
+  }
 })
 class AccountsPage extends React.Component {
-	static propTypes = {
-		accounts: React.PropTypes.object.isRequired,
-		accountTransaction: React.PropTypes.object.isRequired
-	}
+  static propTypes = {
+    accounts: React.PropTypes.object.isRequired,
+    accountTransaction: React.PropTypes.object.isRequired,
+    currencies: React.PropTypes.object.isRequired
+  }
 
-	constructor (props) {
-		super(props);
-		let selected = props.accounts.size !== 0
-			? props.accounts.first().get('id')
-			: "";
-		this.state = {
-			selected: selected
-		};
+  constructor (props) {
+    super(props);
+    let selected = props.accounts.size !== 0
+      ? props.accounts.first().get('id')
+      : -1;
+    this.state = {
+      selected: selected
+    };
 
-		this.fetchTransactionsIfNecessary(selected);
-	}
+    this.fetchTransactionsIfNecessary(selected);
+  }
 
-	fetchTransactionsIfNecessary = (id) => {
-		// reload transactions if necessary
-		if (this.state.selected === '') return
-		if (this.props.accountTransaction.get(id).get("transactions").isEmpty()) {
-			this.props.dispatch(fetchTransactions(id));
-		}
-	}
+  fetchTransactionsIfNecessary = (id) => {
+    // reload transactions if necessary
+    if (this.state.selected === -1) return
+    if (this.props.accountTransaction.get(id).get("transactions").isEmpty()) {
+      this.props.dispatch(fetchTransactions(id));
+    }
+  }
 
-	selectAccount = (id) => {
-		this.setState({
-			selected: id
-		});
+  selectAccount = (id) => {
+    this.setState({
+      selected: id
+    });
 
-		this.fetchTransactionsIfNecessary(id);
-	}
+    this.fetchTransactionsIfNecessary(id);
+  }
 
-	importButton = () => {
-		this.props.dispatch(importData());
-	}
+  importButton = () => {
+    this.props.dispatch(importData());
+  }
 
-	render () {
-		const accounts = this.props.accounts
-		const selected = this.state.selected;
+  render () {
+    const {
+      accounts,
+      currencies
+    } = this.props;
+    const selected = this.state.selected;
 
-		let currency;
-		if (selected) {
-			currency = accounts.get(selected).get('currency');
-		}
+    let currency;
+    if (selected !== -1) {
+      let currencyCode = accounts.get(selected).get('currency');
+      currency = currencies.get('currencies').get(currencyCode);
+    }
 
-		return (
-			<div className={ styles.accountsPage }>
-				{
-					accounts.size !== 0 ? (
-						<div className={ styles.accountList }>
-							<AccountList selected={ selected } onSelect={ this.selectAccount }/>
-						</div>
-					) : (
-						<div>
-							Place QIF files in the /import folder and click <button onClick={ this.importButton }>Import</button>
-						</div>
-					)
-				}
-				{
-					selected !== "" ? (
-						<div className={ styles.transactionList }>
-							<TransactionList accountId={ selected } currency={ currency } />
-						</div>
-					) : null
-				}
-			</div>
-		)
-	}
+    return (
+      <div className={ styles.accountsPage }>
+        {
+          accounts.size !== 0 ? (
+            <div className={ styles.accountList }>
+              <AccountList selected={ selected } onSelect={ this.selectAccount } currency={ currency } />
+            </div>
+          ) : (
+            <div>
+              Place QIF files in the /import folder and click <button onClick={ this.importButton }>Import</button>
+            </div>
+          )
+        }
+        {
+          selected !== -1 ? (
+            <div className={ styles.transactionList }>
+              <TransactionList accountId={ selected } currency={ currency } />
+            </div>
+          ) : null
+        }
+      </div>
+    )
+  }
 }
 
 @connect((state) => {
-	return {
-		fetching: state.fetching
-	}
+  return {
+    fetching: state.fetching,
+    currencies: state.currencies
+  }
 })
 export default class AccountsPageWrapper extends React.Component {
-	static propTypes = {
-		fetching: React.PropTypes.bool.isRequired
-	}
+  static propTypes = {
+    fetching: React.PropTypes.bool.isRequired
+  }
 
-	constructor (props) {
-		super(props);
-		props.dispatch(fetchAccounts());
-	}
+  constructor (props) {
+    super(props);
+    props.dispatch(fetchAccounts());
+    props.dispatch(fetchCurrencies());
+  }
 
-	render () {
-		return (
-			<Loader loading={ this.props.fetching }>
-				<AccountsPage />
-			</Loader>
-		)
-	}
+  render () {
+    return (
+      <Loader loading={ this.props.fetching || !this.props.currencies.get('fetched') }>
+        <AccountsPage />
+      </Loader>
+    )
+  }
 }

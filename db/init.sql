@@ -15,7 +15,7 @@ CREATE TABLE transactions (
     name varchar(100) NOT NULL,
     occurred date NOT NULL,
     category varchar(100),
-    amount real NOT NULL,
+    amount integer NOT NULL,
     note varchar(256),
     relatedTransaction integer references transactions(id),
     account integer NOT NULL references accounts(id)

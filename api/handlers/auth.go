@@ -57,3 +57,16 @@ func AuthUser(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+func Logout(c echo.Context) error {
+	cookie := new(echo.Cookie)
+	cookie.SetName("Authorization")
+	cookie.SetValue("")
+	cookie.SetHTTPOnly(true)
+	cookie.SetSecure(true)
+	cookie.SetPath("/")
+	cookie.SetExpires(time.Unix(1, 0))
+	c.SetCookie(cookie)
+
+	return c.NoContent(http.StatusNoContent)
+}

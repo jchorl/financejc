@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"io/ioutil"
+	"math"
 	"os"
 	"path"
 	"regexp"
@@ -20,11 +21,19 @@ import (
 )
 
 const (
-	ACCOUNT     = "ACCOUNT"
-	TRANSACTION = "TRANSACTION"
-	NONE        = ""
-	OPTION      = "OPTION"
+	ACCOUNT          = "ACCOUNT"
+	TRANSACTION      = "TRANSACTION"
+	NONE             = ""
+	OPTION           = "OPTION"
+	DEFAULT_CURRENCY = "USD"
 )
+
+func round(a float64) int {
+	if a < 0 {
+		return int(a - 0.5)
+	}
+	return int(a + 0.5)
+}
 
 func AutoImport(c context.Context) error {
 	files, err := ioutil.ReadDir(constants.IMPORT_PATH)
@@ -108,7 +117,7 @@ func TransferQIF(c context.Context, file *os.File) error {
 		if line == "!Account" {
 			state = ACCOUNT
 			acc = &account.Account{
-				Currency: "USD",
+				Currency: DEFAULT_CURRENCY,
 			}
 		} else if strings.HasPrefix(line, "!Type:Cat") {
 			state = NONE
@@ -162,7 +171,8 @@ func TransferQIF(c context.Context, file *os.File) error {
 					return err
 				}
 
-				tr.Amount = amt
+				currencyInfo := constants.CurrencyInfo[acc.Currency]
+				tr.Amount = round(amt * math.Pow10(currencyInfo.DigitsAfterDecimal))
 			case 'M':
 				tr.Note = line[1:]
 			case '^':

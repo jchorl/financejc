@@ -9,5 +9,5 @@ import (
 )
 
 func GetCurrencies(c echo.Context) error {
-	return c.JSON(http.StatusOK, constants.CurrencyCodeToName)
+	return c.JSON(http.StatusOK, constants.CurrencyInfo)
 }

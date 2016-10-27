@@ -12,7 +12,7 @@ export default class TransactionList extends React.Component {
   static propTypes = {
     accountId: React.PropTypes.number.isRequired,
     accountTransaction: React.PropTypes.object.isRequired,
-    currency: React.PropTypes.string.isRequired
+    currency: React.PropTypes.object.isRequired
   };
 
   constructor (props) {
@@ -57,7 +57,7 @@ export default class TransactionList extends React.Component {
                 New
               </button>
             ) : (
-              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction }/>
+              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } />
             )
         }
         <div>

@@ -18,18 +18,18 @@ const (
 
 type Transactions struct {
 	NextLink     string
-	Transactions []*Transaction `json:"transactions" description:"The transactions returned"`
+	Transactions []*Transaction `json:"transactions"`
 }
 
 type Transaction struct {
-	Id                 int       `json:"id,omitempty" description:"Id of the transaction"`
-	Name               string    `json:"name" description:"Name of payer/payee"`
-	Date               time.Time `json:"date" description:"Date of transaction"`
-	Category           string    `json:"category" description:"Category of the transaction"`
-	Amount             float64   `json:"amount" description:"Amount"`
-	Note               string    `json:"note" description:"Note on the transaction"`
-	RelatedTransaction int       `json:"relatedTransaction,omitempty" description:"A related transaction"`
-	Account            int       `json:"account" description:"The account Id that the transaction belongs to"`
+	Id                 int       `json:"id,omitempty"`
+	Name               string    `json:"name"`
+	Date               time.Time `json:"date"`
+	Category           string    `json:"category"`
+	Amount             int       `json:"amount"`
+	Note               string    `json:"note"`
+	RelatedTransaction int       `json:"relatedTransaction,omitempty"`
+	Account            int       `json:"account"`
 }
 
 type transactionDB struct {
@@ -37,7 +37,7 @@ type transactionDB struct {
 	Name               string
 	Occurred           time.Time
 	Category           sql.NullString
-	Amount             float64
+	Amount             int
 	Note               sql.NullString
 	RelatedTransaction sql.NullInt64
 	Account            int

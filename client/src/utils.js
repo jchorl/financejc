@@ -5,3 +5,11 @@ export function toCurrency(num, currency) {
 export function toDate(date) {
 	return date.toLocaleDateString(undefined, {timeZone: "UTC"});
 }
+
+export function toDecimal(whole, digitsAfterDecimal) {
+  return whole / Math.pow(10, digitsAfterDecimal);
+}
+
+export function toWhole(decimal, digitsAfterDecimal) {
+  return decimal * Math.pow(10, digitsAfterDecimal);
+}

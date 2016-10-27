@@ -74,7 +74,7 @@ func New(c context.Context, account *Account) (*Account, error) {
 
 	account.User = userId
 
-	_, valid := constants.CurrencyCodeToName[account.Currency]
+	_, valid := constants.CurrencyInfo[account.Currency]
 	if !valid {
 		return nil, constants.InvalidCurrency
 	}
@@ -104,7 +104,7 @@ func Update(c context.Context, account *Account) (*Account, error) {
 		return nil, err
 	}
 
-	_, valid := constants.CurrencyCodeToName[account.Currency]
+	_, valid := constants.CurrencyInfo[account.Currency]
 	if !valid {
 		return nil, constants.InvalidCurrency
 	}
