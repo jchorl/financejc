@@ -1,6 +1,6 @@
 import React from 'react';
-import Immutable from 'immutable';
 import { connect } from 'react-redux';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { fetchAccounts, fetchCurrencies, fetchTransactions, importData } from '../../actions';
 import AccountList from '../accountList';
 import TransactionList from '../transactionList';
@@ -16,9 +16,10 @@ import styles from './accountsPage.css';
 })
 class AccountsPage extends React.Component {
   static propTypes = {
-    accounts: React.PropTypes.object.isRequired,
-    accountTransaction: React.PropTypes.object.isRequired,
-    currencies: React.PropTypes.object.isRequired
+    accounts: ImmutablePropTypes.map.isRequired,
+    accountTransaction: ImmutablePropTypes.map.isRequired,
+    currencies: ImmutablePropTypes.map.isRequired,
+    dispatch: React.PropTypes.func.isRequired
   }
 
   constructor (props) {
@@ -99,7 +100,9 @@ class AccountsPage extends React.Component {
 })
 export default class AccountsPageWrapper extends React.Component {
   static propTypes = {
-    accounts: React.PropTypes.object.isRequired
+    accounts: ImmutablePropTypes.map.isRequired,
+    currencies: ImmutablePropTypes.map.isRequired,
+    dispatch: React.PropTypes.func.isRequired
   }
 
   constructor (props) {

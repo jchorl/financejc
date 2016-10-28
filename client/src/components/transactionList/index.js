@@ -1,7 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import styles from './transactionList.css';
 import { Transaction, TransactionForm } from '../transaction';
+import { toRFC3339 } from '../../utils';
 
 @connect((state) => {
   return {
@@ -11,7 +13,7 @@ import { Transaction, TransactionForm } from '../transaction';
 export default class TransactionList extends React.Component {
   static propTypes = {
     accountId: React.PropTypes.number.isRequired,
-    accountTransaction: React.PropTypes.object.isRequired,
+    accountTransaction: ImmutablePropTypes.map.isRequired,
     currency: React.PropTypes.object.isRequired
   };
 
@@ -57,7 +59,7 @@ export default class TransactionList extends React.Component {
                 New
               </button>
             ) : (
-              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } />
+              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ {date: toRFC3339(new Date())} } />
             )
         }
         <div>

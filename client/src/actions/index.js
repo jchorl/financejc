@@ -171,7 +171,7 @@ export function logout() {
       method: 'POST',
       credentials: 'include'
     })
-      .then((resp) => {
+      .then(() => {
         dispatch(logoutComplete());
       })
       .catch(() => dispatch(logoutComplete()));

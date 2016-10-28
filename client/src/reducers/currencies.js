@@ -1,7 +1,6 @@
 import Immutable from 'immutable';
 import {
-  RECEIVE_CURRENCIES,
-  LOGOUT
+  RECEIVE_CURRENCIES
 } from '../actions';
 
 export default (state = Immutable.Map({

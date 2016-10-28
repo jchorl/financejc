@@ -8,7 +8,7 @@ import {
 
 export default (state = Immutable.Map(), action) => {
   switch (action.type) {
-    case RECEIVE_TRANSACTIONS:
+    case RECEIVE_TRANSACTIONS: {
       let transactions = Immutable.fromJS(action.transactions).reduce(
         function(result, item) {
           item = item.set('date', new Date(item.get('date')))
@@ -26,11 +26,13 @@ export default (state = Immutable.Map(), action) => {
       }
 
       return state;
+    }
 
-    case PUT_TRANSACTION:
+    case PUT_TRANSACTION: {
       let transaction = Immutable.fromJS(action.transaction);
       transaction = transaction.set('date', new Date(transaction.get('date')));
       return state.updateIn([transaction.get('account'), 'transactions'], transactions => transactions.set(transaction.get('id'), transaction).sortBy(t => -t.get('date')));
+    }
 
     case RECEIVE_ACCOUNTS:
       return state.withMutations(map => {

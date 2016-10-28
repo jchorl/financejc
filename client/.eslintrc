@@ -1,0 +1,17 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "globals": {
+    "gapi": true
+  },
+  "parser": "babel-eslint",
+  "plugins": [
+    "react"
+  ],
+  "rules": {
+    "strict": 0
+  },
+  "extends": ["eslint:recommended", "plugin:react/recommended"]
+}

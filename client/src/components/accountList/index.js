@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import classNames from 'classnames';
 import { toCurrency, toDecimal } from '../../utils';
 import styles from './accountList.css';
@@ -12,8 +13,8 @@ import styles from './accountList.css';
 })
 export default class AccountList extends React.Component {
   static propTypes = {
-    accounts: React.PropTypes.object.isRequired,
-    currencies: React.PropTypes.object.isRequired,
+    accounts: ImmutablePropTypes.map.isRequired,
+    currencies: ImmutablePropTypes.map.isRequired,
     onSelect: React.PropTypes.func,
     selected: React.PropTypes.number
   }

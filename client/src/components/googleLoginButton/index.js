@@ -16,8 +16,6 @@ function attachToButton(dispatcher) {
         auth2.attachClickHandler(btnEl, {},
           function(googleUser) {
             dispatcher(login(googleUser));
-          }, function(error) {
-            console.log(error);
           });
       }
     });

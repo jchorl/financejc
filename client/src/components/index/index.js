@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { fetchAuth, logout } from '../../actions';
 import AccountsPage from '../accountsPage';
 import GoogleLoginButton from '../googleLoginButton';
@@ -13,7 +13,7 @@ import style from './index.css';
 })
 export default class App extends React.Component {
   static propTypes = {
-    auth: React.PropTypes.object.isRequired,
+    auth: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired
   }
 

@@ -1,8 +1,9 @@
 import React from 'react';
 import classNames from 'classnames';
-import { reduxForm } from 'redux-form';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import { Field, reduxForm } from 'redux-form';
 import styles from './transaction.css';
-import { toCurrency, toDate, toDecimal, toWhole } from '../../utils';
+import { toCurrency, toDate, toDecimal, toWhole, toRFC3339 } from '../../utils';
 import { putTransaction } from '../../actions';
 
 export class Transaction extends React.Component {
@@ -37,7 +38,7 @@ export class Transaction extends React.Component {
     return transaction ? (
       <div className={ styles.transaction }>
         { this.state.editMode ? (
-          <TransactionForm form={ transaction.get('id').toString() } transaction={ transaction } done={ this.exitEditMode } currency={ currency } />
+          <TransactionForm form={ transaction.get('id').toString() } transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
         ) : (
           <div className={ styles.transactionFields }>
             <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
@@ -51,57 +52,25 @@ export class Transaction extends React.Component {
   }
 }
 
-function pad(n) {
-  return n<10 ? '0'+n : n
+function getFormInitialValues(transaction, currency) {
+  return {
+    name: transaction.get('name'),
+    date: toRFC3339(transaction.get('date')),
+    category: transaction.get('category'),
+    amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
+  }
 }
 
-function toRFC3339(d) {
-  return d.getUTCFullYear() + '-'
-    + pad(d.getUTCMonth() + 1) + '-'
-    + pad(d.getUTCDate());
-}
-
-@reduxForm({
-  fields: [
-    'name',
-    'date',
-    'category',
-    'amount'
-  ]
-},
-  (state, props) => {
-    let {
-      transaction,
-      currency
-    } = props;
-
-    if (props.transaction) {
-      return {
-        initialValues: {
-          name: transaction.get('name'),
-          date: toRFC3339(transaction.get('date')),
-          category: transaction.get('category'),
-          amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
-        }
-      };
-    }
-    return {
-      initialValues: {
-        name: '',
-        date: toRFC3339(new Date()),
-        category: '',
-        amount: 0
-      }
-    };
-  })
+@reduxForm()
 export class TransactionForm extends React.Component {
   static propTypes = {
-    currency: React.PropTypes.object.isRequired,
+    currency: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired,
-    fields: React.PropTypes.object.isRequired,
+    handleSubmit: React.PropTypes.func.isRequired,
+    initialValues: React.PropTypes.object,
     // either transaction (for editing) or accountId (for new transactions) should be passed
-    transaction: React.PropTypes.object,
     accountId: React.PropTypes.number,
+    transaction: ImmutablePropTypes.map,
     done: React.PropTypes.func
   };
 
@@ -132,12 +101,6 @@ export class TransactionForm extends React.Component {
 
   render () {
     const {
-      fields: {
-        name,
-        date,
-        category,
-        amount
-      },
       handleSubmit
     } = this.props;
 
@@ -145,10 +108,10 @@ export class TransactionForm extends React.Component {
       <div className={ styles.transaction }>
         <form onSubmit={ handleSubmit(this.submit) }>
           <div className={ styles.transactionFields }>
-            <input type="text" placeholder="Name" className={ styles.transactionField } { ...name }/>
-            <input type="date" placeholder={ toRFC3339(new Date()) } className={ styles.transactionField } { ...date }/>
-            <input type="text" placeholder="Category" className={ styles.transactionField } { ...category }/>
-            <input type="text" placeholder="0" className={ styles.transactionField } { ...amount }/>
+            <Field type="text" name="name" placeholder="Name" component="input" className={ styles.transactionField } />
+            <Field type="date" name="date" placeholder={ toRFC3339(new Date()) } component="input" className={ styles.transactionField } />
+            <Field type="text" name="category" placeholder="Category" component="input" className={ styles.transactionField } />
+            <Field type="text" name="amount" placeholder="0" component="input" className={ styles.transactionField } />
           </div>
           <div className={ styles.saveExit }>
               <button type="button" onClick={ this.props.done }>Cancel</button>
