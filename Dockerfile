@@ -9,4 +9,4 @@ ADD . /go/src/github.com/jchorl/financejc
 RUN go-wrapper download
 RUN go-wrapper install
 
-CMD ["./start.sh"]
+CMD ["./scripts/start.sh"]
