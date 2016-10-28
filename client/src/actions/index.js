@@ -13,6 +13,14 @@ export const receiveAccounts = (accounts) => {
   };
 }
 
+export const ADD_ACCOUNT = 'ADD_ACCOUNT';
+export const addAccount = (account) => {
+  return {
+    type: ADD_ACCOUNT,
+    account
+  };
+}
+
 export const CHECK_AUTH = 'CHECK_AUTH';
 export const checkAuth = () => {
   return {
@@ -175,6 +183,23 @@ export function logout() {
         dispatch(logoutComplete());
       })
       .catch(() => dispatch(logoutComplete()));
+  }
+}
+
+export function newAccount(account) {
+  let headers = new Headers();
+  headers.append("Accept", "application/json");
+  headers.append("Content-Type", "application/json");
+
+  return function(dispatch) {
+    return fetch(`/api/account`, {
+      method: 'POST',
+      body: JSON.stringify(account),
+      credentials: 'include',
+      headers: headers
+    })
+      .then(response => response.json())
+      .then(json => dispatch(addAccount(json)))
   }
 }
 

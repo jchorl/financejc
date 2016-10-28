@@ -27,10 +27,17 @@ export default class AccountList extends React.Component {
       selected
     } = this.props;
 
+    let selectedClass = {};
+    selectedClass[styles.selected] = selected === -1;
     return (
       <div>
         <h3 className={ styles.accountsTitle }>Accounts</h3>
         <div>
+          <button key={ 'new' } className={ classNames(styles.accountButton, selectedClass) } onClick={ onSelect.bind(this, -1) }>
+            <div className={ styles.accountName }>
+              New
+            </div>
+          </button>
           { accounts.get('accounts').map(account => {
             let selectedClass = {};
             selectedClass[styles.selected] = selected === account.get('id');

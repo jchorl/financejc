@@ -11,7 +11,9 @@
     "react"
   ],
   "rules": {
-    "strict": 0
+    "strict": "off",
+    "no-debugger": "warn",
+    "no-console": "warn"
   },
   "extends": ["eslint:recommended", "plugin:react/recommended"]
 }

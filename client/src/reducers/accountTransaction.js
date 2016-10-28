@@ -1,5 +1,6 @@
 import Immutable from 'immutable';
 import {
+  ADD_ACCOUNT,
   PUT_TRANSACTION,
   RECEIVE_TRANSACTIONS,
   RECEIVE_ACCOUNTS,
@@ -33,6 +34,12 @@ export default (state = Immutable.Map(), action) => {
       transaction = transaction.set('date', new Date(transaction.get('date')));
       return state.updateIn([transaction.get('account'), 'transactions'], transactions => transactions.set(transaction.get('id'), transaction).sortBy(t => -t.get('date')));
     }
+
+    case ADD_ACCOUNT:
+      return state.set(action.account.id, Immutable.Map({
+        'next': null,
+        'transactions': Immutable.Map()
+      }));
 
     case RECEIVE_ACCOUNTS:
       return state.withMutations(map => {

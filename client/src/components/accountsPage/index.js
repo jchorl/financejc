@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { fetchAccounts, fetchCurrencies, fetchTransactions, importData } from '../../actions';
 import AccountList from '../accountList';
+import AccountForm from '../accountForm';
 import TransactionList from '../transactionList';
 import Loader from '../loader';
 import styles from './accountsPage.css';
@@ -34,11 +35,24 @@ class AccountsPage extends React.Component {
     this.fetchTransactionsIfNecessary(selected);
   }
 
+  componentWillReceiveProps(nextProps) {
+    let nextIds = nextProps.accounts.get('accounts').keySeq().toSet();
+    let currIds = this.props.accounts.get('accounts').keySeq().toSet();
+    if (nextIds.size === currIds.size + 1) {
+      let diff = nextIds.subtract(currIds);
+      this.selectAccount(diff.first());
+    }
+  }
+
   fetchTransactionsIfNecessary = (id) => {
+    const { accountTransaction, dispatch } = this.props;
     // reload transactions if necessary
-    if (this.state.selected === -1) return
-    if (this.props.accountTransaction.get(id).get("transactions").isEmpty()) {
-      this.props.dispatch(fetchTransactions(id));
+    if (id === -1) return
+
+    // no need to fetch for new accounts
+    if (!accountTransaction.has(id)) return
+    if (accountTransaction.get(id).get("transactions").isEmpty()) {
+      dispatch(fetchTransactions(id));
     }
   }
 
@@ -85,7 +99,7 @@ class AccountsPage extends React.Component {
             <div className={ styles.transactionList }>
               <TransactionList accountId={ selected } currency={ currency } />
             </div>
-          ) : null
+          ) : <AccountForm />
         }
       </div>
     )
