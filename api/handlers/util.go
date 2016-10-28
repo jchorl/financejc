@@ -20,7 +20,7 @@ func writePaginatedEntity(c echo.Context, entity Paginated) error {
 		RawPath: c.Request().URL().Path(),
 	}
 	u.RawQuery = ""
-	c.Response().Header().Add("Link", fmt.Sprintf("<%s?start=%s>; rel=\"next\"", u, entity.Next()))
+	c.Response().Header().Add("Link", fmt.Sprintf("<%s?start=%s>; rel=\"next\"", u.String(), entity.Next()))
 	if entity.Values() != nil {
 		return c.JSON(http.StatusOK, entity.Values())
 	}

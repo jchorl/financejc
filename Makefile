@@ -9,6 +9,8 @@ client/dest/bundle.js: $(shell find client/src)
 	docker run --rm --name uibuild -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --optimize-minimize --optimize-occurrence-order --optimize-dedupe --progress --colors"
 ui-watch:
 	docker run --rm --name uiwatch -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors --watch"
+npm:
+	docker run --rm --name npm -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash
 db: network
 	docker ps | grep financejcdb || docker run --name financejcdb --network financejcnet -h financejcdb --expose=5432 -v $(PWD)/db:/docker-entrypoint-initdb.d -e POSTGRES_USER=financejc -e POSTGRES_PASSWORD=financejc -d postgres
 connect-db:

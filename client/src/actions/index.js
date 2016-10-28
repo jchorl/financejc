@@ -102,9 +102,14 @@ export function fetchAccounts() {
   }
 }
 
-export function fetchTransactions(accountId) {
+export function fetchTransactions(accountId, next) {
+  let nextStr = '';
+  if (next) {
+    nextStr = next;
+  }
+
   return function(dispatch) {
-    return fetch(`/api/account/${accountId}/transactions`, {
+    return fetch(`/api/account/${accountId}/transactions${nextStr}`, {
       credentials: 'include'
     })
       .then(response => Promise.all([response.json(), response.headers.get('Link')]))

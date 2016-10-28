@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import Infinite from 'react-infinite';
+import { fetchTransactions } from '../../actions';
 import styles from './transactionList.css';
 import { Transaction, TransactionForm } from '../transaction';
 import { toRFC3339 } from '../../utils';
@@ -14,14 +16,22 @@ export default class TransactionList extends React.Component {
   static propTypes = {
     accountId: React.PropTypes.number.isRequired,
     accountTransaction: ImmutablePropTypes.map.isRequired,
-    currency: React.PropTypes.object.isRequired
+    currency: React.PropTypes.object.isRequired,
+    dispatch: React.PropTypes.func.isRequired
   };
 
   constructor (props) {
     super(props);
     this.state = {
-      newTransaction: false
+      newTransaction: false,
+      isInfiniteLoading: false
     };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.accountTransaction.get(nextProps.accountId).get('transactions').size > this.props.accountTransaction.get(nextProps.accountId).get('transactions').size && this.state.isInfiniteLoading) {
+      this.setState({ isInfiniteLoading: false });
+    }
   }
 
   startNewTransaction = () => {
@@ -34,6 +44,21 @@ export default class TransactionList extends React.Component {
     this.setState({
       newTransaction: false
     });
+  }
+
+  loadNextPage = (accountId) => {
+    const { accountTransaction, dispatch } = this.props;
+    let that = this;
+
+    return function() {
+      if (that.state.isInfiniteLoading) {
+        return
+      }
+      that.setState({
+        isInfiniteLoading: true
+      });
+      dispatch(fetchTransactions(accountId, accountTransaction.get(accountId).get('next')));
+    }
   }
 
   render () {
@@ -62,9 +87,9 @@ export default class TransactionList extends React.Component {
               <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ {date: toRFC3339(new Date())} } />
             )
         }
-        <div>
+        <Infinite useWindowAsScrollContainer elementHeight={ 42 } onInfiniteLoad={ this.loadNextPage(accountId) } infiniteLoadBeginEdgeOffset={ 100 } >
           { transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
-        </div>
+        </Infinite>
       </div>
     )
   }

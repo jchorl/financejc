@@ -82,25 +82,26 @@ class AccountsPage extends React.Component {
     }
 
     return (
-      <div className={ styles.accountsPage }>
+      <div>
         {
-          accounts.get('accounts').size !== 0 ? (
-            <div className={ styles.accountList }>
-              <AccountList selected={ selected } onSelect={ this.selectAccount } />
-            </div>
-          ) : (
+          accounts.get('accounts').size !== 0 ? null : (
             <div>
               Place QIF files in the /import folder and click <button onClick={ this.importButton }>Import</button>
             </div>
           )
         }
-        {
-          selected !== -1 ? (
-            <div className={ styles.transactionList }>
-              <TransactionList accountId={ selected } currency={ currency } />
-            </div>
-          ) : <AccountForm />
-        }
+        <div className={ styles.accountsPage }>
+          <div className={ styles.accountList }>
+            <AccountList selected={ selected } onSelect={ this.selectAccount } />
+          </div>
+          {
+            selected !== -1 ? (
+              <div className={ styles.transactionList }>
+                <TransactionList accountId={ selected } currency={ currency } />
+              </div>
+            ) : <AccountForm />
+          }
+        </div>
       </div>
     )
   }
