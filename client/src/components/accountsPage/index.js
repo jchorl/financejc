@@ -1,6 +1,5 @@
 import React from 'react';
 import Immutable from 'immutable';
-import { render } from 'react-dom';
 import { connect } from 'react-redux';
 import { fetchAccounts, fetchCurrencies, fetchTransactions, importData } from '../../actions';
 import AccountList from '../accountList';

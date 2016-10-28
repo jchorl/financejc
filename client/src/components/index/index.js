@@ -1,5 +1,4 @@
 import React from 'react';
-import { render } from 'react-dom';
 import { connect } from 'react-redux';
 
 import { fetchAuth, logout } from '../../actions';
@@ -29,8 +28,7 @@ export default class App extends React.Component {
 
   render () {
     const {
-      auth,
-      dispatch
+      auth
     } = this.props;
 
     return (

@@ -71,7 +71,6 @@ function toRFC3339(d) {
 },
   (state, props) => {
     let {
-      accountId,
       transaction,
       currency
     } = props;

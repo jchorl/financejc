@@ -1,10 +1,3 @@
-export const REQUEST_LOGIN = 'REQUEST_LOGIN';
-export const requestLogin = () => {
-  return {
-    type: REQUEST_LOGIN
-  };
-}
-
 export const REQUEST_ACCOUNTS = 'REQUEST_ACCOUNTS';
 export const requestAccounts = () => {
   return {
