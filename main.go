@@ -25,6 +25,7 @@ func main() {
 	e := echo.New()
 	e.Pre(middleware.HTTPSRedirect())
 	e.Use(
+		middleware.Gzip(),
 		middleware.Logger(),
 		dbMiddleware(db),
 	)

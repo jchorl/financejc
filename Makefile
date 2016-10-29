@@ -6,7 +6,7 @@ network:
 	docker network ls | grep financejcnet || docker network create financejcnet
 ui: client/dest/bundle.js;
 client/dest/bundle.js: $(shell find client/src)
-	docker run --rm --name uibuild -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --optimize-minimize --optimize-occurrence-order --optimize-dedupe --progress --colors"
+	docker run --rm --name uibuild -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --config webpack.production.config.js --optimize-minimize --optimize-occurrence-order --optimize-dedupe --progress --colors"
 ui-watch:
 	docker run --rm --name uiwatch -it -v $(PWD)/client:/usr/src/app -w /usr/src/app node:latest /bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors --watch"
 npm:
@@ -42,4 +42,5 @@ clean:
 	-docker rm -f financejcdb
 	-docker rm -f financejc
 	-docker network rm financejcnet
+	-rm client/dest/bundle.js
 .PHONY: all ui ui-watch network db connect-db serve build clean
