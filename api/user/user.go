@@ -58,13 +58,13 @@ func FindOrCreateByGoogleId(c context.Context, googleId string) (uint, error) {
 func toDB(user User) *userDB {
 	return &userDB{
 		Id:       user.Id,
-		GoogleId: util.ToNullString(user.GoogleId),
+		GoogleId: util.ToNullStringNonEmpty(user.GoogleId),
 	}
 }
 
 func fromDB(user userDB) *User {
 	return &User{
 		Id:       user.Id,
-		GoogleId: util.FromNullString(user.GoogleId),
+		GoogleId: util.FromNullStringNonEmpty(user.GoogleId),
 	}
 }
