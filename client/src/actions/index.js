@@ -1,12 +1,12 @@
 export const REQUEST_ACCOUNTS = 'REQUEST_ACCOUNTS';
-export const requestAccounts = () => {
+const requestAccounts = () => {
   return {
     type: REQUEST_ACCOUNTS
   };
 }
 
 export const RECEIVE_ACCOUNTS = 'RECEIVE_ACCOUNTS';
-export const receiveAccounts = (accounts) => {
+const receiveAccounts = (accounts) => {
   return {
     type: RECEIVE_ACCOUNTS,
     accounts
@@ -14,7 +14,7 @@ export const receiveAccounts = (accounts) => {
 }
 
 export const ADD_ACCOUNT = 'ADD_ACCOUNT';
-export const addAccount = (account) => {
+const addAccount = (account) => {
   return {
     type: ADD_ACCOUNT,
     account
@@ -22,14 +22,14 @@ export const addAccount = (account) => {
 }
 
 export const CHECK_AUTH = 'CHECK_AUTH';
-export const checkAuth = () => {
+const checkAuth = () => {
   return {
     type: CHECK_AUTH
   };
 }
 
 export const RECEIVE_AUTH = 'RECEIVE_AUTH';
-export const receiveAuth = (authd) => {
+const receiveAuth = (authd) => {
   return {
     type: RECEIVE_AUTH,
     authd
@@ -37,14 +37,14 @@ export const receiveAuth = (authd) => {
 }
 
 export const LOGOUT = 'LOGOUT';
-export const logoutComplete = () => {
+const logoutComplete = () => {
   return {
     type: LOGOUT
   };
 }
 
-export const RECEIVE_TRANSACTIONS = 'RECEIVE_TRANSACTION';
-export const receiveTransactions = (transactions, accountId, link) => {
+export const RECEIVE_TRANSACTIONS = 'RECEIVE_TRANSACTIONS';
+const receiveTransactions = (transactions, accountId, link) => {
   return {
     type: RECEIVE_TRANSACTIONS,
     accountId,
@@ -54,7 +54,7 @@ export const receiveTransactions = (transactions, accountId, link) => {
 }
 
 export const PUT_TRANSACTION = 'PUT_TRANSACTION';
-export const updateTransactions = (transaction) => {
+const updateTransactions = (transaction) => {
   return {
     type: PUT_TRANSACTION,
     transaction
@@ -62,7 +62,7 @@ export const updateTransactions = (transaction) => {
 }
 
 export const UPDATE_ACCOUNT_VALUE = 'UPDATE_ACCOUNT_VALUE';
-export const updateAccountValue = (accountId, delta) => {
+const updateAccountValue = (accountId, delta) => {
   return {
     type: UPDATE_ACCOUNT_VALUE,
     accountId,
@@ -71,7 +71,7 @@ export const updateAccountValue = (accountId, delta) => {
 }
 
 export const RECEIVE_CURRENCIES = 'RECEIVE_CURRENCIES';
-export const receiveCurrencies = (currencies) => {
+const receiveCurrencies = (currencies) => {
   return {
     type: RECEIVE_CURRENCIES,
     currencies

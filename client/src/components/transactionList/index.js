@@ -47,17 +47,19 @@ export default class TransactionList extends React.Component {
   }
 
   loadNextPage = (accountId) => {
-    const { accountTransaction, dispatch } = this.props;
     let that = this;
 
     return function() {
+      const { accountTransaction, dispatch } = that.props;
+
+      let next = accountTransaction.get(accountId).get('next');
       if (that.state.isInfiniteLoading) {
-        return
+        return;
       }
       that.setState({
         isInfiniteLoading: true
       });
-      dispatch(fetchTransactions(accountId, accountTransaction.get(accountId).get('next')));
+      dispatch(fetchTransactions(accountId, next));
     }
   }
 
