@@ -90,10 +90,12 @@ export class TransactionForm extends React.Component {
     if (transaction) {
       obj = Object.assign(transaction.toObject(), data);
       difference = difference - transaction.get('amount');
+      obj.accountId = transaction.get('accountId');
+    } else {
+      obj.accountId = accountId;
     }
 
     obj.date = new Date(obj.date);
-    obj.accountId = accountId;
     obj.amount = newAmount;
     dispatch(putTransaction(obj, difference));
     done && done();

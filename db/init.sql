@@ -17,24 +17,27 @@ CREATE TABLE transactions (
     category varchar(100),
     amount integer NOT NULL,
     note varchar(256),
-    relatedTransaction integer references transactions(id),
-    account integer NOT NULL references accounts(id)
+    relatedTransactionId integer references transactions(id),
+    accountId integer NOT NULL references accounts(id)
 );
 
-CREATE TABLE recurring_ransactions (
+CREATE TABLE recurringTransactions (
     id serial PRIMARY KEY,
     name varchar(100) NOT NULL,
-    next_occurs date NOT NULL,
+    nextOccurs date NOT NULL,
     category varchar(100),
     amount integer NOT NULL,
     note varchar(256),
-    account integer NOT NULL references accounts(id),
+    accountId integer NOT NULL references accounts(id),
 
-    schedule_type varchar(20) NOT NULL,
-    seconds_between integer,
-    day_of integer,
-    seconds_before_to_post integer NOT NULL
+    scheduleType varchar(20) NOT NULL,
+    secondsBetween integer,
+    dayOf integer,
+    secondsBeforeToPost integer NOT NULL
 );
 
+CREATE INDEX ON users(googleId);
 CREATE INDEX ON accounts(userId);
-CREATE INDEX ON transactions(account);
+CREATE INDEX ON transactions(accountId);
+CREATE INDEX ON recurringTransactions(accountId);
+CREATE INDEX ON recurringTransactions((nextOccurs - interval '1 second' * secondsBeforeToPost));

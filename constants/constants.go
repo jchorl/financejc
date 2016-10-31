@@ -5,11 +5,16 @@ import (
 )
 
 const (
-	CTX_DB   = "database"
-	CTX_USER = "user"
+	CTX_DB      = "database"
+	CTX_USER_ID = "user"
 
 	IMPORT_PATH = "import"
 )
+
+var CTX_KEYS = []string{
+	CTX_DB,
+	CTX_USER_ID,
+}
 
 var (
 	Forbidden       = errors.New("User does not have permission to access this resource.")

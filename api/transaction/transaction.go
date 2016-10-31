@@ -22,49 +22,25 @@ type Transactions struct {
 }
 
 type Transaction struct {
-	Id                 int       `json:"id,omitempty"`
-	Name               string    `json:"name"`
-	Date               time.Time `json:"date"`
-	Category           string    `json:"category"`
-	Amount             int       `json:"amount"`
-	Note               string    `json:"note"`
-	RelatedTransaction int       `json:"relatedTransaction,omitempty"`
-	Account            int       `json:"account"`
-}
-
-type RecurringTransaction struct {
-	Id                  int         `json:"id,omitempty"`
-	Transaction         Transaction `json:"transaction"`
-	ScheduleType        string      `json:"scheduleType"`
-	SecondsBetween      *int        `json:"secondsBetween"`
-	DayOf               *int        `json:"dayOf"`
-	SecondsBeforeToPost int         `json:"secondsBeforeToPost"`
+	Id                   int       `json:"id,omitempty"`
+	Name                 string    `json:"name"`
+	Date                 time.Time `json:"date"`
+	Category             string    `json:"category"`
+	Amount               int       `json:"amount"`
+	Note                 string    `json:"note"`
+	RelatedTransactionId int       `json:"relatedTransactionId,omitempty"`
+	AccountId            int       `json:"accountId"`
 }
 
 type transactionDB struct {
-	Id                 int
-	Name               string
-	Occurred           time.Time
-	Category           sql.NullString
-	Amount             int
-	Note               sql.NullString
-	RelatedTransaction sql.NullInt64
-	Account            int
-}
-
-type recurringTransactionDB struct {
-	Id         int
-	Name       string
-	NextOccurs time.Time
-	Category   string
-	Amount     int
-	Note       string
-	Account    int
-
-	ScheduleType        string
-	SecondsBetween      sql.NullInt64
-	DayOf               sql.NullInt64
-	SecondsBeforeToPost int
+	Id                   int
+	Name                 string
+	Occurred             time.Time
+	Category             sql.NullString
+	Amount               int
+	Note                 sql.NullString
+	RelatedTransactionId sql.NullInt64
+	AccountId            int
 }
 
 type nextPageParams struct {
@@ -108,7 +84,7 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 		reference, offset = decoded.Reference, decoded.Offset
 	}
 
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransaction, account FROM transactions WHERE account = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountId, reference, limitPerQuery, offset)
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountId, reference, limitPerQuery, offset)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -120,7 +96,7 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 
 	for rows.Next() {
 		var transaction transactionDB
-		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransaction, &transaction.Account); err != nil {
+		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionId, &transaction.AccountId); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"accountId": accountId,
@@ -152,64 +128,20 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 	return transactions, nil
 }
 
-func GetRecurring(c context.Context, accountId int) ([]RecurringTransaction, error) {
-	transactions := []RecurringTransaction{}
-	db, err := util.DBFromContext(c)
-	if err != nil {
-		return transactions, err
-	}
-
-	valid, err := userOwnsAccount(c, accountId)
-	if err != nil || !valid {
-		return transactions, constants.Forbidden
-	}
-
-	rows, err := db.Query("SELECT id, name, next_occurs, category, amount, note, account, schedule_type, seconds_between, day_of, seconds_before_to_post FROM recurring_transactions WHERE account = $1", accountId)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":     err,
-			"accountId": accountId,
-		}).Error("failed to fetch recurring transactions")
-		return transactions, err
-	}
-
-	for rows.Next() {
-		var transaction recurringTransactionDB
-		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.NextOccurs, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.Account, &transaction.ScheduleType, &transaction.SecondsBetween, &transaction.DayOf, &transaction.SecondsBeforeToPost); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":     err,
-				"accountId": accountId,
-			}).Error("failed to scan into recurring transaction")
-			return transactions, err
-		}
-
-		transactions = append(transactions, recurringFromDB(transaction))
-	}
-	if err := rows.Err(); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":     err,
-			"accountId": accountId,
-		}).Error("failed to get recurring transactions from rows")
-		return transactions, err
-	}
-
-	return transactions, nil
-}
-
 func New(c context.Context, transaction *Transaction) (*Transaction, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.Account)
+	valid, err := userOwnsAccount(c, transaction.AccountId)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
 
 	tdb := toDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransaction, account) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Account).Scan(&id)
+	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransactionId, accountId) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionId, tdb.AccountId).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
@@ -223,40 +155,13 @@ func New(c context.Context, transaction *Transaction) (*Transaction, error) {
 	return transaction, nil
 }
 
-func NewRecurring(c context.Context, transaction *RecurringTransaction) (*RecurringTransaction, error) {
-	db, err := util.DBFromContext(c)
-	if err != nil {
-		return nil, err
-	}
-
-	valid, err := userOwnsAccount(c, transaction.Transaction.Account)
-	if err != nil || !valid {
-		return nil, constants.Forbidden
-	}
-
-	tdb := recurringToDB(*transaction)
-	var id int
-	err = db.QueryRow("INSERT INTO recurring_transactions(name, next_occurs, category, amount, note, account, schedule_type, seconds_between, day_of, seconds_before_to_post) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.Account, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost).Scan(&id)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":                  err,
-			"recurringTransactionDB": tdb,
-			"recurringTransaction":   transaction,
-		}).Errorf("failed to insert recurring transaction row")
-		return nil, err
-	}
-
-	transaction.Id = id
-	return transaction, nil
-}
-
 func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.Account)
+	valid, err := userOwnsAccount(c, transaction.AccountId)
 	if err != nil {
 		return nil, constants.Forbidden
 	} else if !valid {
@@ -264,7 +169,7 @@ func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
 	}
 
 	tdb := toDB(*transaction)
-	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransaction = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransaction, tdb.Id)
+	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransactionId = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionId, tdb.Id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
@@ -339,7 +244,7 @@ func userOwnsTransaction(c context.Context, transaction int) (bool, error) {
 	}
 
 	var owner uint
-	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactions t ON t.account = a.id WHERE t.id = $1", transaction).Scan(&owner)
+	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactions t ON t.accountId = a.id WHERE t.id = $1", transaction).Scan(&owner)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":       err,
@@ -381,62 +286,26 @@ func decodeNextPage(encoded string) (nextPageParams, error) {
 
 func toDB(transaction Transaction) *transactionDB {
 	return &transactionDB{
-		Id:                 transaction.Id,
-		Name:               transaction.Name,
-		Occurred:           transaction.Date,
-		Category:           util.ToNullStringNonEmpty(transaction.Category),
-		Amount:             transaction.Amount,
-		Note:               util.ToNullStringNonEmpty(transaction.Note),
-		RelatedTransaction: util.ToNullIntNonZero(transaction.RelatedTransaction),
-		Account:            transaction.Account,
+		Id:                   transaction.Id,
+		Name:                 transaction.Name,
+		Occurred:             transaction.Date,
+		Category:             util.ToNullStringNonEmpty(transaction.Category),
+		Amount:               transaction.Amount,
+		Note:                 util.ToNullStringNonEmpty(transaction.Note),
+		RelatedTransactionId: util.ToNullIntNonZero(transaction.RelatedTransactionId),
+		AccountId:            transaction.AccountId,
 	}
 }
 
 func fromDB(transaction transactionDB) Transaction {
 	return Transaction{
-		Id:                 transaction.Id,
-		Name:               transaction.Name,
-		Date:               transaction.Occurred,
-		Category:           util.FromNullStringNonEmpty(transaction.Category),
-		Amount:             transaction.Amount,
-		Note:               util.FromNullStringNonEmpty(transaction.Note),
-		RelatedTransaction: util.FromNullIntNonZero(transaction.RelatedTransaction),
-		Account:            transaction.Account,
-	}
-}
-
-func recurringToDB(transaction RecurringTransaction) *recurringTransactionDB {
-	return &recurringTransactionDB{
-		Id:         transaction.Id,
-		Name:       transaction.Transaction.Name,
-		NextOccurs: transaction.Transaction.Date,
-		Category:   transaction.Transaction.Category,
-		Amount:     transaction.Transaction.Amount,
-		Note:       transaction.Transaction.Note,
-		Account:    transaction.Transaction.Account,
-
-		ScheduleType:        transaction.ScheduleType,
-		SecondsBetween:      util.ToNullInt(transaction.SecondsBetween),
-		DayOf:               util.ToNullInt(transaction.DayOf),
-		SecondsBeforeToPost: transaction.SecondsBeforeToPost,
-	}
-}
-
-func recurringFromDB(transaction recurringTransactionDB) RecurringTransaction {
-	return RecurringTransaction{
-		Transaction: Transaction{
-			Id:       transaction.Id,
-			Name:     transaction.Name,
-			Date:     transaction.NextOccurs,
-			Category: transaction.Category,
-			Amount:   transaction.Amount,
-			Note:     transaction.Note,
-			Account:  transaction.Account,
-		},
-
-		ScheduleType:        transaction.ScheduleType,
-		SecondsBetween:      util.FromNullInt(transaction.SecondsBetween),
-		DayOf:               util.FromNullInt(transaction.DayOf),
-		SecondsBeforeToPost: transaction.SecondsBeforeToPost,
+		Id:                   transaction.Id,
+		Name:                 transaction.Name,
+		Date:                 transaction.Occurred,
+		Category:             util.FromNullStringNonEmpty(transaction.Category),
+		Amount:               transaction.Amount,
+		Note:                 util.FromNullStringNonEmpty(transaction.Note),
+		RelatedTransactionId: util.FromNullIntNonZero(transaction.RelatedTransactionId),
+		AccountId:            transaction.AccountId,
 	}
 }

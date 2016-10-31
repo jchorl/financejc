@@ -29,7 +29,7 @@ func Get(c context.Context) ([]*Account, error) {
 	}
 
 	accounts := make([]*Account, 0)
-	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.account=a.id WHERE a.userId = $1 GROUP BY a.id", userId)
+	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.accountId=a.id WHERE a.userId = $1 GROUP BY a.id", userId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":  err,

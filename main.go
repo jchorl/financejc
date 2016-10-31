@@ -9,8 +9,10 @@ import (
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
+	"gopkg.in/robfig/cron.v2"
 
 	"github.com/jchorl/financejc/api/handlers"
+	"github.com/jchorl/financejc/api/transaction"
 	"github.com/jchorl/financejc/constants"
 )
 
@@ -21,6 +23,9 @@ func main() {
 	if err != nil {
 		logrus.WithField("Error", err).Fatal("Failed to connect to database")
 	}
+
+	c := cron.New()
+	c.AddFunc("@daily", transaction.GenRecurringTransactions)
 
 	e := echo.New()
 	e.Pre(middleware.HTTPSRedirect())

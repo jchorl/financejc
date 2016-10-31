@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 
 	"github.com/jchorl/financejc/constants"
@@ -39,4 +41,36 @@ func writeError(c echo.Context, err error) error {
 	default:
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+}
+
+// toContext is supposed to take a context/middleware injected value
+// from whatever web framework is being used and convert it to a
+// Go context.Context that everything below the handlers can understand.
+func toContext(ctx echo.Context) context.Context {
+	ret := context.Background()
+	for _, ctx_key := range constants.CTX_KEYS {
+		switch ctx_key {
+		case constants.CTX_USER_ID:
+			// we'll catch errors later when we pull vals from ctx
+			// for now just make a valid ctx
+			user := ctx.Get("user")
+			if user == nil {
+				continue
+			}
+
+			casted, ok := user.(*jwt.Token)
+			if !ok {
+				continue
+			}
+
+			claims := casted.Claims.(jwt.MapClaims)
+			userIdF := claims["sub"].(float64)
+			userId := uint(userIdF)
+			ret = context.WithValue(ret, ctx_key, userId)
+		default:
+			ret = context.WithValue(ret, ctx_key, ctx.Get(ctx_key))
+		}
+	}
+
+	return ret
 }

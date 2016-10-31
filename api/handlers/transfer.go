@@ -9,7 +9,7 @@ import (
 )
 
 func Transfer(c echo.Context) error {
-	if err := transfer.AutoImport(c); err != nil {
+	if err := transfer.AutoImport(toContext(c)); err != nil {
 		return writeError(c, err)
 	}
 

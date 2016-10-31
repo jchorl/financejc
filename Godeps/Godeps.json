@@ -2,9 +2,6 @@
 	"ImportPath": "github.com/jchorl/financejc",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -18,63 +15,63 @@
 		},
 		{
 			"ImportPath": "github.com/labstack/echo",
-			"Comment": "2.1-3-g9c0e9d6",
-			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+			"Comment": "v2.1-22-g276394d",
+			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/context",
-			"Comment": "2.1-3-g9c0e9d6",
-			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+			"Comment": "v2.1-22-g276394d",
+			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/engine",
-			"Comment": "2.1-3-g9c0e9d6",
-			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+			"Comment": "v2.1-22-g276394d",
+			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/engine/standard",
-			"Comment": "2.1-3-g9c0e9d6",
-			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+			"Comment": "v2.1-22-g276394d",
+			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/log",
-			"Comment": "2.1-3-g9c0e9d6",
-			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+			"Comment": "v2.1-22-g276394d",
+			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/middleware",
-			"Comment": "2.1-3-g9c0e9d6",
-			"Rev": "9c0e9d689f87624ad01748b1a963d356afbfdceb"
+			"Comment": "v2.1-22-g276394d",
+			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/bytes",
-			"Comment": "v0.0.3-64-gf3b1a1b",
-			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+			"Comment": "v0.1.0",
+			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/color",
-			"Comment": "v0.0.3-64-gf3b1a1b",
-			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+			"Comment": "v0.1.0",
+			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/log",
-			"Comment": "v0.0.3-64-gf3b1a1b",
-			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+			"Comment": "v0.1.0",
+			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/random",
-			"Comment": "v0.0.3-64-gf3b1a1b",
-			"Rev": "f3b1a1b3bd4726161e1200863d278df7da5e66ff"
+			"Comment": "v0.1.0",
+			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-117-g50761b0",
-			"Rev": "50761b0867bd1d9d069276790bcd4a3bccf2324a"
+			"Comment": "go1.0-cutoff-123-gae8357d",
+			"Rev": "ae8357db35d721c58dcdc911318b55bef6b1b001"
 		},
 		{
 			"ImportPath": "github.com/lib/pq/oid",
-			"Comment": "go1.0-cutoff-117-g50761b0",
-			"Rev": "50761b0867bd1d9d069276790bcd4a3bccf2324a"
+			"Comment": "go1.0-cutoff-123-gae8357d",
+			"Rev": "ae8357db35d721c58dcdc911318b55bef6b1b001"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-colorable",
@@ -91,31 +88,36 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "9b4f494e787b16cdbea624b6975b99ddd8cc1ebf"
+			"Rev": "4cfeeeb61ae8daa2a4b06572024786e56f23504c"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "9b4f494e787b16cdbea624b6975b99ddd8cc1ebf"
+			"Rev": "4cfeeeb61ae8daa2a4b06572024786e56f23504c"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "8d1157a435470616f975ff9bb013bea8d0962067"
+			"Rev": "c200b10b5d5e122be351b67af224adc6128af5bf"
 		},
 		{
 			"ImportPath": "google.golang.org/api/gensupport",
-			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
+			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi",
-			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
+			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
-			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
+			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
 		},
 		{
 			"ImportPath": "google.golang.org/api/oauth2/v2",
-			"Rev": "3cf64a039723963488f603d140d0aec154fdcd20"
+			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
+		},
+		{
+			"ImportPath": "gopkg.in/robfig/cron.v2",
+			"Comment": "v1-11-gbe2e0b0",
+			"Rev": "be2e0b0deed5a68ffee390b4583a13aff8321535"
 		}
 	]
 }

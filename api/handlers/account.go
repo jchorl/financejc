@@ -11,7 +11,7 @@ import (
 )
 
 func GetAccounts(c echo.Context) error {
-	accounts, err := account.Get(c)
+	accounts, err := account.Get(toContext(c))
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -28,7 +28,7 @@ func NewAccount(c echo.Context) error {
 		return writeError(c, err)
 	}
 
-	acc, err := account.New(c, acc)
+	acc, err := account.New(toContext(c), acc)
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -46,7 +46,7 @@ func UpdateAccount(c echo.Context) error {
 		return writeError(c, err)
 	}
 
-	acc, err := account.Update(c, acc)
+	acc, err := account.Update(toContext(c), acc)
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -65,7 +65,7 @@ func DeleteAccount(c echo.Context) error {
 		return writeError(c, err)
 	}
 
-	if err := account.Delete(c, accountId); err != nil {
+	if err := account.Delete(toContext(c), accountId); err != nil {
 		return writeError(c, err)
 	}
 

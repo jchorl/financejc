@@ -28,7 +28,7 @@ func AuthUser(c echo.Context) error {
 		return err
 	}
 
-	userId, err := auth.AuthUser(c, req.Token)
+	userId, err := auth.AuthUser(toContext(c), req.Token)
 	if err != nil {
 		return err
 	}

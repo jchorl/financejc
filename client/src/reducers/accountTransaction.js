@@ -32,7 +32,7 @@ export default (state = Immutable.Map(), action) => {
     case PUT_TRANSACTION: {
       let transaction = Immutable.fromJS(action.transaction);
       transaction = transaction.set('date', new Date(transaction.get('date')));
-      return state.updateIn([transaction.get('account'), 'transactions'], transactions => transactions.set(transaction.get('id'), transaction).sortBy(t => -t.get('date')));
+      return state.updateIn([transaction.get('accountId'), 'transactions'], transactions => transactions.set(transaction.get('id'), transaction).sortBy(t => -t.get('date')));
     }
 
     case ADD_ACCOUNT:

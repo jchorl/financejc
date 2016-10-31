@@ -24,7 +24,7 @@ func GetTransactions(c echo.Context) error {
 	}
 
 	next := c.QueryParam("start")
-	transactions, err := transaction.Get(c, accountId, next)
+	transactions, err := transaction.Get(toContext(c), accountId, next)
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -53,8 +53,8 @@ func NewTransaction(c echo.Context) error {
 		return writeError(c, constants.BadRequest)
 	}
 
-	tr.Account = accountId
-	tr, err = transaction.New(c, tr)
+	tr.AccountId = accountId
+	tr, err = transaction.New(toContext(c), tr)
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -72,7 +72,7 @@ func UpdateTransaction(c echo.Context) error {
 		return writeError(c, constants.BadRequest)
 	}
 
-	tr, err := transaction.Update(c, tr)
+	tr, err := transaction.Update(toContext(c), tr)
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -91,7 +91,7 @@ func DeleteTransaction(c echo.Context) error {
 		return writeError(c, constants.BadRequest)
 	}
 
-	err = transaction.Delete(c, transactionId)
+	err = transaction.Delete(toContext(c), transactionId)
 	if err != nil {
 		return writeError(c, err)
 	}

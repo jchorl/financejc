@@ -225,7 +225,7 @@ export function putTransaction(transaction, amountDifference) {
       })
         .then(response => response.json())
         .then(json => dispatch(updateTransactions(json)))
-        .then(resp => dispatch(updateAccountValue(resp.transaction.account, amountDifference)));
+        .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
     }
   }
 
@@ -239,6 +239,6 @@ export function putTransaction(transaction, amountDifference) {
     })
       .then(response => response.json())
       .then(json => dispatch(updateTransactions(json)))
-      .then(resp => dispatch(updateAccountValue(resp.transaction.account, amountDifference)));
+      .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
   }
 }

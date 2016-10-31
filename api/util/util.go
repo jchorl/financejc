@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/dgrijalva/jwt-go"
 
 	"github.com/jchorl/financejc/constants"
 )
@@ -78,17 +77,13 @@ func FromNullInt(i sql.NullInt64) *int {
 }
 
 func UserIdFromContext(c context.Context) (uint, error) {
-	user := c.Value("user").(*jwt.Token)
-	if user == nil {
+	userId, ok := c.Value(constants.CTX_USER_ID).(uint)
+	if !ok {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
 		}).Error("Unable to get user from context")
 		return 0, errors.New("Unable to get user from context")
 	}
-
-	claims := user.Claims.(jwt.MapClaims)
-	userIdF := claims["sub"].(float64)
-	userId := uint(userIdF)
 	return userId, nil
 }
 

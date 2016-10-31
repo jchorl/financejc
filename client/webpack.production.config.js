@@ -38,11 +38,20 @@ var config = {
     require('postcss-nested'),
     require('lost')
   ],
-  plugins: new webpack.DefinePlugin({
-    'process.env': {
-      'NODE_ENV': JSON.stringify('production'),
-    }
-  })
+  plugins: [
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+      }
+    }),
+    new webpack.optimize.DedupePlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        screw_ie8: true
+      }
+    }),
+    new webpack.optimize.AggressiveMergingPlugin()
+  ]
 };
 
 module.exports = config;
