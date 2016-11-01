@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"os"
 
@@ -25,7 +26,11 @@ func main() {
 	}
 
 	c := cron.New()
-	c.AddFunc("@daily", transaction.GenRecurringTransactions)
+	ctx := context.WithValue(context.Background(), constants.CTX_DB, db)
+	c.AddFunc("@daily", func() {
+		// ignore the error because it should already be logged in GenRecurringTransactions
+		transaction.GenRecurringTransactions(ctx)
+	})
 
 	e := echo.New()
 	e.Pre(middleware.HTTPSRedirect())

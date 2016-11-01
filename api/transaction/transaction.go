@@ -162,9 +162,7 @@ func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
 	}
 
 	valid, err := userOwnsAccount(c, transaction.AccountId)
-	if err != nil {
-		return nil, constants.Forbidden
-	} else if !valid {
+	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
 

@@ -9,9 +9,14 @@ const (
 	CTX_USER_ID = "user"
 
 	IMPORT_PATH = "import"
+
+	FIXED_INTERVAL  = "fixedInterval"
+	FIXED_DAY_WEEK  = "fixedDayWeek"
+	FIXED_DAY_MONTH = "fixedDayMonth"
+	FIXED_DAY_YEAR  = "fixedDayYear"
 )
 
-var CTX_KEYS = []string{
+var CTX_KEYS = [...]string{
 	CTX_DB,
 	CTX_USER_ID,
 }

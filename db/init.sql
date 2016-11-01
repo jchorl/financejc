@@ -38,6 +38,6 @@ CREATE TABLE recurringTransactions (
 
 CREATE INDEX ON users(googleId);
 CREATE INDEX ON accounts(userId);
-CREATE INDEX ON transactions(accountId);
+CREATE INDEX ON transactions(accountId, occurred DESC, id);
 CREATE INDEX ON recurringTransactions(accountId);
 CREATE INDEX ON recurringTransactions((nextOccurs - interval '1 second' * secondsBeforeToPost));
