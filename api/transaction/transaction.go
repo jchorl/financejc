@@ -129,6 +129,56 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 	return transactions, nil
 }
 
+func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transaction, error) {
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	valid, err := userOwnsAccount(c, accountId)
+	if err != nil || !valid {
+		return nil, constants.Forbidden
+	}
+
+	transactions := []Transaction{}
+
+	if reference == nil {
+		now := time.Now()
+		reference = &now
+	}
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred > $2 ORDER BY occurred DESC, id", accountId, reference)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":     err,
+			"accountId": accountId,
+		}).Error("failed to fetch future transactions")
+		return transactions, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var transaction transactionDB
+		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionId, &transaction.AccountId); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error":     err,
+				"accountId": accountId,
+			}).Error("failed to scan into transaction for future fetch")
+			return transactions, err
+		}
+
+		transactions = append(transactions, fromDB(transaction))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":     err,
+			"accountId": accountId,
+		}).Error("failed to get transactions from rows for future fetch")
+		return transactions, err
+	}
+
+	return transactions, nil
+}
+
 func New(c context.Context, transaction *Transaction) (*Transaction, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {

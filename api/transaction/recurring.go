@@ -43,7 +43,7 @@ func GenRecurringTransactions(ctx context.Context) error {
 	}
 
 	// query for all recurring transactions where the next occurrance is within the time period before to post it to the account
-	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE nextOccurs - interval '1 second' * secondsBeforeToPost <= currentTimestamp")
+	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE nextOccurs - interval '1 second' * secondsBeforeToPost <= NOW()")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
@@ -248,7 +248,7 @@ func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) 
 		currDay := util.WeekdayToInt(tr.Transaction.Date.Weekday())
 		// force positive
 		daysToAdd := (*tr.DayOf - currDay + 7) % 7
-		if currDay == daysToAdd && !allowSameDay {
+		if daysToAdd == 0 && !allowSameDay {
 			daysToAdd += 7
 		}
 		return tr.Transaction.Date.Add(time.Hour * time.Duration(24*daysToAdd)), nil
