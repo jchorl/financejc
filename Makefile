@@ -6,7 +6,7 @@ network:
 		docker network create financejcnet
 
 ui: client/dest/bundle.js;
-client/dest/bundle.js: $(shell find client/src)
+client/dest/bundle.js: $(shell find client/src) client/webpack.production.config.js
 	docker run -it --rm \
 		--name uibuild \
 		-v $(PWD)/client:/usr/src/app \
