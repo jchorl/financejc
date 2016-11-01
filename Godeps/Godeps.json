@@ -2,11 +2,19 @@
 	"ImportPath": "github.com/jchorl/financejc",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v74",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.10.0-38-g3ec0642",
-			"Rev": "3ec0642a7fb6488f65b06f9040adc67e3990296a"
+			"Comment": "v0.10.0-46-g380f64d",
+			"Rev": "380f64d344b252a007a59baa61f31820f59cba89"
+		},
+		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Comment": "v1.0.0-9-g346938d",
+			"Rev": "346938d642f2ec3594ed81d874461961cd0faa76"
 		},
 		{
 			"ImportPath": "github.com/dgrijalva/jwt-go",
@@ -15,33 +23,33 @@
 		},
 		{
 			"ImportPath": "github.com/labstack/echo",
-			"Comment": "v2.1-22-g276394d",
-			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
+			"Comment": "v2.1-24-gb011150",
+			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/context",
-			"Comment": "v2.1-22-g276394d",
-			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
+			"Comment": "v2.1-24-gb011150",
+			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/engine",
-			"Comment": "v2.1-22-g276394d",
-			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
+			"Comment": "v2.1-24-gb011150",
+			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/engine/standard",
-			"Comment": "v2.1-22-g276394d",
-			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
+			"Comment": "v2.1-24-gb011150",
+			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/log",
-			"Comment": "v2.1-22-g276394d",
-			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
+			"Comment": "v2.1-24-gb011150",
+			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/middleware",
-			"Comment": "v2.1-22-g276394d",
-			"Rev": "276394d973b8cdf2569c18ae5dc0edbb5455f8e5"
+			"Comment": "v2.1-24-gb011150",
+			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/bytes",
@@ -83,16 +91,36 @@
 			"Rev": "66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8"
 		},
 		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.0.0",
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.1.4-4-g976c720",
+			"Rev": "976c720a22c8eb4eb6a0b4348ad85ad12491a506"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/require",
+			"Comment": "v1.1.4-4-g976c720",
+			"Rev": "976c720a22c8eb4eb6a0b4348ad85ad12491a506"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/suite",
+			"Comment": "v1.1.4-4-g976c720",
+			"Rev": "976c720a22c8eb4eb6a0b4348ad85ad12491a506"
+		},
+		{
 			"ImportPath": "github.com/valyala/fasttemplate",
 			"Rev": "3b874956e03f1636d171bda64b130f9135f42cff"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "4cfeeeb61ae8daa2a4b06572024786e56f23504c"
+			"Rev": "541150ac4f433e755f5663eba5d888c2fa347343"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "4cfeeeb61ae8daa2a4b06572024786e56f23504c"
+			"Rev": "541150ac4f433e755f5663eba5d888c2fa347343"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
@@ -100,19 +128,19 @@
 		},
 		{
 			"ImportPath": "google.golang.org/api/gensupport",
-			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
+			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi",
-			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
+			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
-			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
+			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
 		},
 		{
 			"ImportPath": "google.golang.org/api/oauth2/v2",
-			"Rev": "037d03010933c9fa8e57559c1b7faeec971688d1"
+			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
 		},
 		{
 			"ImportPath": "gopkg.in/robfig/cron.v2",

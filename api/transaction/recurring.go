@@ -50,6 +50,7 @@ func GenRecurringTransactions(ctx context.Context) error {
 		}).Error("failed to fetch recurring transactions to post to accounts")
 		return err
 	}
+	defer rows.Close()
 
 	recurringTransactions := []RecurringTransaction{}
 	for rows.Next() {
@@ -90,7 +91,7 @@ func GenRecurringTransactions(ctx context.Context) error {
 		}
 
 		// calculate when the transaction should next run
-		recurringTransaction.Transaction.Date, err = getNextRun(recurringTransaction)
+		recurringTransaction.Transaction.Date, err = getNextRun(&recurringTransaction, false)
 		if err != nil {
 			return err
 		}
@@ -128,7 +129,7 @@ func GetRecurring(c context.Context, accountId int) ([]RecurringTransaction, err
 		return transactions, constants.Forbidden
 	}
 
-	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, account, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE account = $1", accountId)
+	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE accountId = $1", accountId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -136,6 +137,7 @@ func GetRecurring(c context.Context, accountId int) ([]RecurringTransaction, err
 		}).Error("failed to fetch recurring transactions")
 		return transactions, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var transaction recurringTransactionDB
@@ -173,6 +175,11 @@ func NewRecurring(c context.Context, transaction *RecurringTransaction) (*Recurr
 	valid, err := userOwnsAccount(c, transaction.Transaction.AccountId)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
+	}
+
+	transaction.Transaction.Date, err = getNextRun(transaction, true)
+	if err != nil {
+		return nil, err
 	}
 
 	tdb := recurringToDB(*transaction)
@@ -230,14 +237,18 @@ func validateRecurringTransaction(tr RecurringTransaction) error {
 	return constants.BadRequest
 }
 
-func getNextRun(tr RecurringTransaction) (time.Time, error) {
+func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) {
 	switch tr.ScheduleType {
 	case constants.FIXED_INTERVAL:
+		if allowSameDay {
+			return tr.Transaction.Date, nil
+		}
 		return tr.Transaction.Date.Add(time.Duration(*tr.SecondsBetween) * time.Second), nil
 	case constants.FIXED_DAY_WEEK:
 		currDay := util.WeekdayToInt(tr.Transaction.Date.Weekday())
-		daysToAdd := *tr.DayOf - currDay
-		if currDay == daysToAdd {
+		// force positive
+		daysToAdd := (*tr.DayOf - currDay + 7) % 7
+		if currDay == daysToAdd && !allowSameDay {
 			daysToAdd += 7
 		}
 		return tr.Transaction.Date.Add(time.Hour * time.Duration(24*daysToAdd)), nil
@@ -256,7 +267,7 @@ func getNextRun(tr RecurringTransaction) (time.Time, error) {
 		// in this month. if that is greater than minDay/minMonth/minYear, just schedule
 		// the next transaction in minMonth
 		correctDayForMinMonth := util.Min(desiredDay, daysInMinMonth)
-		if correctDayForMinMonth > minDay {
+		if correctDayForMinMonth > minDay || correctDayForMinMonth == minDay && allowSameDay {
 			return tr.Transaction.Date.Add(time.Hour * time.Duration(24*(correctDayForMinMonth-minDay))), nil
 		}
 
@@ -273,7 +284,7 @@ func getNextRun(tr RecurringTransaction) (time.Time, error) {
 		// just need to check if it can run this year or must be next year
 		desiredDay := *tr.DayOf
 		minDayOfYear := tr.Transaction.Date.YearDay()
-		if desiredDay > minDayOfYear {
+		if desiredDay > minDayOfYear || desiredDay == minDayOfYear && allowSameDay {
 			return tr.Transaction.Date.Add(time.Hour * time.Duration(24*(desiredDay-minDayOfYear))), nil
 		}
 

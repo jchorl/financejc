@@ -7,7 +7,7 @@ CREATE TABLE accounts (
     id serial PRIMARY KEY,
     name varchar(100) NOT NULL,
     currency varchar(3) NOT NULL,
-    userId integer NOT NULL references users(id)
+    userId integer NOT NULL references users(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE transactions (
@@ -17,8 +17,8 @@ CREATE TABLE transactions (
     category varchar(100),
     amount integer NOT NULL,
     note varchar(256),
-    relatedTransactionId integer references transactions(id),
-    accountId integer NOT NULL references accounts(id)
+    relatedTransactionId integer references transactions(id) DEFERRABLE INITIALLY DEFERRED,
+    accountId integer NOT NULL references accounts(id) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE recurringTransactions (
@@ -28,7 +28,7 @@ CREATE TABLE recurringTransactions (
     category varchar(100),
     amount integer NOT NULL,
     note varchar(256),
-    accountId integer NOT NULL references accounts(id),
+    accountId integer NOT NULL references accounts(id) DEFERRABLE INITIALLY DEFERRED,
 
     scheduleType varchar(20) NOT NULL,
     secondsBetween integer,

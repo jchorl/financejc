@@ -93,6 +93,7 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 		}).Error("failed to fetch transactions")
 		return Transactions{}, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var transaction transactionDB

@@ -37,6 +37,7 @@ func Get(c context.Context) ([]*Account, error) {
 		}).Error("failed to fetch accounts")
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var account Account
