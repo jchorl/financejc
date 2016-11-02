@@ -148,9 +148,9 @@ func (suite *RecurringTestSuite) TestGenerateFuture() {
 	retrieved, err := GetFuture(suite.Ctx, acc.Id, &now)
 	require.NoError(suite.T(), err, "failed to retrieve transactions after generating")
 
-	require.Equal(suite.T(), 1, len(retrieved), "should be one transaction generated")
+	require.Len(suite.T(), retrieved, 1, "should be one transaction generated")
 	generated := retrieved[0]
-	checkTransactionEqual(suite.T(), tr.Transaction, generated)
+	checkTransactionEqual(suite.T(), tr.Transaction, generated, true)
 
 	// verify that the date got shifted forward
 	recurring, err := GetRecurring(suite.Ctx, acc.Id)
@@ -167,19 +167,70 @@ func (suite *RecurringTestSuite) TestGenerateFuture() {
 	}
 }
 
+func (suite *RecurringTestSuite) TestGeneratePast() {
+	// create account
+	acc := integration.NewAccount(suite.T(), suite.Ctx)
+
+	now := time.Now()
+	yesterdayYearday := now.AddDate(0, 0, -1).YearDay()
+	tr := RecurringTransaction{
+		Transaction: Transaction{
+			Name:      "two years ago",
+			Date:      now.AddDate(-2, 0, -2),
+			Category:  "fun",
+			Amount:    -502,
+			Note:      "note",
+			AccountId: acc.Id,
+		},
+		ScheduleType:        constants.FIXED_DAY_YEAR,
+		DayOf:               &yesterdayYearday,
+		SecondsBeforeToPost: 1,
+	}
+	_, err := NewRecurring(suite.Ctx, &tr)
+	require.NoError(suite.T(), err, "failed to create recurring transaction: %+v", tr)
+
+	err = GenRecurringTransactions(suite.Ctx)
+	require.NoError(suite.T(), err, "failed to generate recurring transactions")
+
+	retrieved, err := Get(suite.Ctx, acc.Id, "")
+	require.NoError(suite.T(), err, "failed to retrieve transactions after generating")
+
+	// verify that three correct transactions were generated
+	require.Len(suite.T(), retrieved.Transactions, 3, "should be three transactions generated")
+	for idx, generated := range retrieved.Transactions {
+		checkTransactionEqual(suite.T(), tr.Transaction, generated, false)
+		require.Equal(suite.T(), yesterdayYearday, generated.Date.YearDay(), "generated transaction should have desired year day")
+
+		// relies on transaction.Get returning in descending order
+		require.Equal(suite.T(), now.AddDate(-idx, 0, -1).Year(), generated.Date.Year(), "generated transactions should be 2 years ago, last year and this year")
+	}
+
+	// verify that the date got shifted forward
+	recurring, err := GetRecurring(suite.Ctx, acc.Id)
+	require.NoError(suite.T(), err, "unable to retrieve recurring transactions")
+	only := recurring[0]
+
+	checkRecurringTransactionEqual(suite.T(), tr, only, false)
+	require.Equal(suite.T(), yesterdayYearday, only.Transaction.Date.YearDay(), "recurring transaction should have an updated date with the desired year day")
+	require.Equal(suite.T(), now.AddDate(1, 0, -1).Year(), only.Transaction.Date.Year(), "recurring transaction should have a date one year from yesterday (+/- 1 day)")
+}
+
 func TestRecurringTestSuite(t *testing.T) {
 	suite.Run(t, new(RecurringTestSuite))
 }
 
-func checkTransactionEqual(t *testing.T, expected, actual Transaction) {
+func checkTransactionEqual(t *testing.T, expected, actual Transaction, checkDate bool) {
 	require.Equal(t, expected.Name, actual.Name, "actual name should be same as expected")
 	require.Equal(t, expected.AccountId, actual.AccountId, "actual account id should be same as expected")
 	require.Equal(t, expected.Amount, actual.Amount, "actual amount should be same as expected")
 	require.Equal(t, expected.Category, actual.Category, "actual category should be same as expected")
 	require.Equal(t, expected.Note, actual.Note, "actual note should be same as expected")
-	require.Equal(t, expected.Date.Year(), actual.Date.Year(), "actual year should be same as expected")
-	require.Equal(t, expected.Date.Month(), actual.Date.Month(), "actual month should be same as expected")
-	require.Equal(t, expected.Date.Day(), actual.Date.Day(), "actual day should be same as expected")
+
+	if checkDate {
+		require.Equal(t, expected.Date.Year(), actual.Date.Year(), "actual year should be same as expected")
+		require.Equal(t, expected.Date.Month(), actual.Date.Month(), "actual month should be same as expected")
+		require.Equal(t, expected.Date.Day(), actual.Date.Day(), "actual day should be same as expected")
+	}
 }
 
 func checkRecurringTransactionEqual(t *testing.T, expected, actual RecurringTransaction, checkDate bool) {

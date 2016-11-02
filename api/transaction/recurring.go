@@ -42,32 +42,8 @@ func GenRecurringTransactions(ctx context.Context) error {
 		return err
 	}
 
-	// query for all recurring transactions where the next occurrance is within the time period before to post it to the account
-	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE nextOccurs - interval '1 second' * secondsBeforeToPost <= NOW()")
+	recurringTransactions, err := getRecurringToPost(db)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("failed to fetch recurring transactions to post to accounts")
-		return err
-	}
-	defer rows.Close()
-
-	recurringTransactions := []RecurringTransaction{}
-	for rows.Next() {
-		var transaction recurringTransactionDB
-		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.NextOccurs, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountId, &transaction.ScheduleType, &transaction.SecondsBetween, &transaction.DayOf, &transaction.SecondsBeforeToPost); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Error("failed to scan into recurring transaction to generate transaction")
-			return err
-		}
-
-		recurringTransactions = append(recurringTransactions, recurringFromDB(transaction))
-	}
-	if err := rows.Err(); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("failed to get recurring transactions from rows to generate transactions")
 		return err
 	}
 
@@ -81,27 +57,8 @@ func GenRecurringTransactions(ctx context.Context) error {
 	ctx = context.WithValue(ctx, constants.CTX_DB, tx)
 
 	for _, recurringTransaction := range recurringTransactions {
-		// get the transaction from the recurring transaction template
-		if _, err := New(ctx, &recurringTransaction.Transaction); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":                err,
-				"recurringTransaction": recurringTransaction,
-			}).Error("error adding a new transaction for a recurring transaction")
-			return err
-		}
-
-		// calculate when the transaction should next run
-		recurringTransaction.Transaction.Date, err = getNextRun(&recurringTransaction, false)
-		if err != nil {
-			return err
-		}
-
-		// update the recurring transaction
-		if _, err := UpdateRecurring(ctx, &recurringTransaction); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":                err,
-				"recurringTransaction": recurringTransaction,
-			}).Error("error updating recurring transaction after adding the transaction. a duplicate transaction may be created in the future.")
+		if err := generateFromRecurringAndUpdateRecurring(ctx, recurringTransaction); err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
@@ -111,6 +68,7 @@ func GenRecurringTransactions(ctx context.Context) error {
 			"error":                 err,
 			"recurringTransactions": recurringTransactions,
 		}).Error("error committing all recurring transactions and generated transactions")
+		tx.Rollback()
 		return err
 	}
 
@@ -306,6 +264,71 @@ func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) 
 		"recurringTransaction": tr,
 	}).Error("unknown schedule type for recurring transaction")
 	return time.Time{}, err
+}
+
+func getRecurringToPost(db util.DB) ([]RecurringTransaction, error) {
+	// query for all recurring transactions where the next occurrance is within the time period before to post it to the account
+	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE nextOccurs - interval '1 second' * secondsBeforeToPost <= NOW()")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to fetch recurring transactions to post to accounts")
+		return nil, err
+	}
+	defer rows.Close()
+
+	recurringTransactions := []RecurringTransaction{}
+	for rows.Next() {
+		var transaction recurringTransactionDB
+		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.NextOccurs, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountId, &transaction.ScheduleType, &transaction.SecondsBetween, &transaction.DayOf, &transaction.SecondsBeforeToPost); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to scan into recurring transaction to generate transaction")
+			return nil, err
+		}
+
+		recurringTransactions = append(recurringTransactions, recurringFromDB(transaction))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to get recurring transactions from rows to generate transactions")
+		return nil, err
+	}
+
+	return recurringTransactions, nil
+}
+
+func generateFromRecurringAndUpdateRecurring(ctx context.Context, recurringTransaction RecurringTransaction) error {
+	// keep generating until it is too early to post the next transaction
+	now := time.Now()
+	for recurringTransaction.Transaction.Date.Add(time.Second * time.Duration(-recurringTransaction.SecondsBeforeToPost)).Before(now) {
+		if _, err := New(ctx, &recurringTransaction.Transaction); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error":                err,
+				"recurringTransaction": recurringTransaction,
+			}).Error("error adding a new transaction for a recurring transaction")
+			return err
+		}
+
+		// calculate when the transaction should next run
+		var err error
+		recurringTransaction.Transaction.Date, err = getNextRun(&recurringTransaction, false)
+		if err != nil {
+			return err
+		}
+	}
+
+	// update the recurring transaction
+	if _, err := UpdateRecurring(ctx, &recurringTransaction); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":                err,
+			"recurringTransaction": recurringTransaction,
+		}).Error("error updating recurring transaction after adding the transaction. a duplicate transaction may be created in the future.")
+		return err
+	}
+
+	return nil
 }
 
 func recurringToDB(transaction RecurringTransaction) *recurringTransactionDB {
