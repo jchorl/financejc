@@ -18,8 +18,8 @@
 		},
 		{
 			"ImportPath": "github.com/dgrijalva/jwt-go",
-			"Comment": "v3.0.0-8-g24c63f5",
-			"Rev": "24c63f56522a87ec5339cc3567883f1039378fdb"
+			"Comment": "v3.0.0-10-g9ed569b",
+			"Rev": "9ed569b5d1ac936e6494082958d63a6aa4fff99a"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo",
@@ -73,18 +73,18 @@
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-123-gae8357d",
-			"Rev": "ae8357db35d721c58dcdc911318b55bef6b1b001"
+			"Comment": "go1.0-cutoff-125-ga37edb8",
+			"Rev": "a37edb86214894fa6c6c3401a4c4976b02176dd3"
 		},
 		{
 			"ImportPath": "github.com/lib/pq/oid",
-			"Comment": "go1.0-cutoff-123-gae8357d",
-			"Rev": "ae8357db35d721c58dcdc911318b55bef6b1b001"
+			"Comment": "go1.0-cutoff-125-ga37edb8",
+			"Rev": "a37edb86214894fa6c6c3401a4c4976b02176dd3"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-colorable",
-			"Comment": "v0.0.6-6-g6c903ff",
-			"Rev": "6c903ff4aa50920ca86087a280590b36b3152b9c"
+			"Comment": "v0.0.6-7-g6e26b35",
+			"Rev": "6e26b354bd2b0fc420cb632b0d878abccdc6544c"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-isatty",
@@ -116,11 +116,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "541150ac4f433e755f5663eba5d888c2fa347343"
+			"Rev": "4bb47a1098b37d69980d96237e2ae4ff56bb5a95"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "541150ac4f433e755f5663eba5d888c2fa347343"
+			"Rev": "4bb47a1098b37d69980d96237e2ae4ff56bb5a95"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
@@ -141,6 +141,21 @@
 		{
 			"ImportPath": "google.golang.org/api/oauth2/v2",
 			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
+		},
+		{
+			"ImportPath": "gopkg.in/olivere/elastic.v5",
+			"Comment": "v5.0.3",
+			"Rev": "a5168d45c99368b983253ee19a4841b2a12f759f"
+		},
+		{
+			"ImportPath": "gopkg.in/olivere/elastic.v5/backoff",
+			"Comment": "v5.0.3",
+			"Rev": "a5168d45c99368b983253ee19a4841b2a12f759f"
+		},
+		{
+			"ImportPath": "gopkg.in/olivere/elastic.v5/uritemplates",
+			"Comment": "v5.0.3",
+			"Rev": "a5168d45c99368b983253ee19a4841b2a12f759f"
 		},
 		{
 			"ImportPath": "gopkg.in/robfig/cron.v2",

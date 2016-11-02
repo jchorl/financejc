@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/jchorl/financejc/constants"
 )
@@ -126,6 +127,26 @@ func DBFromContext(c context.Context) (DB, error) {
 	}
 
 	return db, nil
+}
+
+func ESFromContext(c context.Context) (elastic.Client, error) {
+	es := c.Value(constants.CTX_ES)
+	if es == nil {
+		logrus.WithFields(logrus.Fields{
+			"context": c,
+		}).Error("Unable to get ES client from context")
+		return elastic.Client{}, errors.New("Unable to get ES client from context")
+	}
+
+	parsed, ok := es.(elastic.Client)
+	if !ok {
+		logrus.WithFields(logrus.Fields{
+			"context": c,
+		}).Error("Unable to get ES client from context, could not cast val to client")
+		return parsed, errors.New("Unable to get ES client from context")
+	}
+
+	return parsed, nil
 }
 
 func SQLDBFromContext(c context.Context) (*sql.DB, error) {

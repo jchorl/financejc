@@ -98,3 +98,28 @@ func DeleteTransaction(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+func QueryES(ctx echo.Context) error {
+	accountIdStr := ctx.Param("accountId")
+	accountId, err := strconv.Atoi(accountIdStr)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":     err,
+			"context":   ctx,
+			"accountId": accountIdStr,
+		})
+		return writeError(ctx, constants.BadRequest)
+	}
+
+	query := transaction.TransactionQuery{
+		Field:     ctx.Param("field"),
+		Value:     ctx.Param("value"),
+		AccountId: accountId,
+	}
+	transactions, err := transaction.GetESByField(toContext(ctx), query)
+	if err != nil {
+		return writeError(ctx, err)
+	}
+
+	return ctx.JSON(http.StatusOK, transactions)
+}

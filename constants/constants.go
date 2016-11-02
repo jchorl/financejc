@@ -6,7 +6,10 @@ import (
 
 const (
 	CTX_DB      = "database"
+	CTX_ES      = "elasticsearch"
 	CTX_USER_ID = "user"
+
+	ES_INDEX = "financejc"
 
 	IMPORT_PATH = "import"
 
@@ -18,6 +21,7 @@ const (
 
 var CTX_KEYS = [...]string{
 	CTX_DB,
+	CTX_ES,
 	CTX_USER_ID,
 }
 

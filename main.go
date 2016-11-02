@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
+	"gopkg.in/olivere/elastic.v5"
 	"gopkg.in/robfig/cron.v2"
 
 	"github.com/jchorl/financejc/api/handlers"
@@ -22,8 +23,14 @@ func main() {
 
 	db, err := sql.Open(constants.DB_DRIVER, constants.DB_ADDRESS)
 	if err != nil {
-		logrus.WithField("Error", err).Fatal("Failed to connect to database")
+		logrus.WithField("error", err).Fatal("failed to connect to database")
 	}
+
+	es, err := elastic.NewClient(elastic.SetURL(constants.ES_ADDRESS))
+	if err != nil {
+		logrus.WithField("error", err).Fatal("failed to connect to elasticsearch")
+	}
+	configureEsIndices(es)
 
 	c := cron.New()
 	ctx := context.WithValue(context.Background(), constants.CTX_DB, db)
@@ -38,6 +45,7 @@ func main() {
 		middleware.Gzip(),
 		middleware.Logger(),
 		dbMiddleware(db),
+		esMiddleware(es),
 	)
 
 	e.File("/", "client/index.html")
@@ -55,6 +63,32 @@ func dbMiddleware(db *sql.DB) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			c.Set(constants.CTX_DB, db)
 			return next(c)
+		}
+	}
+}
+
+func esMiddleware(client *elastic.Client) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Set(constants.CTX_ES, client)
+			return next(c)
+		}
+	}
+}
+
+func configureEsIndices(client *elastic.Client) {
+	exists, err := client.IndexExists(constants.ES_INDEX).Do(context.Background())
+	if err != nil {
+		logrus.WithField("error", err).Fatal("failed to check if transactions index exists")
+	}
+	if !exists {
+		// Create a new index.
+		createIndex, err := client.CreateIndex(constants.ES_INDEX).Do(context.Background())
+		if err != nil {
+			logrus.WithField("error", err).Fatal("failed to create transactions index")
+		}
+		if !createIndex.Acknowledged {
+			logrus.Fatal("creating transactions index in es was not acknowledged")
 		}
 	}
 }

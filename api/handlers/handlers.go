@@ -27,6 +27,7 @@ func Init(api *echo.Group) {
 	api.DELETE("/account/:accountId", DeleteAccount, jwtMiddleware)
 
 	api.GET("/account/:accountId/transactions", GetTransactions, jwtMiddleware)
+	api.GET("/account/:accountId/transactions/query", QueryES, jwtMiddleware)
 	api.POST("/account/:accountId/transactions", NewTransaction, jwtMiddleware)
 
 	api.PUT("/transaction", UpdateTransaction, jwtMiddleware)

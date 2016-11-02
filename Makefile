@@ -1,5 +1,5 @@
-all: network db ui build serve
-dev: network db ui build serve-dev
+all: network db es ui build serve
+dev: network db es ui build serve-dev
 
 network:
 	docker network ls | grep financejcnet || \
@@ -34,6 +34,15 @@ db: network
 		-e POSTGRES_PASSWORD=financejc \
 		postgres
 
+es: network
+	docker ps | grep financejces || \
+		docker run -d \
+		--name financejces \
+		--network financejcnet \
+		-h financejces \
+		--expose=9200 \
+		elasticsearch
+
 serve: network
 	docker run -it --rm \
 		--name financejc \
@@ -58,7 +67,7 @@ serve-dev: network
 build: ui
 	docker build -t jchorl/financejc .
 
-test: clean network db test-all
+test: clean network db es test-all
 test-all:
 	docker run -it --rm \
 		--name financejctest \
@@ -71,22 +80,28 @@ test-all:
 clean:
 	-docker rm -f financejcdbcon
 	-docker rm -f financejcdb
+	-docker rm -f financejces
 	-docker rm -f financejc
 	-docker network rm financejcnet
 	-rm client/dest/bundle.js
 
 npm:
 	docker run -it --rm \
-		--name npm \
 		-v $(PWD)/client:/usr/src/app \
 		-w /usr/src/app \
 		node:latest /bin/bash
 
 connect-db:
 	docker run -it --rm \
-		--name financejcdbcon \
 		--network financejcnet \
 		postgres \
 		psql -h financejcdb -U financejc
 
-.PHONY: all ui ui-watch network db serve build clean npm connect-db
+golang:
+	docker run -it --rm \
+		-v $(PWD):/go/src/github.com/jchorl/financejc \
+		-w /go/src/github.com/jchorl/financejc \
+		golang \
+		bash
+
+.PHONY: all ui ui-watch network db es serve build clean npm connect-db golang

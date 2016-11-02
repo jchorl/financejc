@@ -4,15 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 
 	"github.com/jchorl/financejc/api/util"
 	"github.com/jchorl/financejc/constants"
+	"gopkg.in/olivere/elastic.v5"
 )
 
 const (
+	esType        = "transaction"
 	limitPerQuery = 25
 )
 
@@ -32,6 +36,12 @@ type Transaction struct {
 	AccountId            int       `json:"accountId"`
 }
 
+type TransactionQuery struct {
+	Field     string `json:"field"`
+	Value     string `json:"value"`
+	AccountId int    `json:"accountId"`
+}
+
 type transactionDB struct {
 	Id                   int
 	Name                 string
@@ -41,6 +51,18 @@ type transactionDB struct {
 	Note                 sql.NullString
 	RelatedTransactionId sql.NullInt64
 	AccountId            int
+}
+
+type transactionES struct {
+	Id                   int       `json:"id,omitempty"`
+	Name                 string    `json:"name"`
+	Date                 time.Time `json:"date"`
+	Category             string    `json:"category"`
+	Amount               int       `json:"amount"`
+	Note                 string    `json:"note"`
+	RelatedTransactionId int       `json:"relatedTransactionId,omitempty"`
+	AccountId            int       `json:"accountId"`
+	UserId               uint      `json:"userId"`
 }
 
 type nextPageParams struct {
@@ -179,13 +201,59 @@ func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transa
 	return transactions, nil
 }
 
-func New(c context.Context, transaction *Transaction) (*Transaction, error) {
-	db, err := util.DBFromContext(c)
+func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, error) {
+	userId, err := util.UserIdFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.AccountId)
+	valid, err := userOwnsAccount(ctx, query.AccountId)
+	if err != nil || !valid {
+		return nil, constants.Forbidden
+	}
+
+	es, err := util.ESFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	searchResult, err := es.Search().
+		Index(constants.ES_INDEX).
+		Query(
+		elastic.NewBoolQuery().
+			Filter(elastic.NewTermQuery("userId", userId)).
+			Must(elastic.NewMatchQuery(query.Field, query.Value)).
+			Should(elastic.NewTermQuery("accountId", query.AccountId))).
+		Sort("date", false).
+		From(0).
+		Size(10).
+		Do(context.Background())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":   err,
+			"query":   query,
+			"context": ctx,
+		}).Error("error executing ES query by field")
+		return nil, err
+	}
+
+	results := []Transaction{}
+	var ttyp transactionES
+	for _, item := range searchResult.Each(reflect.TypeOf(ttyp)) {
+		t := item.(transactionES)
+		results = append(results, fromES(t))
+	}
+
+	return results, nil
+}
+
+func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
+	db, err := util.DBFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	valid, err := userOwnsAccount(ctx, transaction.AccountId)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
@@ -203,16 +271,41 @@ func New(c context.Context, transaction *Transaction) (*Transaction, error) {
 	}
 
 	transaction.Id = id
-	return transaction, nil
-}
 
-func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
-	db, err := util.DBFromContext(c)
+	es, err := util.ESFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.AccountId)
+	userId, err := util.UserIdFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = es.Index().
+		Index(constants.ES_INDEX).
+		Type(esType).
+		Id(strconv.Itoa(transaction.Id)).
+		BodyJson(toES(transaction, userId)).
+		Do(context.Background())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":       err,
+			"transaction": transaction,
+		}).Error("failed to insert transaction into elasticsearch")
+		return nil, err
+	}
+
+	return transaction, nil
+}
+
+func Update(ctx context.Context, transaction *Transaction) (*Transaction, error) {
+	db, err := util.DBFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	valid, err := userOwnsAccount(ctx, transaction.AccountId)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
@@ -228,16 +321,41 @@ func Update(c context.Context, transaction *Transaction) (*Transaction, error) {
 		return nil, err
 	}
 
+	es, err := util.ESFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userId, err := util.UserIdFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// indexing a doc with the same id will replace and bump the version number
+	_, err = es.Index().
+		Index(constants.ES_INDEX).
+		Type(esType).
+		Id(strconv.Itoa(transaction.Id)).
+		BodyJson(toES(transaction, userId)).
+		Do(context.Background())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":       err,
+			"transaction": transaction,
+		}).Error("failed to update transaction into elasticsearch")
+		return nil, err
+	}
+
 	return transaction, nil
 }
 
-func Delete(c context.Context, transactionId int) error {
-	db, err := util.DBFromContext(c)
+func Delete(ctx context.Context, transactionId int) error {
+	db, err := util.DBFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	valid, err := userOwnsTransaction(c, transactionId)
+	valid, err := userOwnsTransaction(ctx, transactionId)
 	if err != nil {
 		return constants.Forbidden
 	} else if !valid {
@@ -250,6 +368,24 @@ func Delete(c context.Context, transactionId int) error {
 			"error":         err,
 			"transactionID": transactionId,
 		}).Errorf("could not delete transaction")
+		return err
+	}
+
+	es, err := util.ESFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = es.Delete().
+		Index(constants.ES_INDEX).
+		Type(esType).
+		Id(strconv.Itoa(transactionId)).
+		Do(context.Background())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":         err,
+			"transactionId": transactionId,
+		}).Error("failed to delete transaction in elasticsearch")
 		return err
 	}
 
@@ -355,6 +491,33 @@ func fromDB(transaction transactionDB) Transaction {
 		Amount:               transaction.Amount,
 		Note:                 util.FromNullStringNonEmpty(transaction.Note),
 		RelatedTransactionId: util.FromNullIntNonZero(transaction.RelatedTransactionId),
+		AccountId:            transaction.AccountId,
+	}
+}
+
+func toES(transaction *Transaction, userId uint) transactionES {
+	return transactionES{
+		Id:                   transaction.Id,
+		Name:                 transaction.Name,
+		Date:                 transaction.Date,
+		Category:             transaction.Category,
+		Amount:               transaction.Amount,
+		Note:                 transaction.Note,
+		RelatedTransactionId: transaction.RelatedTransactionId,
+		AccountId:            transaction.AccountId,
+		UserId:               userId,
+	}
+}
+
+func fromES(transaction transactionES) Transaction {
+	return Transaction{
+		Id:                   transaction.Id,
+		Name:                 transaction.Name,
+		Date:                 transaction.Date,
+		Category:             transaction.Category,
+		Amount:               transaction.Amount,
+		Note:                 transaction.Note,
+		RelatedTransactionId: transaction.RelatedTransactionId,
 		AccountId:            transaction.AccountId,
 	}
 }
