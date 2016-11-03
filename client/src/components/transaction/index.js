@@ -62,13 +62,13 @@ function getFormInitialValues(transaction, currency) {
   }
 }
 
-function getNameSuggestionValue(suggestion) {
-  return suggestion.name;
+function getSuggestionValue(field, suggestion) {
+  return suggestion[field];
 }
 
-function renderSuggestion(suggestion) {
+function renderSuggestion(field, suggestion) {
   return (
-    <span>{suggestion.name}</span>
+    <span>{ suggestion[field] }</span>
   );
 }
 
@@ -79,6 +79,7 @@ function queryByFieldAndVal(accountId, field, val) {
     .then(response => response.json());
 }
 
+// getting suggestions async example: http://codepen.io/moroshko/pen/EPZpev
 @connect()
 export class TransactionForm extends React.Component {
   static propTypes = {
@@ -95,44 +96,63 @@ export class TransactionForm extends React.Component {
     super(props);
 
     this.state = {
-      value: props.initialValues.name,
-      suggestions: [],
-      isLoading: false
+      values: props.initialValues,
+      suggestions: {
+        name: [],
+        category: []
+      }
     };
 
     this.lastRequestId = null;
   }
 
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      values: nextProps.initialValues
+    });
+  }
+
   loadSuggestions = (field, value) => {
     const {
-      accountId
+      accountId,
+      transaction
     } = this.props;
+
+    let resolvedAccountId = accountId;
+    if (transaction) {
+      resolvedAccountId = transaction.get('accountId');
+    }
 
     let id = Math.random();
     this.setState({
-      isLoading: true,
       lastRequestId: id
     });
 
     let that = this;
 
     // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
-    queryByFieldAndVal(accountId, field, value).then(transactions => {
+    queryByFieldAndVal(resolvedAccountId, field, value).then(transactions => {
+      // stale query
       if (id !== that.state.lastRequestId) {
         return;
       }
 
-      that.setState({
-        isLoading: false,
-        suggestions: transactions
-      });
+      let newState = { suggestions: {} };
+      Object.assign(newState.suggestions, that.state.suggestions);
+      newState.suggestions[field] = transactions;
+      that.setState(newState);
     });
   }
 
-  onChange = (event, { newValue }) => {
-    this.setState({
-      value: newValue
-    });
+  onChange = field => {
+    let that = this;
+    return function(event, { newValue }) {
+      let values = Object.assign({}, that.state.values);
+      values[field] = newValue;
+      that.setState({
+        values
+      });
+    }
   };
 
   onSuggestionsFetchRequested = (field, { value }) => {
@@ -141,9 +161,34 @@ export class TransactionForm extends React.Component {
 
   onSuggestionsClearRequested = () => {
     this.setState({
-      suggestions: []
+      suggestions: {
+        name: [],
+        category: []
+      }
     });
   };
+
+  onNameSuggestionSelected = (event, { suggestion }) => {
+    const { currency } = this.props;
+
+    this.setState({
+      values: {
+        name: suggestion.name,
+        // don't update the date
+        date: this.state.values.date,
+        category: suggestion.category,
+        amount: toDecimal(suggestion.amount, currency.get('digitsAfterDecimal'))
+      }
+    });
+  }
+
+  fieldChange = name => function(e) {
+    let newState = Object.assign({}, this.state.values);
+    newState[name] = e.target.value;
+    this.setState({
+      values: newState
+    });
+  }
 
   submit = (e) => {
     const {
@@ -176,19 +221,22 @@ export class TransactionForm extends React.Component {
 
   render () {
     const {
-      value,
-      suggestions
+      suggestions,
+      values
     } = this.state;
-
-    const {
-      initialValues
-    } = this.props;
 
     const nameInputProps = {
       name: 'name',
       placeholder: 'Name',
-      value,
-      onChange: this.onChange
+      value: values.name,
+      onChange: this.onChange('name')
+    };
+
+    const categoryInputProps = {
+      name: 'category',
+      placeholder: 'Category',
+      value: values.category,
+      onChange: this.onChange('category')
     };
 
     return (
@@ -196,16 +244,26 @@ export class TransactionForm extends React.Component {
         <form onSubmit={ this.submit }>
           <div className={ styles.transactionFields }>
             <Autosuggest
-              suggestions={ suggestions }
+              id="name"
+              suggestions={ suggestions.name }
               onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'name') }
               onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
-              getSuggestionValue={ getNameSuggestionValue }
-              renderSuggestion={ renderSuggestion }
+              onSuggestionSelected={ this.onNameSuggestionSelected }
+              getSuggestionValue={ getSuggestionValue.bind(undefined, 'name') }
+              renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
               inputProps={ nameInputProps }
               theme={ styles } />
-            <input type="date" name="date" defaultValue={ initialValues.date } className={ styles.transactionField } />
-            <input type="text" name="category" defaultValue={ initialValues.category } placeholder="Category" className={ styles.transactionField } />
-            <input type="text" name="amount" defaultValue={ initialValues.amount } placeholder="0" className={ styles.transactionField } />
+            <input type="date" name="date" value={ values.date } onChange={ this.fieldChange('date') } className={ styles.transactionField } />
+            <Autosuggest
+              id="category"
+              suggestions={ suggestions.category }
+              onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'category') }
+              onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
+              getSuggestionValue={ getSuggestionValue.bind(undefined, 'category') }
+              renderSuggestion={ renderSuggestion.bind(undefined, 'category') }
+              inputProps={ categoryInputProps }
+              theme={ styles } />
+            <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionField } />
           </div>
           <div className={ styles.saveExit }>
               <button type="button" onClick={ this.props.done }>Cancel</button>
