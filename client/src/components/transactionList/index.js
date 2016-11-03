@@ -86,7 +86,7 @@ export default class TransactionList extends React.Component {
                 New
               </button>
             ) : (
-              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ {date: toRFC3339(new Date())} } />
+              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ { name: '', date: toRFC3339(new Date()), category: '', amount: '0', } } />
             )
         }
         <Infinite useWindowAsScrollContainer elementHeight={ 42 } onInfiniteLoad={ this.loadNextPage(accountId) } infiniteLoadBeginEdgeOffset={ 100 } >

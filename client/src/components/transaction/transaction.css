@@ -27,6 +27,7 @@
   /* autosuggest theming */
   .container {
     lost-column: 1/4;
+    position: relative;
   }
   .containerOpen {}
   .input {
@@ -36,10 +37,20 @@
     padding: 5px;
   }
   .suggestionsContainer {
-    display: none;
+    position: absolute;
+    background: ~colors.primaryLight;
+    width: 100%;
+    box-shadow: 0 3px 5px #888888;
   }
-  .suggestionsList {}
-  .suggestion {}
+  .suggestionsList {
+    margin: 0;
+    padding: 0;
+  }
+  .suggestion {
+    padding: 5px;
+    box-sizing: border-box;
+    list-style-type: none;
+  }
   .suggestionFocused {}
   .sectionContainer {}
   .sectionTitle {}

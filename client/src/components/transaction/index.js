@@ -1,8 +1,8 @@
 import React from 'react';
 import classNames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
-import { Field, reduxForm } from 'redux-form';
 import styles from './transaction.css';
 import { toCurrency, toDate, toDecimal, toWhole, toRFC3339 } from '../../utils';
 import { putTransaction } from '../../actions';
@@ -39,7 +39,7 @@ export class Transaction extends React.Component {
     return transaction ? (
       <div className={ styles.transaction }>
         { this.state.editMode ? (
-          <TransactionForm form={ transaction.get('id').toString() } transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
+          <TransactionForm transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
         ) : (
           <div className={ styles.transactionFields }>
             <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
@@ -79,23 +79,23 @@ function queryByFieldAndVal(accountId, field, val) {
     .then(response => response.json());
 }
 
-@reduxForm()
+@connect()
 export class TransactionForm extends React.Component {
   static propTypes = {
     currency: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired,
-    handleSubmit: React.PropTypes.func.isRequired,
-    initialValues: React.PropTypes.object,
+    initialValues: React.PropTypes.object.isRequired,
     // either transaction (for editing) or accountId (for new transactions) should be passed
     accountId: React.PropTypes.number,
     transaction: ImmutablePropTypes.map,
     done: React.PropTypes.func
   };
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+
     this.state = {
-      value: '',
+      value: props.initialValues.name,
       suggestions: [],
       isLoading: false
     };
@@ -145,7 +145,7 @@ export class TransactionForm extends React.Component {
     });
   };
 
-  submit = (data) => {
+  submit = (e) => {
     const {
       accountId,
       currency,
@@ -154,67 +154,46 @@ export class TransactionForm extends React.Component {
       transaction
     } = this.props;
 
-    let obj = data;
-    let newAmount = toWhole(parseFloat(data.amount), currency.get('digitsAfterDecimal'));
-    let difference = newAmount;
+    let obj = {
+      name: e.target['name'].value,
+      date: new Date(e.target['date'].value),
+      category: e.target['category'].value,
+      amount: toWhole(parseFloat(e.target['amount'].value), currency.get('digitsAfterDecimal')),
+      accountId
+    };
+    let difference = obj.amount;
 
     if (transaction) {
-      obj = Object.assign(transaction.toObject(), data);
+      obj = Object.assign(transaction.toObject(), obj);
       difference = difference - transaction.get('amount');
       obj.accountId = transaction.get('accountId');
-    } else {
-      obj.accountId = accountId;
     }
 
-    obj.date = new Date(obj.date);
-    obj.amount = newAmount;
     dispatch(putTransaction(obj, difference));
     done && done();
-  }
-
-  renderAutosuggestField = field => (
-    <input {...field.input} type="text" onChange={(e) => {
-      field.onChangeAction(e);
-      field.input.onChange(e);
-    }} />
-  );
-
-  renderInputComponent = inputProps => {
-    let inputPropsOnChange = inputProps.onChange;
-    delete inputProps.onChange;
-    return <Field type="text" name="name" onChangeAction={ inputPropsOnChange } component={ this.renderAutosuggestField } { ...inputProps } />
-  }
-
-  renderSuggestionsContainer = ({ children, ...rest }) => {
-    return (
-      <div {...rest}>
-        <p>
-          Suggestions
-        </p>
-        {children}
-      </div>
-    );
+    e.preventDefault();
   }
 
   render () {
-    const {
-      handleSubmit
-    } = this.props;
-
     const {
       value,
       suggestions
     } = this.state;
 
-    const inputProps = {
-      placeholder: "Name",
+    const {
+      initialValues
+    } = this.props;
+
+    const nameInputProps = {
+      name: 'name',
+      placeholder: 'Name',
       value,
       onChange: this.onChange
     };
 
     return (
       <div className={ styles.transaction }>
-        <form onSubmit={ handleSubmit(this.submit) }>
+        <form onSubmit={ this.submit }>
           <div className={ styles.transactionFields }>
             <Autosuggest
               suggestions={ suggestions }
@@ -222,13 +201,11 @@ export class TransactionForm extends React.Component {
               onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
               getSuggestionValue={ getNameSuggestionValue }
               renderSuggestion={ renderSuggestion }
-              renderInputComponent={ this.renderInputComponent }
-              renderSuggestionsContainer={ this.renderSuggestionsContainer }
-              inputProps={ inputProps }
+              inputProps={ nameInputProps }
               theme={ styles } />
-            <Field type="date" name="date" placeholder={ toRFC3339(new Date()) } component="input" className={ styles.transactionField } />
-            <Field type="text" name="category" placeholder="Category" component="input" className={ styles.transactionField } />
-            <Field type="text" name="amount" placeholder="0" component="input" className={ styles.transactionField } />
+            <input type="date" name="date" defaultValue={ initialValues.date } className={ styles.transactionField } />
+            <input type="text" name="category" defaultValue={ initialValues.category } placeholder="Category" className={ styles.transactionField } />
+            <input type="text" name="amount" defaultValue={ initialValues.amount } placeholder="0" className={ styles.transactionField } />
           </div>
           <div className={ styles.saveExit }>
               <button type="button" onClick={ this.props.done }>Cancel</button>

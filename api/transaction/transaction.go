@@ -188,7 +188,7 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 
 	transactions := Transactions{}
 
-	reference := time.Now()
+	reference := time.Now().Add(time.Hour * time.Duration(24))
 	offset := 0
 	if nextEncoded != "" {
 		decoded, err := decodeNextPage(nextEncoded)
@@ -199,6 +199,12 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 		reference, offset = decoded.Reference, decoded.Offset
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"accountId":     accountId,
+		"reference":     reference,
+		"limitPerQuery": limitPerQuery,
+		"offset":        offset,
+	}).Info("about to query")
 	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountId, reference, limitPerQuery, offset)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{

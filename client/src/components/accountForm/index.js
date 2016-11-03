@@ -1,13 +1,9 @@
 import React from 'react';
-import { Field, reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { newAccount } from '../../actions';
 // import styles from './accountForm.css';
 
-@reduxForm({
-  form: "newAccount"
-})
 @connect((state) => {
   return {
     currencies: state.currencies
@@ -15,37 +11,41 @@ import { newAccount } from '../../actions';
 })
 export default class AccountForm extends React.Component {
   static propTypes = {
-    handleSubmit: React.PropTypes.func.isRequired,
     currencies: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired
   };
 
-  onSubmit = (data) => {
+  onSubmit = (e) => {
     const {
       dispatch
     } = this.props;
 
+    let data = {
+      name: e.target['name'].value,
+      currency: e.target['currency'].value
+    };
+
     dispatch(newAccount(data));
+    e.preventDefault();
   }
 
   render () {
     const {
-      handleSubmit,
       currencies
     } = this.props;
 
     return (
-      <form onSubmit={ handleSubmit(this.onSubmit) }>
+      <form onSubmit={ this.onSubmit }>
         <div>
           <label htmlFor="name">Name</label>
-          <Field name="name" component="input" type="text"/>
+          <input name="name" type="text"/>
         </div>
         <div>
           <label htmlFor="currency">Currency</label>
-          <Field name="currency" component="select">
+          <select name="currency">
             <option></option>
             { currencies.get('currencies').map(currency => (<option key={ currency.get('code') } value={ currency.get('code') }>{ currency.get('code') }: { currency.get('name') }</option>)).toOrderedSet().toArray() }
-          </Field>
+          </select>
         </div>
         <button type="submit">Save</button>
       </form>
