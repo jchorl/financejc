@@ -104,4 +104,12 @@ golang:
 		golang \
 		bash
 
+kibana:
+	docker run -it --rm \
+		--name kibana \
+		--network financejcnet \
+		-e ELASTICSEARCH_URL=http://financejces:9200 \
+		-p 5601:5601 \
+		kibana
+
 .PHONY: all ui ui-watch network db es serve build clean npm connect-db golang

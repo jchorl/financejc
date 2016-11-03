@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -129,18 +128,30 @@ func InitES(es *elastic.Client) error {
 							"type":  "integer",
 							"index": false,
 						},
-						"name": map[string]string{
+						"name": map[string]interface{}{
 							"type":            "text",
 							"analyzer":        "autocomplete_analyzer",
 							"search_analyzer": "whitespace_analyzer",
+							"fields": map[string]interface{}{
+								"raw": map[string]interface{}{
+									"type":  "string",
+									"index": "not_analyzed",
+								},
+							},
 						},
 						"date": map[string]string{
 							"type": "date",
 						},
-						"category": map[string]string{
+						"category": map[string]interface{}{
 							"type":            "text",
 							"analyzer":        "autocomplete_analyzer",
 							"search_analyzer": "whitespace_analyzer",
+							"fields": map[string]interface{}{
+								"raw": map[string]interface{}{
+									"type":  "string",
+									"index": "not_analyzed",
+								},
+							},
 						},
 						"amount": map[string]interface{}{
 							"type":  "integer",
@@ -311,6 +322,11 @@ func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, e
 		return nil, constants.Forbidden
 	}
 
+	if query.Field != "name" && query.Field != "category" {
+		logrus.WithField("query.Field", query.Field).Error("querying for unsupported field")
+		return nil, constants.BadRequest
+	}
+
 	es, err := util.ESFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -321,11 +337,13 @@ func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, e
 		Query(
 		elastic.NewBoolQuery().
 			Filter(elastic.NewTermQuery("userId", userId)).
-			Must(elastic.NewMatchQuery(query.Field, query.Value).Fuzziness("AUTO")).
+			Must(elastic.NewMatchQuery(query.Field, query.Value).Operator("and").Fuzziness("AUTO")).
 			Should(elastic.NewTermQuery("accountId", query.AccountId))).
+		Aggregation("top_agg",
+		elastic.NewTermsAggregation().Field(query.Field+".raw").Size(10).SubAggregation(
+			"top_agg_hits", elastic.NewTopHitsAggregation().Size(1))).
 		Sort("date", false).
-		From(0).
-		Size(10).
+		Size(50).
 		Do(context.Background())
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -337,10 +355,36 @@ func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, e
 	}
 
 	results := []Transaction{}
-	var ttyp transactionES
-	for _, item := range searchResult.Each(reflect.TypeOf(ttyp)) {
-		t := item.(transactionES)
-		results = append(results, fromES(t))
+	agg, found := searchResult.Aggregations.Terms("top_agg")
+	if !found {
+		logrus.WithFields(logrus.Fields{
+			"searchResult": searchResult,
+		}).Error("top_agg aggregation not found")
+		return nil, errors.New("top_agg aggregation not found")
+	}
+
+	for _, transactionBucket := range agg.Buckets {
+		topHits, found := transactionBucket.TopHits("top_agg_hits")
+		if !found {
+			logrus.WithFields(logrus.Fields{
+				"searchResult":      searchResult,
+				"transactionBucket": transactionBucket,
+			}).Error("top_agg_hits subaggregation not found")
+			return nil, errors.New("top_agg_hits subaggregation not found")
+		}
+		if topHits.Hits == nil {
+			logrus.WithField("topHits", topHits).Error("topHits.Hits should not be nil")
+			return nil, errors.New("topHits.Hits should not be nil")
+		}
+
+		for _, hit := range topHits.Hits.Hits {
+			tr := transactionES{}
+			err = json.Unmarshal(*hit.Source, &tr)
+			if err != nil {
+				logrus.WithError(err).Error("unable to unmarshal json returned from es query")
+			}
+			results = append(results, fromES(tr))
+		}
 	}
 
 	return results, nil
