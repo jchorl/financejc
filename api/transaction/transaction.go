@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"reflect"
 	"strconv"
 	"time"
@@ -80,6 +81,98 @@ func (t Transactions) Values() (ret []interface{}) {
 	}
 
 	return ret
+}
+
+func InitES(es *elastic.Client) error {
+	// largely based on https://qbox.io/blog/multi-field-partial-word-autocomplete-in-elasticsearch-using-ngrams
+	resp, err := es.CreateIndex(constants.ES_INDEX).BodyJson(
+		map[string]interface{}{
+			"settings": map[string]interface{}{
+				"analysis": map[string]interface{}{
+					"filter": map[string]interface{}{
+						"autocomplete_filter": map[string]interface{}{
+							"type":     "edge_ngram",
+							"max_gram": 10,
+							"token_chars": [...]string{
+								"letter",
+								"digit",
+								"punctuation",
+								"symbol",
+							},
+						},
+					},
+					"analyzer": map[string]interface{}{
+						"autocomplete_analyzer": map[string]interface{}{
+							"type":      "custom",
+							"tokenizer": "whitespace",
+							"filter": [...]string{
+								"lowercase",
+								"asciifolding",
+								"autocomplete_filter",
+							},
+						},
+						"whitespace_analyzer": map[string]interface{}{
+							"type":      "custom",
+							"tokenizer": "whitespace",
+							"filter": [...]string{
+								"lowercase",
+								"asciifolding",
+							},
+						},
+					},
+				},
+			},
+			"mappings": map[string]interface{}{
+				esType: map[string]interface{}{
+					"properties": map[string]interface{}{
+						"id": map[string]interface{}{
+							"type":  "integer",
+							"index": false,
+						},
+						"name": map[string]string{
+							"type":            "text",
+							"analyzer":        "autocomplete_analyzer",
+							"search_analyzer": "whitespace_analyzer",
+						},
+						"date": map[string]string{
+							"type": "date",
+						},
+						"category": map[string]string{
+							"type":            "text",
+							"analyzer":        "autocomplete_analyzer",
+							"search_analyzer": "whitespace_analyzer",
+						},
+						"amount": map[string]interface{}{
+							"type":  "integer",
+							"index": false,
+						},
+						"note": map[string]string{
+							"type": "text",
+						},
+						"relatedTransactionId": map[string]interface{}{
+							"type":  "integer",
+							"index": false,
+						},
+						"accountId": map[string]string{
+							"type": "integer",
+						},
+						"userId": map[string]string{
+							"type": "integer",
+						},
+					},
+				},
+			},
+		},
+	).Do(context.Background())
+	if err != nil {
+		logrus.WithError(err).Error("unable to submit settings to elasticsearch for indexing transactions")
+		return err
+	} else if !resp.Acknowledged {
+		logrus.Error("elasticsearch did not acknowledge creating an index")
+		return errors.New("elasticsearch did not acknowledge creating an index")
+	}
+
+	return nil
 }
 
 func Get(c context.Context, accountId int, nextEncoded string) (Transactions, error) {
@@ -222,7 +315,7 @@ func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, e
 		Query(
 		elastic.NewBoolQuery().
 			Filter(elastic.NewTermQuery("userId", userId)).
-			Must(elastic.NewMatchQuery(query.Field, query.Value)).
+			Must(elastic.NewMatchQuery(query.Field, query.Value).Fuzziness("AUTO")).
 			Should(elastic.NewTermQuery("accountId", query.AccountId))).
 		Sort("date", false).
 		From(0).

@@ -112,8 +112,8 @@ func QueryES(ctx echo.Context) error {
 	}
 
 	query := transaction.TransactionQuery{
-		Field:     ctx.Param("field"),
-		Value:     ctx.Param("value"),
+		Field:     ctx.QueryParam("field"),
+		Value:     ctx.QueryParam("value"),
 		AccountId: accountId,
 	}
 	transactions, err := transaction.GetESByField(toContext(ctx), query)

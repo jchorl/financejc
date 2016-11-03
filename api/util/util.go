@@ -129,21 +129,21 @@ func DBFromContext(c context.Context) (DB, error) {
 	return db, nil
 }
 
-func ESFromContext(c context.Context) (elastic.Client, error) {
+func ESFromContext(c context.Context) (*elastic.Client, error) {
 	es := c.Value(constants.CTX_ES)
 	if es == nil {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
 		}).Error("Unable to get ES client from context")
-		return elastic.Client{}, errors.New("Unable to get ES client from context")
+		return nil, errors.New("Unable to get ES client from context")
 	}
 
-	parsed, ok := es.(elastic.Client)
-	if !ok {
+	parsed, ok := es.(*elastic.Client)
+	if !ok || parsed == nil {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
 		}).Error("Unable to get ES client from context, could not cast val to client")
-		return parsed, errors.New("Unable to get ES client from context")
+		return nil, errors.New("Unable to get ES client from context")
 	}
 
 	return parsed, nil

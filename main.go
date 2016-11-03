@@ -83,12 +83,8 @@ func configureEsIndices(client *elastic.Client) {
 	}
 	if !exists {
 		// Create a new index.
-		createIndex, err := client.CreateIndex(constants.ES_INDEX).Do(context.Background())
-		if err != nil {
-			logrus.WithField("error", err).Fatal("failed to create transactions index")
-		}
-		if !createIndex.Acknowledged {
-			logrus.Fatal("creating transactions index in es was not acknowledged")
+		if err := transaction.InitES(client); err != nil {
+			logrus.WithError(err).Fatal("could not configure ES")
 		}
 	}
 }
