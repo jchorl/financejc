@@ -23,4 +23,24 @@
       cursor: pointer;
     }
   }
+
+  /* autosuggest theming */
+  .container {
+    lost-column: 1/4;
+  }
+  .containerOpen {}
+  .input {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+  }
+  .suggestionsContainer {
+    display: none;
+  }
+  .suggestionsList {}
+  .suggestion {}
+  .suggestionFocused {}
+  .sectionContainer {}
+  .sectionTitle {}
 }

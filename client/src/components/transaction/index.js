@@ -1,6 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import Autosuggest from 'react-autosuggest';
 import { Field, reduxForm } from 'redux-form';
 import styles from './transaction.css';
 import { toCurrency, toDate, toDecimal, toWhole, toRFC3339 } from '../../utils';
@@ -61,6 +62,23 @@ function getFormInitialValues(transaction, currency) {
   }
 }
 
+function getNameSuggestionValue(suggestion) {
+  return suggestion.name;
+}
+
+function renderSuggestion(suggestion) {
+  return (
+    <span>{suggestion.name}</span>
+  );
+}
+
+function queryByFieldAndVal(accountId, field, val) {
+  return fetch(`/api/account/${accountId}/transactions/query?field=${field}&value=${val}`, {
+    credentials: 'include'
+  })
+    .then(response => response.json());
+}
+
 @reduxForm()
 export class TransactionForm extends React.Component {
   static propTypes = {
@@ -72,6 +90,59 @@ export class TransactionForm extends React.Component {
     accountId: React.PropTypes.number,
     transaction: ImmutablePropTypes.map,
     done: React.PropTypes.func
+  };
+
+  constructor() {
+    super();
+    this.state = {
+      value: '',
+      suggestions: [],
+      isLoading: false
+    };
+
+    this.lastRequestId = null;
+  }
+
+  loadSuggestions = (field, value) => {
+    const {
+      accountId
+    } = this.props;
+
+    let id = Math.random();
+    this.setState({
+      isLoading: true,
+      lastRequestId: id
+    });
+
+    let that = this;
+
+    // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
+    queryByFieldAndVal(accountId, field, value).then(transactions => {
+      if (id !== that.state.lastRequestId) {
+        return;
+      }
+
+      that.setState({
+        isLoading: false,
+        suggestions: transactions
+      });
+    });
+  }
+
+  onChange = (event, { newValue }) => {
+    this.setState({
+      value: newValue
+    });
+  };
+
+  onSuggestionsFetchRequested = (field, { value }) => {
+    this.loadSuggestions(field, value);
+  };
+
+  onSuggestionsClearRequested = () => {
+    this.setState({
+      suggestions: []
+    });
   };
 
   submit = (data) => {
@@ -101,16 +172,60 @@ export class TransactionForm extends React.Component {
     done && done();
   }
 
+  renderAutosuggestField = field => (
+    <input {...field.input} type="text" onChange={(e) => {
+      field.onChangeAction(e);
+      field.input.onChange(e);
+    }} />
+  );
+
+  renderInputComponent = inputProps => {
+    let inputPropsOnChange = inputProps.onChange;
+    delete inputProps.onChange;
+    return <Field type="text" name="name" onChangeAction={ inputPropsOnChange } component={ this.renderAutosuggestField } { ...inputProps } />
+  }
+
+  renderSuggestionsContainer = ({ children, ...rest }) => {
+    return (
+      <div {...rest}>
+        <p>
+          Suggestions
+        </p>
+        {children}
+      </div>
+    );
+  }
+
   render () {
     const {
       handleSubmit
     } = this.props;
 
+    const {
+      value,
+      suggestions
+    } = this.state;
+
+    const inputProps = {
+      placeholder: "Name",
+      value,
+      onChange: this.onChange
+    };
+
     return (
       <div className={ styles.transaction }>
         <form onSubmit={ handleSubmit(this.submit) }>
           <div className={ styles.transactionFields }>
-            <Field type="text" name="name" placeholder="Name" component="input" className={ styles.transactionField } />
+            <Autosuggest
+              suggestions={ suggestions }
+              onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'name') }
+              onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
+              getSuggestionValue={ getNameSuggestionValue }
+              renderSuggestion={ renderSuggestion }
+              renderInputComponent={ this.renderInputComponent }
+              renderSuggestionsContainer={ this.renderSuggestionsContainer }
+              inputProps={ inputProps }
+              theme={ styles } />
             <Field type="date" name="date" placeholder={ toRFC3339(new Date()) } component="input" className={ styles.transactionField } />
             <Field type="text" name="category" placeholder="Category" component="input" className={ styles.transactionField } />
             <Field type="text" name="amount" placeholder="0" component="input" className={ styles.transactionField } />
