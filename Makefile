@@ -1,5 +1,5 @@
-all: network db es ui build serve
-dev: network db es ui build serve-dev
+all: network db es build serve nginx
+dev: network db es build serve-dev nginx
 
 network:
 	docker network ls | grep financejcnet || \
@@ -43,26 +43,41 @@ es: network
 		--expose=9200 \
 		elasticsearch
 
+nginx: network build-nginx
+	docker ps | grep financejcnginx || \
+		docker run -d \
+		--name financejcnginx \
+		--network financejcnet \
+		-e DEV=1 \
+		-e DOMAIN=finance.joshchorlton.com \
+		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
+		-p 4443:443 \
+		jchorl/financejcnginx
+
 serve: network
-	docker run -it --rm \
+	docker run -d \
 		--name financejc \
 		--network financejcnet \
-		-p 4443:443 \
+		--expose=4443 \
+		-h financejc \
 		-e DOMAIN=finance.joshchorlton.com \
 		-e PORT=443 \
 		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
 		jchorl/financejc
 
 serve-dev: network
-	docker run -it --rm \
+	docker run -d \
 		--name financejc \
 		--network financejcnet \
-		-p 4443:4443 \
-		-e DEV=1 \
+		--expose=4443 \
+		-h financejc \
 		-e DOMAIN=localhost \
 		-e PORT=4443 \
 		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
 		jchorl/financejc
+
+build-nginx:
+	docker build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
 build: ui
 	docker build -t jchorl/financejc .
@@ -81,6 +96,7 @@ clean:
 	-docker rm -f financejcdbcon
 	-docker rm -f financejcdb
 	-docker rm -f financejces
+	-docker rm -f financejcnginx
 	-docker rm -f financejc
 	-docker network rm financejcnet
 	-rm client/dest/bundle.js
@@ -112,4 +128,4 @@ kibana:
 		-p 5601:5601 \
 		kibana
 
-.PHONY: all ui ui-watch network db es serve build clean npm connect-db golang
+.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang

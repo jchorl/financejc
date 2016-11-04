@@ -40,7 +40,6 @@ func main() {
 	})
 
 	e := echo.New()
-	e.Pre(middleware.HTTPSRedirect())
 	e.Use(
 		middleware.Gzip(),
 		middleware.Logger(),
@@ -48,14 +47,11 @@ func main() {
 		esMiddleware(es),
 	)
 
-	e.File("/", "client/index.html")
-	e.Static("/static", "client/dest")
-
 	apiRoutes := e.Group("/api")
 	handlers.Init(apiRoutes)
 
 	logrus.Debug("starting server")
-	e.Run(standard.WithTLS(":"+os.Getenv("PORT"), "/etc/letsencrypt/live/"+os.Getenv("DOMAIN")+"/fullchain.pem", "/etc/letsencrypt/live/"+os.Getenv("DOMAIN")+"/privkey.pem"))
+	e.Run(standard.New(":" + os.Getenv("PORT")))
 }
 
 func dbMiddleware(db *sql.DB) echo.MiddlewareFunc {

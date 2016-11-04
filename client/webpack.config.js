@@ -1,4 +1,5 @@
 var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin')
 var path = require('path');
 
 var BUILD_DIR = path.resolve(__dirname, 'dest');
@@ -36,6 +37,13 @@ var config = {
     require('precss'),
     require('postcss-nested'),
     require('lost')
+  ],
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: APP_DIR + '/index.html',
+      filename: 'index.html',
+      inject: 'body'
+    })
   ]
 };
 

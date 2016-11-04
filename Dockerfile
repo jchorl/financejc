@@ -6,5 +6,4 @@ WORKDIR /go/src/github.com/jchorl/financejc
 ADD . /go/src/github.com/jchorl/financejc
 RUN go-wrapper download
 RUN go-wrapper install
-
-CMD ["./scripts/start.sh"]
+CMD go-wrapper run

@@ -1,5 +1,6 @@
 var webpack = require('webpack');
 var path = require('path');
+var HtmlWebpackPlugin = require('html-webpack-plugin')
 
 var BUILD_DIR = path.resolve(__dirname, 'dest');
 var APP_DIR = path.resolve(__dirname, 'src');
@@ -50,7 +51,13 @@ var config = {
         screw_ie8: true
       }
     }),
-    new webpack.optimize.AggressiveMergingPlugin()
+    new webpack.optimize.AggressiveMergingPlugin(),
+    new HtmlWebpackPlugin({
+      template: APP_DIR + '/index.html',
+      filename: 'index.html',
+      minify: {},
+      inject: 'body'
+    })
   ]
 };
 
