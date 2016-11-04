@@ -37,18 +37,16 @@ export class Transaction extends React.Component {
     } = this.props;
 
     return transaction ? (
-      <div className={ styles.transaction }>
-        { this.state.editMode ? (
-          <TransactionForm transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
-        ) : (
-          <div className={ styles.transactionFields }>
-            <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
-            <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.get('date')) }</span>
-            <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('category') }</span>
-            <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
-          </div>
-        ) }
-      </div>
+      this.state.editMode ? (
+        <TransactionForm transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
+      ) : (
+        <div className={ classNames(styles.transaction, styles.transactionFields) }>
+          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
+          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.get('date')) }</span>
+          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('category') }</span>
+          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
+        </div>
+      )
     ) : null
   }
 }
@@ -86,6 +84,7 @@ export class TransactionForm extends React.Component {
     currency: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired,
     initialValues: React.PropTypes.object.isRequired,
+    allowRecurring: React.PropTypes.bool,
     // either transaction (for editing) or accountId (for new transactions) should be passed
     accountId: React.PropTypes.number,
     transaction: ImmutablePropTypes.map,
@@ -100,7 +99,9 @@ export class TransactionForm extends React.Component {
       suggestions: {
         name: [],
         category: []
-      }
+      },
+      recurring: false,
+      fixedInterval: true
     };
 
     this.lastRequestId = null;
@@ -190,6 +191,18 @@ export class TransactionForm extends React.Component {
     });
   }
 
+  changeRecurring = event => {
+    this.setState({
+      recurring: event.target['value'] === 'true'
+    });
+  }
+
+  changeSchedule = event => {
+    this.setState({
+      fixedInterval: event.target['value'] === 'true'
+    });
+  }
+
   submit = (e) => {
     const {
       accountId,
@@ -222,8 +235,12 @@ export class TransactionForm extends React.Component {
   render () {
     const {
       suggestions,
-      values
+      values,
+      recurring,
+      fixedInterval
     } = this.state;
+
+    const { allowRecurring } = this.props;
 
     const nameInputProps = {
       name: 'name',
@@ -265,9 +282,92 @@ export class TransactionForm extends React.Component {
               theme={ styles } />
             <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionField } />
           </div>
-          <div className={ styles.saveExit }>
+          <div className={ styles.extra }>
+            { allowRecurring ? (
+              <div className={ styles.recurringToggle }>
+                <label>
+                  <input
+                    type="radio"
+                    name="recurring"
+                    value="false"
+                    defaultChecked={ !recurring }
+                    onChange={ this.changeRecurring } />
+                  One time
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="recurring"
+                    value="true"
+                    defaultChecked={ recurring }
+                    onChange={ this.changeRecurring } />
+                  Recurring
+                </label>
+                { recurring ? (
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        name="fixedInterval"
+                        value="true"
+                        defaultChecked={ fixedInterval }
+                        onChange={ this.changeSchedule } />
+                      Fixed interval
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="fixedInterval"
+                        value="false"
+                        defaultChecked={ !fixedInterval }
+                        onChange={ this.changeSchedule } />
+                      Fixed day
+                    </label>
+                    { fixedInterval ? (
+                      <div>
+                        Interval: <input type="number" name="interval"></input> days
+                      </div>
+                    ) : (
+                      <div>
+                        <div>Select first date (can be in past): <input type="date" name="starting"></input></div>
+                        <div>Which day of the period? <input type="number" name="dayOf"></input></div>
+                        <div>
+                          <label>
+                            <input
+                              type="radio"
+                              name="period"
+                              value="weekly"
+                              defaultChecked="false" />
+                            Weekly
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name="period"
+                              value="monthly"
+                              defaultChecked="true" />
+                            Monthly
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              name="period"
+                              value="yearly"
+                              defaultChecked="false" />
+                            Yearly
+                          </label>
+                        </div>
+                      </div>
+                    ) }
+                  </div>
+                ) : null }
+              </div>
+            ) : <span></span>
+            }
+            <div className={ styles.saveExit }>
               <button type="button" onClick={ this.props.done }>Cancel</button>
               <button type="submit">Save</button>
+            </div>
           </div>
         </form>
       </div>
