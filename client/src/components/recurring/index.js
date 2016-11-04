@@ -1,6 +1,8 @@
 import React from 'react';
+// import { connect } from 'react-redux';
+// import ImmutablePropTypes from 'react-immutable-proptypes';
 
-class Recurring extends React.Component {
+export default class Recurring extends React.Component {
   render () {
     return (
       <div>
@@ -9,14 +11,3 @@ class Recurring extends React.Component {
     )
   }
 }
-
-export default class RecurringWrapper extends React.Component {
-  render () {
-    return (
-      <div>
-        <Recurring />
-      </div>
-    )
-  }
-}
-

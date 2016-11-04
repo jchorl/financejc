@@ -12,6 +12,7 @@ var config = {
   entry: APP_DIR,
   output: {
     path: BUILD_DIR,
+    publicPath: '/',
     filename: 'bundle.js'
   },
   module: {

@@ -127,7 +127,7 @@ export function importData() {
   }
 }
 
-export function fetchUser() {
+export function fetchUser(callback) {
   return function(dispatch) {
     dispatch(fetchingUser());
 
@@ -135,12 +135,18 @@ export function fetchUser() {
       credentials: 'include'
     })
       .then(response => response.json())
-      .then(json => dispatch(receiveUser(json)))
-      .catch(() => dispatch(receiveUser(false)));
+      .then(json => {
+        dispatch(receiveUser(json));
+        callback && callback();
+      })
+      .catch(() => {
+        dispatch(receiveUser(false));
+        callback && callback();
+      });
   }
 }
 
-export function login(googleUser) {
+export function login(googleUser, callback) {
   return function(dispatch) {
     let headers = new Headers();
     headers.append("Accept", "application/json");
@@ -154,12 +160,15 @@ export function login(googleUser) {
       headers: headers
     })
       .then(response => response.json())
-      .then(json => dispatch(receiveUser(json)))
+      .then(json => {
+        dispatch(receiveUser(json));
+        callback && callback();
+      })
       .catch(() => dispatch(receiveUser(false)));
   }
 }
 
-export function logout() {
+export function logout(callback) {
   return function(dispatch) {
     fetch('/api/auth/logout', {
       method: 'POST',
@@ -167,6 +176,7 @@ export function logout() {
     })
       .then(() => {
         dispatch(logoutComplete());
+        callback && callback();
       })
       .catch(() => dispatch(logoutComplete()));
   }

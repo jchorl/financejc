@@ -1,11 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Link, withRouter } from 'react-router';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { fetchUser, logout } from '../../actions';
+import { logout } from '../../actions';
 import GoogleLoginButton from '../googleLoginButton';
 import styles from './index.css';
 
+@withRouter
 @connect((state) => {
   return { auth: state.auth }
 })
@@ -13,16 +14,27 @@ export default class App extends React.Component {
   static propTypes = {
     auth: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired,
-    children: React.PropTypes.element.isRequired
-  }
-
-  constructor(props) {
-    super(props);
-    props.dispatch(fetchUser());
+    children: React.PropTypes.element.isRequired,
+    router: React.PropTypes.object.isRequired
   }
 
   dispatchLogout = () => {
-    this.props.dispatch(logout());
+    const {
+      dispatch,
+      router: { push }
+    } = this.props;
+
+    dispatch(logout(function() {
+      push('/');
+    }));
+  }
+
+  goToAccounts = () => {
+    const {
+      router: { push }
+    } = this.props;
+
+    push('/accounts');
   }
 
   render () {
@@ -45,7 +57,7 @@ export default class App extends React.Component {
                   <div className={ styles.dropdownOption } onClick={ this.dispatchLogout }>Logout</div>
                 </div>
               </div>
-            ) : <GoogleLoginButton /> }
+            ) : <GoogleLoginButton onLogin={ this.goToAccounts }/> }
           </div>
         </nav>
         { this.props.children }
