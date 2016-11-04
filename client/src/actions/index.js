@@ -1,10 +1,3 @@
-export const REQUEST_ACCOUNTS = 'REQUEST_ACCOUNTS';
-const requestAccounts = () => {
-  return {
-    type: REQUEST_ACCOUNTS
-  };
-}
-
 export const RECEIVE_ACCOUNTS = 'RECEIVE_ACCOUNTS';
 const receiveAccounts = (accounts) => {
   return {
@@ -90,8 +83,6 @@ export function fetchCurrencies() {
 
 export function fetchAccounts() {
   return function(dispatch) {
-    dispatch(requestAccounts());
-
     return fetch(`/api/account`, {
       credentials: 'include'
     })

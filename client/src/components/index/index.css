@@ -7,6 +7,16 @@ body {
   background: ~colors.background;
 }
 
+.unstyledLink {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+}
+
 .navBar {
   background: ~colors.primaryDark;
   color: white;

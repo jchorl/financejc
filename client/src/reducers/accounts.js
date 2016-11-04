@@ -1,7 +1,6 @@
 import Immutable from 'immutable';
 import {
   ADD_ACCOUNT,
-  REQUEST_ACCOUNTS,
   RECEIVE_ACCOUNTS,
   UPDATE_ACCOUNT_VALUE,
   LOGOUT
@@ -14,9 +13,6 @@ export default (state = Immutable.Map({
   switch (action.type) {
     case ADD_ACCOUNT:
       return state.setIn(['accounts', action.account.id], Immutable.fromJS(action.account));
-
-    case REQUEST_ACCOUNTS:
-      return state.set('fetched', false);
 
     case RECEIVE_ACCOUNTS:
       return state.set('fetched', true).set('accounts', Immutable.Map().withMutations(map => {
