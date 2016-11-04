@@ -1,26 +1,40 @@
 import Immutable from 'immutable';
 import {
-  CHECK_AUTH,
-  RECEIVE_AUTH,
+  FETCHING_USER,
+  RECEIVE_USER,
   LOGOUT
 } from '../actions';
 
 export default (state = Immutable.Map({
   fetched: false,
+  user: Immutable.Map(),
   authd: false
 }), action) => {
   switch (action.type) {
-    case CHECK_AUTH:
+    case FETCHING_USER:
       return state.set('fetched', false);
 
-    case RECEIVE_AUTH:
+    case RECEIVE_USER:
+      if (action.user) {
+        return Immutable.Map({
+          fetched: true,
+          user: Immutable.fromJS(action.user),
+          authd: true
+        });
+      }
+
       return Immutable.Map({
-        fetched: true,
-        authd: action.authd
+          fetched: true,
+          user: Immutable.Map(),
+          authd: false
       });
 
     case LOGOUT:
-      return state.set('authd', false);
+      return Immutable.Map({
+          fetched: true,
+          user: Immutable.Map(),
+          authd: false
+      });
 
     default:
       return state

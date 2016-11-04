@@ -1,6 +1,7 @@
 CREATE TABLE users (
     id serial PRIMARY KEY,
-    googleId varchar(40)
+    googleId varchar(40) UNIQUE,
+    email varchar(40) UNIQUE
 );
 
 CREATE TABLE accounts (

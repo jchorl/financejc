@@ -15,7 +15,6 @@ var (
 )
 
 func Init(api *echo.Group) {
-	api.GET("/auth", CheckAuth, jwtMiddleware)
 	api.POST("/auth", AuthUser)
 	api.POST("/auth/logout", Logout)
 
@@ -32,6 +31,8 @@ func Init(api *echo.Group) {
 
 	api.PUT("/transaction", UpdateTransaction, jwtMiddleware)
 	api.DELETE("/transaction/:transactionId", DeleteTransaction, jwtMiddleware)
+
+	api.GET("/user", GetUser, jwtMiddleware)
 
 	api.POST("/import", Transfer, jwtMiddleware)
 }

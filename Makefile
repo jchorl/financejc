@@ -30,7 +30,7 @@ db: network
 		-h financejcdb \
 		--expose=5432 \
 		-v $(PWD)/db:/docker-entrypoint-initdb.d \
-		-v pgdata:/var/lib/postgresql/data \
+		-v financejcpgdata:/var/lib/postgresql/data \
 		-e POSTGRES_USER=financejc \
 		-e POSTGRES_PASSWORD=financejc \
 		postgres
@@ -42,7 +42,7 @@ es: network
 		--network financejcnet \
 		-h financejces \
 		--expose=9200 \
-		-v esdata:/usr/share/elasticsearch/data \
+		-v financejcesdata:/usr/share/elasticsearch/data \
 		elasticsearch
 
 nginx: network build-nginx
@@ -53,7 +53,7 @@ nginx: network build-nginx
 		-e DEV=1 \
 		-e DOMAIN=finance.joshchorlton.com \
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
-		-v letsencrypt:/etc/letsencrypt \
+		-v financejcletsencrypt:/etc/letsencrypt \
 		-p 4443:443 \
 		jchorl/financejcnginx
 
@@ -79,10 +79,10 @@ serve-dev: network
 		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
 		jchorl/financejc
 
-build-nginx:
+build-nginx: ui
 	docker build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
-build: ui
+build:
 	docker build -t jchorl/financejc .
 
 test: clean network db es test-all
@@ -95,12 +95,22 @@ test-all:
 		golang \
 		sh -c 'go test --tags=integration $$(go list ./... | grep -v /vendor/)'
 
+rebuild:
+	-docker rm -f financejc
+	-rm client/dest/bundle.js
+	$(MAKE) build
+	$(MAKE) ui
+	$(MAKE) serve-dev
+
 clean:
 	-docker rm -f financejcdbcon
 	-docker rm -f financejcdb
 	-docker rm -f financejces
 	-docker rm -f financejcnginx
 	-docker rm -f financejc
+	-docker volume rm financejcpgdata
+	-docker volume rm financejcesdata
+	-docker volume rm financejcletsencrypt
 	-docker network rm financejcnet
 	-rm client/dest/bundle.js
 

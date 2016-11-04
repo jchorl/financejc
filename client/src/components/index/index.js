@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { fetchAuth, logout } from '../../actions';
+import { fetchUser, logout } from '../../actions';
 import AccountsPage from '../accountsPage';
 import GoogleLoginButton from '../googleLoginButton';
 import Loader from '../loader';
@@ -19,7 +19,7 @@ export default class App extends React.Component {
 
   constructor(props) {
     super(props);
-    props.dispatch(fetchAuth());
+    props.dispatch(fetchUser());
   }
 
   dispatchLogout = () => {

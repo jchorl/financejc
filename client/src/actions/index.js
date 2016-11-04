@@ -21,18 +21,18 @@ const addAccount = (account) => {
   };
 }
 
-export const CHECK_AUTH = 'CHECK_AUTH';
-const checkAuth = () => {
+export const FETCHING_USER = 'FETCHING_USER';
+const fetchingUser = () => {
   return {
-    type: CHECK_AUTH
+    type: FETCHING_USER
   };
 }
 
-export const RECEIVE_AUTH = 'RECEIVE_AUTH';
-const receiveAuth = (authd) => {
+export const RECEIVE_USER = 'RECEIVE_USER';
+const receiveUser = (user) => {
   return {
-    type: RECEIVE_AUTH,
-    authd
+    type: RECEIVE_USER,
+    user
   };
 }
 
@@ -136,21 +136,16 @@ export function importData() {
   }
 }
 
-export function fetchAuth() {
+export function fetchUser() {
   return function(dispatch) {
-    dispatch(checkAuth());
+    dispatch(fetchingUser());
 
-    return fetch(`/api/auth`, {
+    return fetch(`/api/user`, {
       credentials: 'include'
     })
-      .then((resp) => {
-        if (resp.ok) {
-          dispatch(receiveAuth(true));
-        } else {
-          dispatch(receiveAuth(false));
-        }
-      })
-      .catch(() => dispatch(receiveAuth(false)));
+      .then(response => response.json())
+      .then(json => dispatch(receiveUser(json)))
+      .catch(() => dispatch(receiveUser(false)));
   }
 }
 
@@ -167,14 +162,9 @@ export function login(googleUser) {
       credentials: 'include',
       headers: headers
     })
-      .then((resp) => {
-        if (resp.ok) {
-          dispatch(receiveAuth(true));
-        } else {
-          dispatch(receiveAuth(false));
-        }
-      })
-      .catch(() => dispatch(receiveAuth(false)));
+      .then(response => response.json())
+      .then(json => dispatch(receiveUser(json)))
+      .catch(() => dispatch(receiveUser(false)));
   }
 }
 

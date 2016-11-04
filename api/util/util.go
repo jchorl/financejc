@@ -111,8 +111,8 @@ func UserIdFromContext(c context.Context) (uint, error) {
 	if !ok {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
-		}).Error("Unable to get user from context")
-		return 0, errors.New("Unable to get user from context")
+		}).Error("Unable to get userId from context")
+		return 0, errors.New("Unable to get userId from context")
 	}
 	return userId, nil
 }

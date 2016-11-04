@@ -14,21 +14,21 @@ type Request struct {
 	Token string `json:"token"` // provided by google
 }
 
-func AuthUser(c context.Context, token string) (uint, error) {
-	googleId, err := getGoogleIDFromToken(token)
+func AuthUser(c context.Context, token string) (user.User, error) {
+	googleId, email, err := getGoogleInfoFromToken(token)
 	if err != nil {
-		return 0, err
+		return user.User{}, err
 	}
 
-	userId, err := user.FindOrCreateByGoogleId(c, googleId)
+	resolved, err := user.FindOrCreateByGoogleId(c, googleId, email)
 	if err != nil {
-		return 0, err
+		return user.User{}, err
 	}
 
-	return userId, nil
+	return resolved, nil
 }
 
-func getGoogleIDFromToken(token string) (string, error) {
+func getGoogleInfoFromToken(token string) (string, string, error) {
 	service, err := oauth2.New(http.DefaultClient)
 	tokenInfoCall := service.Tokeninfo()
 	tokenInfoCall.IdToken(token)
@@ -38,8 +38,8 @@ func getGoogleIDFromToken(token string) (string, error) {
 			"error": err,
 			"token": token,
 		}).Error("error calling google to validate token")
-		return "", err
+		return "", "", err
 	}
 
-	return tokenInfo.UserId, nil
+	return tokenInfo.UserId, tokenInfo.Email, nil
 }

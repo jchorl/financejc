@@ -12,11 +12,6 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
-func CheckAuth(c echo.Context) error {
-	// since it got passed the middleware, the user is authd
-	return c.NoContent(http.StatusNoContent)
-}
-
 func AuthUser(c echo.Context) error {
 	req := new(auth.Request)
 
@@ -28,13 +23,13 @@ func AuthUser(c echo.Context) error {
 		return err
 	}
 
-	userId, err := auth.AuthUser(toContext(c), req.Token)
+	user, err := auth.AuthUser(toContext(c), req.Token)
 	if err != nil {
 		return err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": userId,
+		"sub": user.Id,
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	})
 	tokenStr, err := token.SignedString([]byte(constants.JWT_SIGNING_KEY))
@@ -55,7 +50,7 @@ func AuthUser(c echo.Context) error {
 	cookie.SetPath("/")
 	c.SetCookie(cookie)
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, user)
 }
 
 func Logout(c echo.Context) error {
