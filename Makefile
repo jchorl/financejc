@@ -30,6 +30,7 @@ db: network
 		-h financejcdb \
 		--expose=5432 \
 		-v $(PWD)/db:/docker-entrypoint-initdb.d \
+		-v pgdata:/var/lib/postgresql/data \
 		-e POSTGRES_USER=financejc \
 		-e POSTGRES_PASSWORD=financejc \
 		postgres
@@ -41,6 +42,7 @@ es: network
 		--network financejcnet \
 		-h financejces \
 		--expose=9200 \
+		-v esdata:/usr/share/elasticsearch/data \
 		elasticsearch
 
 nginx: network build-nginx
@@ -51,6 +53,7 @@ nginx: network build-nginx
 		-e DEV=1 \
 		-e DOMAIN=finance.joshchorlton.com \
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
+		-v letsencrypt:/etc/letsencrypt \
 		-p 4443:443 \
 		jchorl/financejcnginx
 
