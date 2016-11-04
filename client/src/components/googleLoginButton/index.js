@@ -43,7 +43,7 @@ export default class GoogleLoginButton extends React.Component {
   render() {
     return (
       <div id="googleBtn" className={ styles.loginButton } >
-        <span>Login</span>
+        Login
       </div>
     );
   }

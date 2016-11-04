@@ -5,8 +5,7 @@ import { fetchUser, logout } from '../../actions';
 import AccountsPage from '../accountsPage';
 import GoogleLoginButton from '../googleLoginButton';
 import Loader from '../loader';
-import globalStyle from './globalStyle.css';
-import style from './index.css';
+import styles from './index.css';
 
 @connect((state) => {
   return { auth: state.auth }
@@ -33,14 +32,22 @@ export default class App extends React.Component {
 
     return (
       <div>
-        <nav className={ globalStyle.navBar }>
-          <div>
+        <div className={ styles.navBar }>
+          <div className={ styles.logo }>
             FinanceJC
           </div>
-          <div>
-            { auth.get('authd') ? <span className={ style.logout } onClick={ this.dispatchLogout } >Logout</span> : <GoogleLoginButton /> }
+          <div className={ styles.options }>
+            { auth.get('authd') ? (
+              <div className={ styles.dropdown }>
+                { auth.get('user').get('email') } <i className={ "fa fa-chevron-down " + styles.dropdownChevron } aria-hidden="true"></i>
+                <div className={ styles.dropdownContent }>
+                  <div className={ styles.dropdownOption }>Recurring Transactions</div>
+                  <div className={ styles.dropdownOption } onClick={ this.dispatchLogout } > Logout</div>
+                </div>
+              </div>
+            ) : <GoogleLoginButton /> }
           </div>
-        </nav>
+        </div>
         <Loader loading={ !auth.get('fetched') }>
           { auth.get('authd') ? <AccountsPage /> : <h1>Welcome to FinanceJC</h1> }
         </Loader>
