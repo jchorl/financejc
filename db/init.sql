@@ -37,8 +37,18 @@ CREATE TABLE recurringTransactions (
     secondsBeforeToPost integer NOT NULL
 );
 
+CREATE TABLE transactionTemplates (
+    id serial PRIMARY KEY,
+    name varchar(100) NOT NULL,
+    category varchar(100),
+    amount integer NOT NULL,
+    note varchar(256),
+    accountId integer NOT NULL references accounts(id) DEFERRABLE INITIALLY DEFERRED
+);
+
 CREATE INDEX ON users(googleId);
 CREATE INDEX ON accounts(userId);
 CREATE INDEX ON transactions(accountId, occurred DESC, id);
 CREATE INDEX ON recurringTransactions(accountId);
 CREATE INDEX ON recurringTransactions((nextOccurs - interval '1 second' * secondsBeforeToPost));
+CREATE INDEX ON transactionTemplates(accountId);
