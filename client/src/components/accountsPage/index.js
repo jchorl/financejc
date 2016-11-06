@@ -31,37 +31,20 @@ class AccountsPage extends React.Component {
     this.state = {
       selected: selected
     };
-
-    // this.fetchTransactionsIfNecessary(selected);
   }
 
   componentWillReceiveProps(nextProps) {
-    let nextIds = nextProps.accounts.get('accounts').keySeq().toSet();
-    let currIds = this.props.accounts.get('accounts').keySeq().toSet();
-    if (nextIds.size === currIds.size + 1) {
-      let diff = nextIds.subtract(currIds);
-      this.selectAccount(diff.first());
+    let nextAccounts = nextProps.accounts.get('accounts');
+    let currIds = this.props.accounts.get('accounts').keySeq();
+    if (nextAccounts.size > currIds.size) {
+      this.selectAccount(nextAccounts.keySeq().find((id, i) => currIds.get(i) !== id));
     }
   }
-
-  // fetchTransactionsIfNecessary = (id) => {
-  //   const { accountTransaction, dispatch } = this.props;
-  //   // reload transactions if necessary
-  //   if (id === -1) return
-
-  //   // no need to fetch for new accounts
-  //   if (!accountTransaction.has(id)) return
-  //   if (accountTransaction.get(id).get("transactions").isEmpty()) {
-  //     dispatch(fetchTransactions(id));
-  //   }
-  // }
 
   selectAccount = (id) => {
     this.setState({
       selected: id
     });
-
-    // this.fetchTransactionsIfNecessary(id);
   }
 
   importButton = () => {
