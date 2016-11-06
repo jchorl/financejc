@@ -41,6 +41,7 @@ export class TransactionTemplate extends React.Component {
         <TransactionTemplateForm transactionTemplate={ transactionTemplate } initialValues={ getFormInitialValues(transactionTemplate, currency) } done={ this.exitEditMode } currency={ currency } />
       ) : (
         <div className={ classNames(styles.transactionTemplate, styles.transactionTemplateFields) }>
+          <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transactionTemplate.get('templateName') }</span>
           <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transactionTemplate.get('name') }</span>
           <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transactionTemplate.get('category') }</span>
           <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transactionTemplate.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
@@ -52,6 +53,7 @@ export class TransactionTemplate extends React.Component {
 
 function getFormInitialValues(transactionTemplate, currency) {
   return {
+    templateName: transactionTemplate.get('templateName'),
     name: transactionTemplate.get('name'),
     category: transactionTemplate.get('category'),
     amount: toDecimal(transactionTemplate.get('amount'), currency.get('digitsAfterDecimal'))
@@ -186,6 +188,7 @@ export class TransactionTemplateForm extends React.Component {
     } = this.props;
 
     let obj = {
+      templateName: e.target['templateName'].value,
       name: e.target['name'].value,
       category: e.target['category'].value,
       amount: toWhole(parseFloat(e.target['amount'].value), currency.get('digitsAfterDecimal')),
@@ -226,6 +229,7 @@ export class TransactionTemplateForm extends React.Component {
       <div className={ styles.transactionTemplate }>
         <form onSubmit={ this.submit }>
           <div className={ styles.transactionTemplateFields }>
+            <input type="text" name="templateName" value={ values.templateName } onChange={ this.fieldChange('templateName') } placeholder="Template Name" className={ styles.transactionTemplateField } />
             <Autosuggest
               id="name"
               suggestions={ suggestions.name }

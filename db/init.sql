@@ -39,6 +39,7 @@ CREATE TABLE recurringTransactions (
 
 CREATE TABLE transactionTemplates (
     id serial PRIMARY KEY,
+    templateName varchar(40) NOT NULL,
     name varchar(100) NOT NULL,
     category varchar(100),
     amount integer NOT NULL,

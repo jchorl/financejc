@@ -53,6 +53,7 @@ export default class TransactionTemplateList extends React.Component {
     return (
       <div>
         <div className={ styles.headings }>
+          <span className={ styles.column }>Template Name</span>
           <span className={ styles.column }>Name</span>
           <span className={ styles.column }>Category</span>
           <span className={ styles.column }>Amount</span>
@@ -63,7 +64,7 @@ export default class TransactionTemplateList extends React.Component {
                 New
               </button>
             ) : (
-              <TransactionTemplateForm accountId={ accountId } form='new' done={ this.exitNewTransactionTemplate } currency={ currency } initialValues={ { name: '', category: '', amount: '0', } } />
+              <TransactionTemplateForm accountId={ accountId } form='new' done={ this.exitNewTransactionTemplate } currency={ currency } initialValues={ { templateName: '', name: '', category: '', amount: '0', } } />
             )
         }
         { transactions.map(transaction => (<TransactionTemplate key={ transaction.get('id') } transactionTemplate={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }

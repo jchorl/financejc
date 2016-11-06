@@ -9,15 +9,19 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
-type TransactionTemplate Transaction
+type TransactionTemplate struct {
+	Transaction
+	TemplateName string `json:"templateName"`
+}
 
 type transactionTemplateDB struct {
-	Id        int
-	Name      string
-	Category  string
-	Amount    int
-	Note      string
-	AccountId int
+	Id           int
+	TemplateName string
+	Name         string
+	Category     string
+	Amount       int
+	Note         string
+	AccountId    int
 }
 
 func GetTemplates(c context.Context, accountId int) ([]TransactionTemplate, error) {
@@ -32,7 +36,7 @@ func GetTemplates(c context.Context, accountId int) ([]TransactionTemplate, erro
 		return transactions, constants.Forbidden
 	}
 
-	rows, err := db.Query("SELECT id, name, category, amount, note, accountId FROM transactionTemplates WHERE accountId = $1", accountId)
+	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM transactionTemplates WHERE accountId = $1", accountId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -44,7 +48,7 @@ func GetTemplates(c context.Context, accountId int) ([]TransactionTemplate, erro
 
 	for rows.Next() {
 		var transaction transactionTemplateDB
-		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountId); err != nil {
+		if err := rows.Scan(&transaction.Id, &transaction.TemplateName, &transaction.Name, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountId); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"accountId": accountId,
@@ -78,7 +82,7 @@ func NewTemplate(c context.Context, transaction *TransactionTemplate) (*Transact
 
 	tdb := templateToDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO transactionTemplates(name, category, amount, note, accountId) VALUES($1, $2, $3, $4, $5) RETURNING id", tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountId).Scan(&id)
+	err = db.QueryRow("INSERT INTO transactionTemplates(templateName, name, category, amount, note, accountId) VALUES($1, $2, $3, $4, $5, $6) RETURNING id", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountId).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                 err,
@@ -99,7 +103,7 @@ func UpdateTemplate(c context.Context, transaction *TransactionTemplate) (*Trans
 	}
 
 	tdb := templateToDB(*transaction)
-	_, err = db.Exec("UPDATE transactionTemplates SET name = $1, category = $2, amount = $3, note = $4, accountId = $5", tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountId)
+	_, err = db.Exec("UPDATE transactionTemplates SET templateName = $1, name = $2, category = $3, amount = $4, note = $5, accountId = $6", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountId)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                 err,
@@ -162,22 +166,26 @@ func userOwnsTransactionTemplate(c context.Context, transactionTemplate int) (bo
 
 func templateToDB(transaction TransactionTemplate) *transactionTemplateDB {
 	return &transactionTemplateDB{
-		Id:        transaction.Id,
-		Name:      transaction.Name,
-		Category:  transaction.Category,
-		Amount:    transaction.Amount,
-		Note:      transaction.Note,
-		AccountId: transaction.AccountId,
+		TemplateName: transaction.TemplateName,
+		Id:           transaction.Id,
+		Name:         transaction.Name,
+		Category:     transaction.Category,
+		Amount:       transaction.Amount,
+		Note:         transaction.Note,
+		AccountId:    transaction.AccountId,
 	}
 }
 
 func templateFromDB(transaction transactionTemplateDB) TransactionTemplate {
 	return TransactionTemplate{
-		Id:        transaction.Id,
-		Name:      transaction.Name,
-		Category:  transaction.Category,
-		Amount:    transaction.Amount,
-		Note:      transaction.Note,
-		AccountId: transaction.AccountId,
+		TemplateName: transaction.TemplateName,
+		Transaction: Transaction{
+			Id:        transaction.Id,
+			Name:      transaction.Name,
+			Category:  transaction.Category,
+			Amount:    transaction.Amount,
+			Note:      transaction.Note,
+			AccountId: transaction.AccountId,
+		},
 	}
 }
