@@ -7,9 +7,9 @@ import { createStore, applyMiddleware } from 'redux';
 import { fetchUser } from './actions';
 import App from './components/index';
 import Home from './components/home';
-import RecurringTransactionList from './components/recurringTransactionList';
-import Templates from './components/templates';
 import TransactionList from './components/transactionList';
+import RecurringTransactionList from './components/recurringTransactionList';
+import TransactionTemplateList from './components/transactionTemplateList';
 import AccountsPage from './components/accountsPage';
 import reducers from './reducers';
 import './index.css';
@@ -57,7 +57,7 @@ render(
         <Route path="transactions" component={ AccountsPage } onEnter={ checkAuth }>
           <IndexRoute component={ TransactionList } onEnter={ checkAuth }/>
           <Route path="recurring" component={ RecurringTransactionList } onEnter={ checkAuth }/>
-          <Route path="templates" component={ Templates } onEnter={ checkAuth }/>
+          <Route path="templates" component={ TransactionTemplateList } onEnter={ checkAuth }/>
         </Route>
       </Route>
     </Router>

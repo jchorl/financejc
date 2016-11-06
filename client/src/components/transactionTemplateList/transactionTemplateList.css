@@ -1,0 +1,21 @@
+.headings {
+  margin: 10px 0;
+  font-weight: bold;
+  lost-flex-container: row;
+
+  .column {
+    lost-column: 1/3;
+  }
+}
+
+.newTransactionTemplate {
+  lost-column: 1/1;
+  border: none;
+  background: ~colors.primaryLight;
+  padding: 5px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+  }
+}

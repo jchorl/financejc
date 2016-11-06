@@ -55,6 +55,15 @@ const receiveRecurringTransactions = (recurringTransactions, accountId) => {
   };
 };
 
+export const RECEIVE_TRANSACTION_TEMPLATES = 'RECEIVE_TRANSACTION_TEMPLATES';
+const receiveTransactionTemplates = (transactionTemplates, accountId) => {
+  return {
+    type: RECEIVE_TRANSACTION_TEMPLATES,
+    accountId,
+    transactionTemplates
+  };
+};
+
 export const PUT_TRANSACTION = 'PUT_TRANSACTION';
 const updateTransactions = (transaction) => {
   return {
@@ -68,6 +77,14 @@ const updateRecurringTransactions = (recurringTransaction) => {
   return {
     type: PUT_RECURRING_TRANSACTION,
     recurringTransaction
+  };
+};
+
+export const PUT_TRANSACTION_TEMPLATE = 'PUT_TRANSACTION_TEMPLATE';
+const updateTransactionTemplates = (transactionTemplate) => {
+  return {
+    type: PUT_TRANSACTION_TEMPLATE,
+    transactionTemplate
   };
 };
 
@@ -135,6 +152,18 @@ export function fetchRecurringTransactions(accountId) {
       .then(response => response.json())
       .then(parsed => {
         dispatch(receiveRecurringTransactions(parsed, accountId));
+      });
+  };
+}
+
+export function fetchTransactionTemplates(accountId) {
+  return function(dispatch) {
+    return fetch(`/api/account/${accountId}/transactionTemplates`, {
+      credentials: 'include'
+    })
+      .then(response => response.json())
+      .then(parsed => {
+        dispatch(receiveTransactionTemplates(parsed, accountId));
       });
   };
 }
@@ -291,5 +320,36 @@ export function putRecurringTransaction(recurringTransaction) {
     })
       .then(response => response.json())
       .then(json => dispatch(updateRecurringTransactions(json)));
+  };
+}
+
+export function putTransactionTemplate(transactionTemplate) {
+  let headers = new Headers();
+  headers.append('Accept', 'application/json');
+  headers.append('Content-Type', 'application/json');
+
+  // if editing a transaction
+  if (transactionTemplate.id) {
+    return function(dispatch) {
+      return fetch('/api/transactionTemplate', {
+        method: 'PUT',
+        body: JSON.stringify(transactionTemplate),
+        credentials: 'include',
+        headers: headers
+      })
+        .then(response => response.json())
+        .then(json => dispatch(updateTransactionTemplates(json)));
+    };
+  }
+
+  return function(dispatch) {
+    return fetch(`/api/account/${transactionTemplate.accountId}/transactionTemplates`, {
+      method: 'POST',
+      body: JSON.stringify(transactionTemplate),
+      credentials: 'include',
+      headers: headers
+    })
+      .then(response => response.json())
+      .then(json => dispatch(updateTransactionTemplates(json)));
   };
 }
