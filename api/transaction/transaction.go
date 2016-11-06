@@ -499,9 +499,7 @@ func Delete(ctx context.Context, transactionId int) error {
 	}
 
 	valid, err := userOwnsTransaction(ctx, transactionId)
-	if err != nil {
-		return constants.Forbidden
-	} else if !valid {
+	if err != nil || !valid {
 		return constants.Forbidden
 	}
 

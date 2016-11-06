@@ -32,6 +32,26 @@ func GetTransactions(c echo.Context) error {
 	return writePaginatedEntity(c, transactions)
 }
 
+func GetRecurringTransactions(c echo.Context) error {
+	accountIdStr := c.Param("accountId")
+	accountId, err := strconv.Atoi(accountIdStr)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":     err,
+			"context":   c,
+			"accountId": accountIdStr,
+		})
+		return writeError(c, constants.BadRequest)
+	}
+
+	transactions, err := transaction.GetRecurring(toContext(c), accountId)
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, transactions)
+}
+
 func NewTransaction(c echo.Context) error {
 	tr := new(transaction.Transaction)
 	if err := c.Bind(tr); err != nil {
@@ -62,6 +82,36 @@ func NewTransaction(c echo.Context) error {
 	return c.JSON(http.StatusOK, tr)
 }
 
+func NewRecurringTransaction(c echo.Context) error {
+	tr := new(transaction.RecurringTransaction)
+	if err := c.Bind(tr); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":   err,
+			"context": c,
+		}).Error("unable to parse request to create recurring transaction")
+		return writeError(c, constants.BadRequest)
+	}
+
+	accountIdStr := c.Param("accountId")
+	accountId, err := strconv.Atoi(accountIdStr)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":     err,
+			"context":   c,
+			"accountId": accountIdStr,
+		})
+		return writeError(c, constants.BadRequest)
+	}
+
+	tr.Transaction.AccountId = accountId
+	tr, err = transaction.NewRecurring(toContext(c), tr)
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, tr)
+}
+
 func UpdateTransaction(c echo.Context) error {
 	tr := new(transaction.Transaction)
 	if err := c.Bind(tr); err != nil {
@@ -73,6 +123,24 @@ func UpdateTransaction(c echo.Context) error {
 	}
 
 	tr, err := transaction.Update(toContext(c), tr)
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, tr)
+}
+
+func UpdateRecurringTransaction(c echo.Context) error {
+	tr := new(transaction.RecurringTransaction)
+	if err := c.Bind(tr); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":   err,
+			"context": c,
+		}).Error("unable to parse request to update recurring transaction")
+		return writeError(c, constants.BadRequest)
+	}
+
+	tr, err := transaction.UpdateRecurring(toContext(c), tr)
 	if err != nil {
 		return writeError(c, err)
 	}
@@ -92,6 +160,25 @@ func DeleteTransaction(c echo.Context) error {
 	}
 
 	err = transaction.Delete(toContext(c), transactionId)
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func DeleteRecurringTransaction(c echo.Context) error {
+	transactionIdStr := c.Param("recurringTransactionId")
+	transactionId, err := strconv.Atoi(transactionIdStr)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":                  err,
+			"recurringTransactionId": transactionIdStr,
+		}).Error("error parsing recurring transaction ID to int")
+		return writeError(c, constants.BadRequest)
+	}
+
+	err = transaction.DeleteRecurring(toContext(c), transactionId)
 	if err != nil {
 		return writeError(c, err)
 	}

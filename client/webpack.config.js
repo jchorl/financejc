@@ -28,7 +28,8 @@ var config = {
     ]
   },
   eslint: {
-    configFile: './.eslintrc'
+    configFile: './.eslintrc',
+    fix: true
   },
   postcss: [
     require('postcss-constants')({

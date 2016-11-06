@@ -4,26 +4,26 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
 import styles from './transaction.css';
-import { toCurrency, toDate, toDecimal, toWhole, toRFC3339 } from '../../utils';
+import { toCurrency, toDate, toDecimal, toWhole, toRFC3339, queryByFieldAndVal } from '../../utils';
 import { putTransaction } from '../../actions';
 
 export class Transaction extends React.Component {
   static propTypes = {
     transaction: React.PropTypes.object,
-    currency: React.PropTypes.object.isRequired,
+    currency: ImmutablePropTypes.map.isRequired,
   };
 
   constructor(props) {
     super(props);
-    this.state = {editMode: false};
+    this.state = { editMode: false };
   }
 
   enterEditMode = () => {
-    this.setState({editMode: true});
+    this.setState({ editMode: true });
   }
 
   exitEditMode = () => {
-    this.setState({editMode: false});
+    this.setState({ editMode: false });
   }
 
   save = () => {
@@ -47,7 +47,7 @@ export class Transaction extends React.Component {
           <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
         </div>
       )
-    ) : null
+    ) : null;
   }
 }
 
@@ -57,7 +57,7 @@ function getFormInitialValues(transaction, currency) {
     date: toRFC3339(transaction.get('date')),
     category: transaction.get('category'),
     amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
-  }
+  };
 }
 
 function getSuggestionValue(field, suggestion) {
@@ -70,13 +70,6 @@ function renderSuggestion(field, suggestion) {
   );
 }
 
-function queryByFieldAndVal(accountId, field, val) {
-  return fetch(`/api/account/${accountId}/transactions/query?field=${field}&value=${val}`, {
-    credentials: 'include'
-  })
-    .then(response => response.json());
-}
-
 // getting suggestions async example: http://codepen.io/moroshko/pen/EPZpev
 @connect()
 export class TransactionForm extends React.Component {
@@ -84,7 +77,6 @@ export class TransactionForm extends React.Component {
     currency: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired,
     initialValues: React.PropTypes.object.isRequired,
-    allowRecurring: React.PropTypes.bool,
     // either transaction (for editing) or accountId (for new transactions) should be passed
     accountId: React.PropTypes.number,
     transaction: ImmutablePropTypes.map,
@@ -99,9 +91,7 @@ export class TransactionForm extends React.Component {
       suggestions: {
         name: [],
         category: []
-      },
-      recurring: false,
-      fixedInterval: true
+      }
     };
 
     this.lastRequestId = null;
@@ -153,7 +143,7 @@ export class TransactionForm extends React.Component {
       that.setState({
         values
       });
-    }
+    };
   };
 
   onSuggestionsFetchRequested = (field, { value }) => {
@@ -183,23 +173,11 @@ export class TransactionForm extends React.Component {
     });
   }
 
-  fieldChange = name => function(e) {
+  fieldChange = name => e => {
     let newState = Object.assign({}, this.state.values);
     newState[name] = e.target.value;
     this.setState({
       values: newState
-    });
-  }
-
-  changeRecurring = event => {
-    this.setState({
-      recurring: event.target['value'] === 'true'
-    });
-  }
-
-  changeSchedule = event => {
-    this.setState({
-      fixedInterval: event.target['value'] === 'true'
     });
   }
 
@@ -235,12 +213,8 @@ export class TransactionForm extends React.Component {
   render () {
     const {
       suggestions,
-      values,
-      recurring,
-      fixedInterval
+      values
     } = this.state;
-
-    const { allowRecurring } = this.props;
 
     const nameInputProps = {
       name: 'name',
@@ -282,92 +256,9 @@ export class TransactionForm extends React.Component {
               theme={ styles } />
             <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionField } />
           </div>
-          <div className={ styles.extra }>
-            { allowRecurring ? (
-              <div className={ styles.recurringToggle }>
-                <label>
-                  <input
-                    type="radio"
-                    name="recurring"
-                    value="false"
-                    defaultChecked={ !recurring }
-                    onChange={ this.changeRecurring } />
-                  One time
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="recurring"
-                    value="true"
-                    defaultChecked={ recurring }
-                    onChange={ this.changeRecurring } />
-                  Recurring
-                </label>
-                { recurring ? (
-                  <div>
-                    <label>
-                      <input
-                        type="radio"
-                        name="fixedInterval"
-                        value="true"
-                        defaultChecked={ fixedInterval }
-                        onChange={ this.changeSchedule } />
-                      Fixed interval
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="fixedInterval"
-                        value="false"
-                        defaultChecked={ !fixedInterval }
-                        onChange={ this.changeSchedule } />
-                      Fixed day
-                    </label>
-                    { fixedInterval ? (
-                      <div>
-                        Interval: <input type="number" name="interval"></input> days
-                      </div>
-                    ) : (
-                      <div>
-                        <div>Select first date (can be in past): <input type="date" name="starting"></input></div>
-                        <div>Which day of the period? <input type="number" name="dayOf"></input></div>
-                        <div>
-                          <label>
-                            <input
-                              type="radio"
-                              name="period"
-                              value="weekly"
-                              defaultChecked="false" />
-                            Weekly
-                          </label>
-                          <label>
-                            <input
-                              type="radio"
-                              name="period"
-                              value="monthly"
-                              defaultChecked="true" />
-                            Monthly
-                          </label>
-                          <label>
-                            <input
-                              type="radio"
-                              name="period"
-                              value="yearly"
-                              defaultChecked="false" />
-                            Yearly
-                          </label>
-                        </div>
-                      </div>
-                    ) }
-                  </div>
-                ) : null }
-              </div>
-            ) : <span></span>
-            }
-            <div className={ styles.saveExit }>
-              <button type="button" onClick={ this.props.done }>Cancel</button>
-              <button type="submit">Save</button>
-            </div>
+          <div className={ styles.saveExit }>
+            <button type="button" onClick={ this.props.done }>Cancel</button>
+            <button type="submit">Save</button>
           </div>
         </form>
       </div>

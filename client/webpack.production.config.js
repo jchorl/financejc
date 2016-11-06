@@ -20,16 +20,13 @@ var config = {
       {
         test : /\.jsx?/,
         include : APP_DIR,
-        loaders : ['babel?cacheDirectory=true,presets[]=es2015,presets[]=react,presets[]=stage-1,plugins[]=transform-decorators-legacy', 'eslint-loader'],
+        loader : 'babel?cacheDirectory=true,presets[]=es2015,presets[]=react,presets[]=stage-1,plugins[]=transform-decorators-legacy',
       },
       {
         test : /\.css$/,
         loader: 'style-loader!css-loader?modules&importLoaders=1&localIdentName=[name]_[local]_[hash:base64:5]!postcss-loader'
       }
     ]
-  },
-  eslint: {
-    configFile: './.eslintrc'
   },
   postcss: [
     require('postcss-constants')({

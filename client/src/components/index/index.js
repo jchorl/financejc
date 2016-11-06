@@ -8,7 +8,7 @@ import styles from './index.css';
 
 @withRouter
 @connect((state) => {
-  return { auth: state.auth }
+  return { auth: state.auth };
 })
 export default class App extends React.Component {
   static propTypes = {
@@ -29,12 +29,12 @@ export default class App extends React.Component {
     }));
   }
 
-  goToAccounts = () => {
+  goToTransactions = () => {
     const {
       router: { push }
     } = this.props;
 
-    push('/accounts');
+    push('/transactions');
   }
 
   render () {
@@ -45,23 +45,25 @@ export default class App extends React.Component {
     return (
       <div>
         <nav className={ styles.navBar }>
-          <div className={ styles.logo }>
-            <Link to={ '/' } className={ styles.unstyledLink }>FinanceJC</Link>
+          <div className={ styles.logoAndNavOptions }>
+            <div className={ styles.logo }><Link to={ '/' } className={ styles.unstyledLink }>FinanceJC</Link></div>
+            <div className={ styles.navOption }><Link to={ '/transactions' } className={ styles.unstyledLink }>Transactions</Link></div>
+            <div className={ styles.navOption }><Link to={ '/transactions/recurring' } className={ styles.unstyledLink }>Recurring Transactions</Link></div>
+            <div className={ styles.navOption }><Link to={ '/transactions/templates' } className={ styles.unstyledLink }>Transaction Templates</Link></div>
           </div>
           <div className={ styles.options }>
             { auth.get('authd') ? (
               <div className={ styles.dropdown }>
                 { auth.get('user').get('email') } <i className={ 'fa fa-chevron-down ' + styles.dropdownChevron } aria-hidden="true"></i>
                 <div className={ styles.dropdownContent }>
-                  <div className={ styles.dropdownOption }><Link to={ 'recurring' } className={ styles.unstyledLink }>Recurring Transactions</Link></div>
                   <div className={ styles.dropdownOption } onClick={ this.dispatchLogout }>Logout</div>
                 </div>
               </div>
-            ) : <GoogleLoginButton onLogin={ this.goToAccounts }/> }
+            ) : <GoogleLoginButton onLogin={ this.goToTransactions }/> }
           </div>
         </nav>
         { this.props.children }
       </div>
-    )
+    );
   }
 }

@@ -1,23 +1,36 @@
-.transaction {
+.recurringTransaction {
   &:nth-child(odd) {
     background: ~colors.secondaryLight;
   }
 
-  .saveExit {
+  .extra {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     padding: 0 5px 5px;
+
+    .saveExit {
+      align-self: flex-end;
+    }
   }
 }
 
-.transactionFields {
+.recurringTransactionFields {
   lost-flex-container: row;
   padding: 5px;
 
-  .transactionField {
+  .recurringTransactionField {
     lost-column: 1/4;
     box-sizing: border-box;
     padding: 5px;
+
+    &.details {
+      lost-column: 3/4;
+      lost-flex-container: row;
+
+      .detail {
+        lost-column: 1/2;
+      }
+    }
 
     &.nonEdit {
       cursor: pointer;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { login } from '../../actions'
+import { login } from '../../actions';
 import styles from './googleLoginButton.css';
 
 function attachToButton(dispatcher, callback) {
@@ -11,7 +11,7 @@ function attachToButton(dispatcher, callback) {
         client_id: '900762983843-0ih1hv6b4mf4ql847ini51hhfc4svqoc.apps.googleusercontent.com',
         scope: 'email'
       });
-      let btnEl = document.getElementById("googleBtn");
+      let btnEl = document.getElementById('googleBtn');
       if (btnEl) {
         auth2.attachClickHandler(btnEl, {},
           function(googleUser) {
@@ -19,7 +19,7 @@ function attachToButton(dispatcher, callback) {
           });
       }
     });
-  }
+  };
 }
 
 @connect()

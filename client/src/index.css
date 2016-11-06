@@ -1,0 +1,8 @@
+@lost gutter 0;
+@lost flexbox flex;
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+  margin: 0;
+  background: ~colors.background;
+}

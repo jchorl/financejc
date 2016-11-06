@@ -4,7 +4,7 @@ const receiveAccounts = (accounts) => {
     type: RECEIVE_ACCOUNTS,
     accounts
   };
-}
+};
 
 export const ADD_ACCOUNT = 'ADD_ACCOUNT';
 const addAccount = (account) => {
@@ -12,14 +12,14 @@ const addAccount = (account) => {
     type: ADD_ACCOUNT,
     account
   };
-}
+};
 
 export const FETCHING_USER = 'FETCHING_USER';
 const fetchingUser = () => {
   return {
     type: FETCHING_USER
   };
-}
+};
 
 export const RECEIVE_USER = 'RECEIVE_USER';
 const receiveUser = (user) => {
@@ -27,14 +27,14 @@ const receiveUser = (user) => {
     type: RECEIVE_USER,
     user
   };
-}
+};
 
 export const LOGOUT = 'LOGOUT';
 const logoutComplete = () => {
   return {
     type: LOGOUT
   };
-}
+};
 
 export const RECEIVE_TRANSACTIONS = 'RECEIVE_TRANSACTIONS';
 const receiveTransactions = (transactions, accountId, link) => {
@@ -44,7 +44,16 @@ const receiveTransactions = (transactions, accountId, link) => {
     transactions,
     link
   };
-}
+};
+
+export const RECEIVE_RECURRING_TRANSACTIONS = 'RECEIVE_RECURRING_TRANSACTIONS';
+const receiveRecurringTransactions = (recurringTransactions, accountId) => {
+  return {
+    type: RECEIVE_RECURRING_TRANSACTIONS,
+    accountId,
+    recurringTransactions
+  };
+};
 
 export const PUT_TRANSACTION = 'PUT_TRANSACTION';
 const updateTransactions = (transaction) => {
@@ -52,7 +61,15 @@ const updateTransactions = (transaction) => {
     type: PUT_TRANSACTION,
     transaction
   };
-}
+};
+
+export const PUT_RECURRING_TRANSACTION = 'PUT_RECURRING_TRANSACTION';
+const updateRecurringTransactions = (recurringTransaction) => {
+  return {
+    type: PUT_RECURRING_TRANSACTION,
+    recurringTransaction
+  };
+};
 
 export const UPDATE_ACCOUNT_VALUE = 'UPDATE_ACCOUNT_VALUE';
 const updateAccountValue = (accountId, delta) => {
@@ -61,7 +78,7 @@ const updateAccountValue = (accountId, delta) => {
     accountId,
     delta
   };
-}
+};
 
 export const RECEIVE_CURRENCIES = 'RECEIVE_CURRENCIES';
 const receiveCurrencies = (currencies) => {
@@ -69,28 +86,28 @@ const receiveCurrencies = (currencies) => {
     type: RECEIVE_CURRENCIES,
     currencies
   };
-}
+};
 
 export function fetchCurrencies() {
   return function(dispatch) {
-    return fetch(`/api/currencies`)
+    return fetch('/api/currencies')
       .then(response => response.json())
       .then(json => {
         dispatch(receiveCurrencies(json));
       });
-  }
+  };
 }
 
 export function fetchAccounts() {
   return function(dispatch) {
-    return fetch(`/api/account`, {
+    return fetch('/api/account', {
       credentials: 'include'
     })
       .then(response => response.json())
       .then(json => {
         dispatch(receiveAccounts(json));
       });
-  }
+  };
 }
 
 export function fetchTransactions(accountId, next) {
@@ -107,15 +124,27 @@ export function fetchTransactions(accountId, next) {
       .then(parsed => {
         dispatch(receiveTransactions(parsed[0], accountId, parsed[1]));
       });
-  }
+  };
+}
+
+export function fetchRecurringTransactions(accountId) {
+  return function(dispatch) {
+    return fetch(`/api/account/${accountId}/recurringTransactions`, {
+      credentials: 'include'
+    })
+      .then(response => response.json())
+      .then(parsed => {
+        dispatch(receiveRecurringTransactions(parsed, accountId));
+      });
+  };
 }
 
 export function importData() {
   return function(dispatch) {
     let headers = new Headers();
-    headers.append("Accept", "application/json");
-    headers.append("Content-Type", "application/json");
-    return fetch(`/api/import`, {
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+    return fetch('/api/import', {
       method: 'POST',
       credentials: 'include',
       headers: headers
@@ -124,14 +153,14 @@ export function importData() {
         dispatch(fetchAccounts());
       }
     });
-  }
+  };
 }
 
 export function fetchUser(callback) {
   return function(dispatch) {
     dispatch(fetchingUser());
 
-    return fetch(`/api/user`, {
+    return fetch('/api/user', {
       credentials: 'include'
     })
       .then(response => response.json())
@@ -143,14 +172,14 @@ export function fetchUser(callback) {
         dispatch(receiveUser(false));
         callback && callback();
       });
-  }
+  };
 }
 
 export function login(googleUser, callback) {
   return function(dispatch) {
     let headers = new Headers();
-    headers.append("Accept", "application/json");
-    headers.append("Content-Type", "application/json");
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
     fetch('/api/auth', {
       method: 'POST',
       body: JSON.stringify({
@@ -165,7 +194,7 @@ export function login(googleUser, callback) {
         callback && callback();
       })
       .catch(() => dispatch(receiveUser(false)));
-  }
+  };
 }
 
 export function logout(callback) {
@@ -179,36 +208,36 @@ export function logout(callback) {
         callback && callback();
       })
       .catch(() => dispatch(logoutComplete()));
-  }
+  };
 }
 
 export function newAccount(account) {
   let headers = new Headers();
-  headers.append("Accept", "application/json");
-  headers.append("Content-Type", "application/json");
+  headers.append('Accept', 'application/json');
+  headers.append('Content-Type', 'application/json');
 
   return function(dispatch) {
-    return fetch(`/api/account`, {
+    return fetch('/api/account', {
       method: 'POST',
       body: JSON.stringify(account),
       credentials: 'include',
       headers: headers
     })
       .then(response => response.json())
-      .then(json => dispatch(addAccount(json)))
-  }
+      .then(json => dispatch(addAccount(json)));
+  };
 }
 
 // amountDifference is the amount to change the account value by
 export function putTransaction(transaction, amountDifference) {
   let headers = new Headers();
-  headers.append("Accept", "application/json");
-  headers.append("Content-Type", "application/json");
+  headers.append('Accept', 'application/json');
+  headers.append('Content-Type', 'application/json');
 
   // if editing a transaction
   if (transaction.id) {
     return function(dispatch) {
-      return fetch(`/api/transaction`, {
+      return fetch('/api/transaction', {
         method: 'PUT',
         body: JSON.stringify(transaction),
         credentials: 'include',
@@ -217,7 +246,7 @@ export function putTransaction(transaction, amountDifference) {
         .then(response => response.json())
         .then(json => dispatch(updateTransactions(json)))
         .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
-    }
+    };
   }
 
   // new transaction
@@ -231,5 +260,36 @@ export function putTransaction(transaction, amountDifference) {
       .then(response => response.json())
       .then(json => dispatch(updateTransactions(json)))
       .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
+  };
+}
+
+export function putRecurringTransaction(recurringTransaction) {
+  let headers = new Headers();
+  headers.append('Accept', 'application/json');
+  headers.append('Content-Type', 'application/json');
+
+  // if editing a transaction
+  if (recurringTransaction.id) {
+    return function(dispatch) {
+      return fetch('/api/recurringTransaction', {
+        method: 'PUT',
+        body: JSON.stringify(recurringTransaction),
+        credentials: 'include',
+        headers: headers
+      })
+        .then(response => response.json())
+        .then(json => dispatch(updateRecurringTransactions(json)));
+    };
   }
+
+  return function(dispatch) {
+    return fetch(`/api/account/${recurringTransaction.transaction.accountId}/recurringTransactions`, {
+      method: 'POST',
+      body: JSON.stringify(recurringTransaction),
+      credentials: 'include',
+      headers: headers
+    })
+      .then(response => response.json())
+      .then(json => dispatch(updateRecurringTransactions(json)));
+  };
 }

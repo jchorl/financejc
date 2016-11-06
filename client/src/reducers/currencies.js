@@ -8,9 +8,9 @@ export default (state = Immutable.Map({
   currencies: Immutable.Map()
 }), action) => {
   switch (action.type) {
-    case RECEIVE_CURRENCIES:
-      return state.set('fetched', true).set('currencies', Immutable.fromJS(action.currencies));
-    default:
-      return state;
+  case RECEIVE_CURRENCIES:
+    return state.set('fetched', true).set('currencies', Immutable.fromJS(action.currencies));
+  default:
+    return state;
   }
-}
+};

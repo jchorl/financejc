@@ -162,6 +162,11 @@ func UpdateRecurring(c context.Context, transaction *RecurringTransaction) (*Rec
 		return nil, err
 	}
 
+	transaction.Transaction.Date, err = getNextRun(transaction, true)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := validateRecurringTransaction(*transaction); err != nil {
 		return nil, err
 	}
@@ -178,6 +183,54 @@ func UpdateRecurring(c context.Context, transaction *RecurringTransaction) (*Rec
 	}
 
 	return transaction, nil
+}
+
+func DeleteRecurring(ctx context.Context, transactionId int) error {
+	db, err := util.DBFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	valid, err := userOwnsRecurringTransaction(ctx, transactionId)
+	if err != nil || !valid {
+		return constants.Forbidden
+	}
+
+	_, err = db.Exec("DELETE FROM recurringTransactions WHERE id = $1", transactionId)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":                  err,
+			"recurringTransactionID": transactionId,
+		}).Errorf("could not delete recurring transaction")
+		return err
+	}
+
+	return nil
+}
+
+func userOwnsRecurringTransaction(c context.Context, recurringTransaction int) (bool, error) {
+	userId, err := util.UserIdFromContext(c)
+	if err != nil {
+		return false, err
+	}
+
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return false, err
+	}
+
+	var owner uint
+	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN recurringTransactions t ON t.accountId = a.id WHERE t.id = $1", recurringTransaction).Scan(&owner)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":                err,
+			"userId":               userId,
+			"recurringTransaction": recurringTransaction,
+		}).Error("error checking owner of recurring transaction")
+		return false, err
+	}
+
+	return owner == userId, nil
 }
 
 func validateRecurringTransaction(tr RecurringTransaction) error {

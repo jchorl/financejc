@@ -1,10 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { fetchAccounts, fetchCurrencies, fetchTransactions, importData } from '../../actions';
+import { fetchAccounts, fetchCurrencies, importData } from '../../actions';
 import AccountList from '../accountList';
 import AccountForm from '../accountForm';
-import TransactionList from '../transactionList';
 import Loader from '../loader';
 import styles from './accountsPage.css';
 
@@ -13,14 +12,15 @@ import styles from './accountsPage.css';
     accounts: state.accounts,
     accountTransaction: state.accountTransaction,
     currencies: state.currencies
-  }
+  };
 })
 class AccountsPage extends React.Component {
   static propTypes = {
     accounts: ImmutablePropTypes.map.isRequired,
     accountTransaction: ImmutablePropTypes.map.isRequired,
     currencies: ImmutablePropTypes.map.isRequired,
-    dispatch: React.PropTypes.func.isRequired
+    dispatch: React.PropTypes.func.isRequired,
+    children: React.PropTypes.element.isRequired
   }
 
   constructor (props) {
@@ -32,7 +32,7 @@ class AccountsPage extends React.Component {
       selected: selected
     };
 
-    this.fetchTransactionsIfNecessary(selected);
+    // this.fetchTransactionsIfNecessary(selected);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -44,24 +44,24 @@ class AccountsPage extends React.Component {
     }
   }
 
-  fetchTransactionsIfNecessary = (id) => {
-    const { accountTransaction, dispatch } = this.props;
-    // reload transactions if necessary
-    if (id === -1) return
+  // fetchTransactionsIfNecessary = (id) => {
+  //   const { accountTransaction, dispatch } = this.props;
+  //   // reload transactions if necessary
+  //   if (id === -1) return
 
-    // no need to fetch for new accounts
-    if (!accountTransaction.has(id)) return
-    if (accountTransaction.get(id).get("transactions").isEmpty()) {
-      dispatch(fetchTransactions(id));
-    }
-  }
+  //   // no need to fetch for new accounts
+  //   if (!accountTransaction.has(id)) return
+  //   if (accountTransaction.get(id).get("transactions").isEmpty()) {
+  //     dispatch(fetchTransactions(id));
+  //   }
+  // }
 
   selectAccount = (id) => {
     this.setState({
       selected: id
     });
 
-    this.fetchTransactionsIfNecessary(id);
+    // this.fetchTransactionsIfNecessary(id);
   }
 
   importButton = () => {
@@ -71,7 +71,8 @@ class AccountsPage extends React.Component {
   render () {
     const {
       accounts,
-      currencies
+      currencies,
+      children
     } = this.props;
     const selected = this.state.selected;
 
@@ -97,13 +98,18 @@ class AccountsPage extends React.Component {
           {
             selected !== -1 ? (
               <div className={ styles.transactionList }>
-                <TransactionList accountId={ selected } currency={ currency } />
+                {
+                  React.cloneElement(children, {
+                    accountId: selected,
+                    currency: currency
+                  })
+                }
               </div>
             ) : <AccountForm />
           }
         </div>
       </div>
-    )
+    );
   }
 }
 
@@ -111,12 +117,13 @@ class AccountsPage extends React.Component {
   return {
     accounts: state.accounts,
     currencies: state.currencies
-  }
+  };
 })
 export default class AccountsPageWrapper extends React.Component {
   static propTypes = {
     accounts: ImmutablePropTypes.map.isRequired,
     currencies: ImmutablePropTypes.map.isRequired,
+    children: React.PropTypes.element.isRequired,
     dispatch: React.PropTypes.func.isRequired
   }
 
@@ -127,10 +134,16 @@ export default class AccountsPageWrapper extends React.Component {
   }
 
   render () {
+    const {
+      accounts,
+      currencies,
+      children
+    } = this.props;
+
     return (
-      <Loader loading={ !this.props.accounts.get('fetched') || !this.props.currencies.get('fetched') }>
-        <AccountsPage />
+      <Loader loading={ !accounts.get('fetched') || !currencies.get('fetched') }>
+        <AccountsPage children={ children }/>
       </Loader>
-    )
+    );
   }
 }

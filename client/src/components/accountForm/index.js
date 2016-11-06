@@ -7,7 +7,7 @@ import { newAccount } from '../../actions';
 @connect((state) => {
   return {
     currencies: state.currencies
-  }
+  };
 })
 export default class AccountForm extends React.Component {
   static propTypes = {

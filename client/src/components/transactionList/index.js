@@ -10,13 +10,13 @@ import { toRFC3339 } from '../../utils';
 @connect((state) => {
   return {
     accountTransaction: state.accountTransaction
-  }
+  };
 })
 export default class TransactionList extends React.Component {
   static propTypes = {
     accountId: React.PropTypes.number.isRequired,
     accountTransaction: ImmutablePropTypes.map.isRequired,
-    currency: React.PropTypes.object.isRequired,
+    currency: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired
   };
 
@@ -60,7 +60,7 @@ export default class TransactionList extends React.Component {
         isInfiniteLoading: true
       });
       dispatch(fetchTransactions(accountId, next));
-    }
+    };
   }
 
   render () {
@@ -70,7 +70,7 @@ export default class TransactionList extends React.Component {
       currency
     } = this.props;
 
-    let transactions = accountTransaction.get(accountId).get("transactions");
+    let transactions = accountTransaction.get(accountId).get('transactions');
 
     return (
       <div>
@@ -93,6 +93,6 @@ export default class TransactionList extends React.Component {
           { transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
         </Infinite>
       </div>
-    )
+    );
   }
 }

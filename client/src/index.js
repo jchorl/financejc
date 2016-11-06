@@ -7,11 +7,14 @@ import { createStore, applyMiddleware } from 'redux';
 import { fetchUser } from './actions';
 import App from './components/index';
 import Home from './components/home';
-import Recurring from './components/recurring';
+import RecurringTransactionList from './components/recurringTransactionList';
+import Templates from './components/templates';
+import TransactionList from './components/transactionList';
 import AccountsPage from './components/accountsPage';
 import reducers from './reducers';
+import './index.css';
 
-const rootElement = document.getElementById('app')
+const rootElement = document.getElementById('app');
 
 let store = createStore(
   reducers,
@@ -37,10 +40,10 @@ function checkAuth(nextState, replace, callback) {
   callback();
 }
 
-function goToAccounts(nextState, replace, callback) {
+function goToTransactions(nextState, replace, callback) {
   if (store.getState().auth.get('authd')) {
     replace({
-      pathname: '/accounts'
+      pathname: '/transactions'
     });
   }
   callback();
@@ -50,11 +53,14 @@ render(
   <Provider store={ store }>
     <Router history={ browserHistory }>
       <Route path="/" component={ App } onEnter={ fetchAuth }>
-        <IndexRoute component={ Home } onEnter={ goToAccounts }/>
-        <Route path="accounts" component={ AccountsPage } onEnter={ checkAuth }/>
-        <Route path="recurring" component={ Recurring } onEnter={ checkAuth }/>
+        <IndexRoute component={ Home } onEnter={ goToTransactions }/>
+        <Route path="transactions" component={ AccountsPage } onEnter={ checkAuth }>
+          <IndexRoute component={ TransactionList } onEnter={ checkAuth }/>
+          <Route path="recurring" component={ RecurringTransactionList } onEnter={ checkAuth }/>
+          <Route path="templates" component={ Templates } onEnter={ checkAuth }/>
+        </Route>
       </Route>
     </Router>
   </Provider>,
   rootElement
-)
+);

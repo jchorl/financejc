@@ -9,7 +9,7 @@ import styles from './accountList.css';
   return {
     accounts: state.accounts,
     currencies: state.currencies
-  }
+  };
 })
 export default class AccountList extends React.Component {
   static propTypes = {
@@ -50,10 +50,10 @@ export default class AccountList extends React.Component {
                   Balance: { toCurrency(toDecimal(account.get('futureValue'), currencies.get('currencies').get(account.get('currency')).get('digitsAfterDecimal')), account.get('currency')) }
                 </div>
               </button>
-            )
+            );
           }).valueSeq().toArray() }
         </div>
       </div>
-    )
+    );
   }
 }

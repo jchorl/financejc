@@ -1,12 +1,3 @@
-@lost gutter 0;
-@lost flexbox flex;
-
-body {
-  font-family: 'Noto Sans', sans-serif;
-  margin: 0;
-  background: ~colors.background;
-}
-
 .unstyledLink {
   color: inherit;
   text-decoration: none;
@@ -23,8 +14,18 @@ body {
   display: flex;
   justify-content: space-between;
 
-  .logo {
+  .logoAndNavOptions {
+    display: flex;
     margin: 15px 20px;
+
+    .logo {
+      font-size: 18px;
+      margin: 0 20px;
+    }
+
+    .navOption {
+      margin: 0 10px;
+    }
   }
 
   .options {
