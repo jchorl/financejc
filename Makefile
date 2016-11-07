@@ -53,7 +53,7 @@ es: network
 		--network financejcnet \
 		-h financejces \
 		--expose=9200 \
-		-e ES_JAVA_OPTS="-Xms15g -Xmx15g" \
+		-e ES_JAVA_OPTS="-Xms500m -Xmx500m" \
 		-v financejcesdata:/usr/share/elasticsearch/data \
 		elasticsearch
 
