@@ -1,5 +1,5 @@
 all: certs network db es build ui build-nginx serve nginx
-dev: network db es build serve-dev ui build-nginx nginx
+dev: network db es build serve-dev ui build-nginx nginx-dev
 
 POSTGRES_USER ?= postgres
 
@@ -7,10 +7,10 @@ deploy:
 	$(MAKE) build
 	$(MAKE) ui
 	$(MAKE) build-nginx
-	-docker rm -f financejcnginx
-	$(MAKE) nginx
 	-docker rm -f financejc
 	$(MAKE) serve
+	-docker rm -f financejcnginx
+	$(MAKE) nginx
 
 network:
 	docker network ls | grep financejcnet || \
@@ -58,6 +58,19 @@ es: network
 		elasticsearch
 
 nginx: network
+	docker ps | grep financejcnginx || \
+		docker run -d \
+		--name financejcnginx \
+		--network financejcnet \
+		-e DOMAIN=finance.joshchorlton.com \
+		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
+		-v financejcletsencrypt:/etc/letsencrypt \
+		-v wellknown:/usr/share/nginx/wellknown \
+		-p 80:80 \
+		-p 443:443 \
+		jchorl/financejcnginx
+
+nginx-dev: network
 	docker ps | grep financejcnginx || \
 		docker run -d \
 		--name financejcnginx \
