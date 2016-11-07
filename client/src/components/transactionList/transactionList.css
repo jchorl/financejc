@@ -8,14 +8,22 @@
   }
 }
 
-.newTransaction {
-  lost-column: 1/1;
+.newTransactionRow {
+  display: flex;
+  justify-content: center;
   border: none;
   background: ~colors.primaryLight;
   padding: 5px;
-  cursor: pointer;
 
-  &:focus {
-    outline: none;
+  .newBlock {
+    margin: 0 10px;
+
+    &.button {
+      cursor: pointer;
+      border: 1px solid #000;
+      border-radius: 5px;
+      padding: 5px 20px;
+      font-size: 10px;
+    }
   }
 }

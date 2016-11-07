@@ -1,30 +1,49 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import Immutable from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import Infinite from 'react-infinite';
-import { fetchTransactions } from '../../actions';
+import classNames from 'classnames';
+import { fetchTransactions, fetchTransactionTemplates } from '../../actions';
 import styles from './transactionList.css';
 import { Transaction, TransactionForm } from '../transaction';
-import { toRFC3339 } from '../../utils';
+import { toRFC3339, toDecimal } from '../../utils';
+
+function getEmptyTemplate() {
+  return Immutable.Map({
+    name: '',
+    date: toRFC3339(new Date()),
+    category: '',
+    amount: 0
+  });
+}
 
 @connect((state) => {
   return {
-    accountTransaction: state.accountTransaction
+    accountTransaction: state.accountTransaction,
+    accountTransactionTemplate: state.accountTransactionTemplate
   };
 })
 export default class TransactionList extends React.Component {
   static propTypes = {
     accountId: React.PropTypes.number.isRequired,
     accountTransaction: ImmutablePropTypes.map.isRequired,
+    accountTransactionTemplate: ImmutablePropTypes.map.isRequired,
     currency: ImmutablePropTypes.map.isRequired,
     dispatch: React.PropTypes.func.isRequired
   };
 
   constructor (props) {
     super(props);
+
+    if (!props.accountTransactionTemplate.get(props.accountId).get('fetched')) {
+      props.dispatch(fetchTransactionTemplates(props.accountId));
+    }
+
     this.state = {
       newTransaction: false,
-      isInfiniteLoading: false
+      isInfiniteLoading: false,
+      values: getEmptyTemplate()
     };
   }
 
@@ -34,9 +53,10 @@ export default class TransactionList extends React.Component {
     }
   }
 
-  startNewTransaction = () => {
+  startNewTransaction = template => () => {
     this.setState({
-      newTransaction: true
+      newTransaction: true,
+      values: template.set('date', toRFC3339(new Date())).update('amount', am => toDecimal(am, this.props.currency.get('digitsAfterDecimal')))
     });
   }
 
@@ -67,10 +87,16 @@ export default class TransactionList extends React.Component {
     const {
       accountId,
       accountTransaction,
+      accountTransactionTemplate,
       currency
     } = this.props;
 
+    const {
+      values
+    } = this.state;
+
     let transactions = accountTransaction.get(accountId).get('transactions');
+    let transactionTemplates = accountTransactionTemplate.get(accountId).get('transactionTemplates');
 
     return (
       <div>
@@ -82,11 +108,17 @@ export default class TransactionList extends React.Component {
         </div>
         { !this.state.newTransaction ?
             (
-              <button className={ styles.newTransaction } onClick={ this.startNewTransaction }>
-                New
-              </button>
+              <div className={ styles.newTransactionRow }>
+                <div className={ styles.newBlock }>
+                  New:
+                </div>
+                <div className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(getEmptyTemplate()) }>
+                  Empty
+                </div>
+                { transactionTemplates.map(transactionTemplate => (<div key={ transactionTemplate.get('id') } className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(transactionTemplate) }>{ transactionTemplate.get('templateName') }</div>)).toOrderedSet().toArray() }
+              </div>
             ) : (
-              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ { name: '', date: toRFC3339(new Date()), category: '', amount: '0', } } />
+              <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ values.toObject() } />
             )
         }
         <Infinite useWindowAsScrollContainer elementHeight={ 42 } onInfiniteLoad={ this.loadNextPage(accountId) } infiniteLoadBeginEdgeOffset={ 100 } >

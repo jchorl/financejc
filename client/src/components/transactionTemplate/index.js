@@ -225,11 +225,13 @@ export class TransactionTemplateForm extends React.Component {
       onChange: this.onChange('category')
     };
 
+    console.log(values);
+
     return (
       <div className={ styles.transactionTemplate }>
         <form onSubmit={ this.submit }>
           <div className={ styles.transactionTemplateFields }>
-            <input type="text" name="templateName" value={ values.templateName } onChange={ this.fieldChange('templateName') } placeholder="Template Name" className={ styles.transactionTemplateField } />
+            <input type="text" name="templateName" placeholder="Template Name" className={ styles.transactionTemplateField } />
             <Autosuggest
               id="name"
               suggestions={ suggestions.name }
