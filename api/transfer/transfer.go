@@ -3,10 +3,8 @@ package transfer
 import (
 	"bufio"
 	"context"
-	"io/ioutil"
+	"io"
 	"math"
-	"os"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -35,47 +33,12 @@ func round(a float64) int {
 	return int(a + 0.5)
 }
 
-func AutoImport(c context.Context) error {
-	files, err := ioutil.ReadDir(constants.IMPORT_PATH)
-	if err != nil {
-		currDir, err2 := os.Getwd()
-		if err2 != nil {
-			logrus.WithField("Error", err2).Error("error listing working dir while reporting listing error")
-		}
-		logrus.WithFields(logrus.Fields{
-			"error":            err,
-			"importPath":       constants.IMPORT_PATH,
-			"currentDirectory": currDir,
-		}).Error("error listing files")
-		return err
-	}
-	for _, f := range files {
-		// skip gitkeep
-		if f.Name() == ".gitkeep" {
-			continue
-		}
-
-		file, err := os.Open(path.Join(constants.IMPORT_PATH, f.Name()))
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":    err,
-				"file":     f.Name(),
-				"fullPath": path.Join(constants.IMPORT_PATH, f.Name()),
-			}).Error("error opening files")
-			return err
-		}
-		defer file.Close()
-
-		err = TransferQIF(c, file)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+// currently only QIF is supported
+func Import(c context.Context, file io.Reader) error {
+	return TransferQIF(c, file)
 }
 
-func TransferQIF(c context.Context, file *os.File) error {
+func TransferQIF(c context.Context, file io.Reader) error {
 	userId, err := util.UserIdFromContext(c)
 	if err != nil {
 		return err

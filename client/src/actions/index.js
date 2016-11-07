@@ -168,15 +168,17 @@ export function fetchTransactionTemplates(accountId) {
   };
 }
 
-export function importData() {
+export function importData(files) {
   return function(dispatch) {
     let headers = new Headers();
     headers.append('Accept', 'application/json');
-    headers.append('Content-Type', 'application/json');
+    let data = new FormData();
+    data.append('file', files[0]);
     return fetch('/api/import', {
       method: 'POST',
       credentials: 'include',
-      headers: headers
+      headers: headers,
+      body: data
     }).then((resp) => {
       if (resp.ok) {
         dispatch(fetchAccounts());

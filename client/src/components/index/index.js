@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link, withRouter } from 'react-router';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { logout } from '../../actions';
+import { logout, importData } from '../../actions';
 import GoogleLoginButton from '../googleLoginButton';
 import styles from './index.css';
 
@@ -16,6 +16,14 @@ export default class App extends React.Component {
     dispatch: React.PropTypes.func.isRequired,
     children: React.PropTypes.element.isRequired,
     router: React.PropTypes.object.isRequired
+  }
+
+  fileChange = e => {
+    const {
+      dispatch,
+    } = this.props;
+
+    dispatch(importData(e.target.files));
   }
 
   dispatchLogout = () => {
@@ -56,6 +64,7 @@ export default class App extends React.Component {
               <div className={ styles.dropdown }>
                 { auth.get('user').get('email') } <i className={ 'fa fa-chevron-down ' + styles.dropdownChevron } aria-hidden="true"></i>
                 <div className={ styles.dropdownContent }>
+                  <div className={ styles.dropdownOption }>Import <input type="file" onChange={ this.fileChange } /></div>
                   <div className={ styles.dropdownOption } onClick={ this.dispatchLogout }>Logout</div>
                 </div>
               </div>

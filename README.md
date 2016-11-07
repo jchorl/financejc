@@ -32,7 +32,6 @@ Elasticsearch indexes all transactions to provide suggestions as a user types. W
 Nginx is used for serving static files and load balancing. TLS certs are also managed in the nginx container using LetsEncrypt.
 
 ## Importing Data
-1. Place one or more QIF files in the import folder
-2. Go to https://localhost:4443
-3. Log in with Google if necessary
-4. Click the import button
+1. Log in if necessary
+2. Hover over your email address in the top right and click import
+3. Select a QIF file

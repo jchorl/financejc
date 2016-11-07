@@ -66,31 +66,22 @@ class AccountsPage extends React.Component {
     }
 
     return (
-      <div>
-        {
-          accounts.get('accounts').size !== 0 ? null : (
-            <div>
-              Place QIF files in the /import folder and click <button onClick={ this.importButton }>Import</button>
-            </div>
-          )
-        }
-        <div className={ styles.accountsPage }>
-          <div className={ styles.accountList }>
-            <AccountList selected={ selected } onSelect={ this.selectAccount } />
-          </div>
-          {
-            selected !== -1 ? (
-              <div className={ styles.transactionList }>
-                {
-                  React.cloneElement(children, {
-                    accountId: selected,
-                    currency: currency
-                  })
-                }
-              </div>
-            ) : <AccountForm />
-          }
+      <div className={ styles.accountsPage }>
+        <div className={ styles.accountList }>
+          <AccountList selected={ selected } onSelect={ this.selectAccount } />
         </div>
+        {
+          selected !== -1 ? (
+            <div className={ styles.transactionList }>
+              {
+                React.cloneElement(children, {
+                  accountId: selected,
+                  currency: currency
+                })
+              }
+            </div>
+          ) : <AccountForm />
+        }
       </div>
     );
   }
