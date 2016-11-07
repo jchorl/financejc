@@ -1,5 +1,14 @@
-all: network db es build serve nginx
-dev: network db es build serve-dev nginx
+all: certs network db es build ui build-nginx serve nginx
+dev: network db es build serve-dev ui build-nginx nginx
+
+deploy:
+	$(MAKE) build
+	$(MAKE) ui
+	$(MAKE) build-nginx
+	-docker rm -f financejcnginx
+	$(MAKE) nginx
+	-docker rm -f financejc
+	$(MAKE) serve
 
 network:
 	docker network ls | grep financejcnet || \
@@ -31,8 +40,8 @@ db: network
 		--expose=5432 \
 		-v $(PWD)/db:/docker-entrypoint-initdb.d \
 		-v financejcpgdata:/var/lib/postgresql/data \
-		-e POSTGRES_USER=financejc \
-		-e POSTGRES_PASSWORD=financejc \
+		-e POSTGRES_USER \
+		-e POSTGRES_PASSWORD \
 		postgres
 
 es: network
@@ -45,7 +54,7 @@ es: network
 		-v financejcesdata:/usr/share/elasticsearch/data \
 		elasticsearch
 
-nginx: network build-nginx
+nginx: network
 	docker ps | grep financejcnginx || \
 		docker run -d \
 		--name financejcnginx \
@@ -54,6 +63,8 @@ nginx: network build-nginx
 		-e DOMAIN=finance.joshchorlton.com \
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
 		-v financejcletsencrypt:/etc/letsencrypt \
+		-v wellknown:/usr/share/nginx/wellknown \
+		-p 8080:80 \
 		-p 4443:443 \
 		jchorl/financejcnginx
 
@@ -65,7 +76,8 @@ serve: network
 		-h financejc \
 		-e DOMAIN=finance.joshchorlton.com \
 		-e PORT=443 \
-		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
+		-e JWT_SIGNING_KEY \
+		-e DB_ADDRESS \
 		jchorl/financejc
 
 serve-dev: network
@@ -76,10 +88,9 @@ serve-dev: network
 		-h financejc \
 		-e DOMAIN=localhost \
 		-e PORT=4443 \
-		-v $(PWD)/client/dest:/go/src/github.com/jchorl/financejc/client/dest \
 		jchorl/financejc
 
-build-nginx: ui
+build-nginx:
 	docker build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
 build:
@@ -95,13 +106,6 @@ test-all:
 		golang \
 		sh -c 'go test --tags=integration $$(go list ./... | grep -v /vendor/)'
 
-rebuild:
-	-docker rm -f financejc
-	-rm client/dest/bundle.js
-	$(MAKE) build
-	$(MAKE) ui
-	$(MAKE) serve-dev
-
 clean:
 	-docker rm -f financejcdbcon
 	-docker rm -f financejcdb
@@ -111,21 +115,37 @@ clean:
 	-docker volume rm financejcpgdata
 	-docker volume rm financejcesdata
 	-docker volume rm financejcletsencrypt
+	-docker network rm wellknown
 	-docker network rm financejcnet
 	-rm client/dest/bundle.js
 
+certs:
+	docker run -it --rm \
+		--name certbot \
+		-v "/etc/letsencrypt:/etc/letsencrypt" \
+		-v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
+		-p 4443:443 \
+		-p 8080:80 \
+		quay.io/letsencrypt/letsencrypt:latest \
+		certonly --standalone --noninteractive --agree-tos --keep --expand -d finance.joshchorlton.com --email=josh@joshchorlton.com
+
+
+# useful targets for dev
+# npm target makes it easy to add new npm packages
 npm:
 	docker run -it --rm \
 		-v $(PWD)/client:/usr/src/app \
 		-w /usr/src/app \
 		node:latest /bin/bash
 
+# connect-db connects to the postgres instance
 connect-db:
 	docker run -it --rm \
 		--network financejcnet \
 		postgres \
-		psql -h financejcdb -U financejc
+		psql -h financejcdb -U postgres
 
+# golang makes it easy to use tools like godep
 golang:
 	docker run -it --rm \
 		-v $(PWD):/go/src/github.com/jchorl/financejc \
@@ -133,6 +153,7 @@ golang:
 		golang \
 		bash
 
+# kibana makes it easy to view es data
 kibana:
 	docker run -it --rm \
 		--name kibana \
