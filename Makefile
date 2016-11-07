@@ -125,8 +125,8 @@ clean:
 certs:
 	docker run -it --rm \
 		--name certbot \
-		-v "/etc/letsencrypt:/etc/letsencrypt" \
-		-v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
+		-v financejcletsencrypt:/etc/letsencrypt" \
+		-v financejcletsencryptvar:/var/lib/letsencrypt \
 		-p 443:443 \
 		-p 80:80 \
 		quay.io/letsencrypt/letsencrypt:latest \
