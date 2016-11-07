@@ -117,7 +117,6 @@ clean:
 	-docker rm -f financejc
 	-docker volume rm financejcpgdata
 	-docker volume rm financejcesdata
-	-docker volume rm financejcletsencrypt
 	-docker network rm wellknown
 	-docker network rm financejcnet
 	-rm client/dest/bundle.js
@@ -125,7 +124,7 @@ clean:
 certs:
 	docker run -it --rm \
 		--name certbot \
-		-v financejcletsencrypt:/etc/letsencrypt" \
+		-v financejcletsencrypt:/etc/letsencrypt \
 		-v financejcletsencryptvar:/var/lib/letsencrypt \
 		-p 443:443 \
 		-p 80:80 \
