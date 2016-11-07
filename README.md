@@ -13,7 +13,7 @@ Features:
 1. Install `docker`
 2. Run `make dev`
 
-The app should be served on https://localhost:4443
+The app should be served on https://localhost
 
 ## Architecture
 ### Webserver

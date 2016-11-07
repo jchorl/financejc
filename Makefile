@@ -64,15 +64,15 @@ nginx: network
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
 		-v financejcletsencrypt:/etc/letsencrypt \
 		-v wellknown:/usr/share/nginx/wellknown \
-		-p 8080:80 \
-		-p 4443:443 \
+		-p 80:80 \
+		-p 443:443 \
 		jchorl/financejcnginx
 
 serve: network
 	docker run -d \
 		--name financejc \
 		--network financejcnet \
-		--expose=4443 \
+		--expose=443 \
 		-h financejc \
 		-e DOMAIN=finance.joshchorlton.com \
 		-e PORT=443 \
@@ -84,10 +84,10 @@ serve-dev: network
 	docker run -d \
 		--name financejc \
 		--network financejcnet \
-		--expose=4443 \
+		--expose=443 \
 		-h financejc \
 		-e DOMAIN=localhost \
-		-e PORT=4443 \
+		-e PORT=443 \
 		jchorl/financejc
 
 build-nginx:
@@ -124,8 +124,8 @@ certs:
 		--name certbot \
 		-v "/etc/letsencrypt:/etc/letsencrypt" \
 		-v "/var/lib/letsencrypt:/var/lib/letsencrypt" \
-		-p 4443:443 \
-		-p 8080:80 \
+		-p 443:443 \
+		-p 80:80 \
 		quay.io/letsencrypt/letsencrypt:latest \
 		certonly --standalone --noninteractive --agree-tos --keep --expand -d finance.joshchorlton.com --email=josh@joshchorlton.com
 
