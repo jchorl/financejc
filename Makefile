@@ -1,6 +1,8 @@
 all: certs network db es build ui build-nginx serve nginx
 dev: network db es build serve-dev ui build-nginx nginx
 
+POSTGRES_USER ?= postgres
+
 deploy:
 	$(MAKE) build
 	$(MAKE) ui
@@ -143,7 +145,7 @@ connect-db:
 	docker run -it --rm \
 		--network financejcnet \
 		postgres \
-		psql -h financejcdb -U postgres
+		psql -h financejcdb -U '$(POSTGRES_USER)'
 
 # golang makes it easy to use tools like godep
 golang:

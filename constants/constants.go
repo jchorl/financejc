@@ -11,8 +11,6 @@ const (
 
 	ES_INDEX = "financejc"
 
-	IMPORT_PATH = "import"
-
 	FIXED_INTERVAL  = "fixedInterval"
 	FIXED_DAY_WEEK  = "fixedDayWeek"
 	FIXED_DAY_MONTH = "fixedDayMonth"
