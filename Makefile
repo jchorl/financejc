@@ -37,7 +37,7 @@ db: network
 	docker ps | grep financejcdb || \
 		docker run -d \
 		--name financejcdb \
-		--restart="always" \
+		--restart=always \
 		--network financejcnet \
 		-h financejcdb \
 		--expose=5432 \
@@ -51,7 +51,7 @@ es: network
 	docker ps | grep financejces || \
 		docker run -d \
 		--name financejces \
-		--restart="always" \
+		--restart=always \
 		--network financejcnet \
 		-h financejces \
 		--expose=9200 \
@@ -63,7 +63,7 @@ nginx: network
 	docker ps | grep financejcnginx || \
 		docker run -d \
 		--name financejcnginx \
-		--restart="always" \
+		--restart=always \
 		--network financejcnet \
 		-e DOMAIN=finance.joshchorlton.com \
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
@@ -77,7 +77,7 @@ nginx-dev: network
 	docker ps | grep financejcnginx || \
 		docker run -d \
 		--name financejcnginx \
-		--restart="always" \
+		--restart=always \
 		--network financejcnet \
 		-e DEV=1 \
 		-e DOMAIN=finance.joshchorlton.com \
@@ -91,7 +91,7 @@ nginx-dev: network
 serve: network
 	docker run -d \
 		--name financejc \
-		--restart="always" \
+		--restart=always \
 		--network financejcnet \
 		--expose=443 \
 		-h financejc \
@@ -104,7 +104,7 @@ serve: network
 serve-dev: network
 	docker run -d \
 		--name financejc \
-		--restart="always" \
+		--restart=always \
 		--network financejcnet \
 		--expose=443 \
 		-h financejc \
