@@ -225,8 +225,6 @@ export class TransactionTemplateForm extends React.Component {
       onChange: this.onChange('category')
     };
 
-    console.log(values);
-
     return (
       <div className={ styles.transactionTemplate }>
         <form onSubmit={ this.submit }>

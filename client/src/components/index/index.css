@@ -23,8 +23,13 @@
       margin: 0 20px;
     }
 
-    .navOption {
-      margin: 0 10px;
+    .navOptions {
+      display: flex;
+      justify-content: space-between;
+
+      .navOption {
+        margin: 0 10px;
+      }
     }
   }
 

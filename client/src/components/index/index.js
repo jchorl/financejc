@@ -55,9 +55,14 @@ export default class App extends React.Component {
         <nav className={ styles.navBar }>
           <div className={ styles.logoAndNavOptions }>
             <div className={ styles.logo }><Link to={ '/' } className={ styles.unstyledLink }>FinanceJC</Link></div>
-            <div className={ styles.navOption }><Link to={ '/transactions' } className={ styles.unstyledLink }>Transactions</Link></div>
-            <div className={ styles.navOption }><Link to={ '/transactions/recurring' } className={ styles.unstyledLink }>Recurring Transactions</Link></div>
-            <div className={ styles.navOption }><Link to={ '/transactions/templates' } className={ styles.unstyledLink }>Transaction Templates</Link></div>
+            { auth.get('authd') ? (
+              <div className={ styles.navOptions }>
+                <div className={ styles.navOption }><Link to={ '/transactions' } className={ styles.unstyledLink }>Transactions</Link></div>
+                <div className={ styles.navOption }><Link to={ '/transactions/recurring' } className={ styles.unstyledLink }>Recurring Transactions</Link></div>
+                <div className={ styles.navOption }><Link to={ '/transactions/templates' } className={ styles.unstyledLink }>Transaction Templates</Link></div>
+              </div>
+            ) : null
+            }
           </div>
           <div className={ styles.options }>
             { auth.get('authd') ? (
