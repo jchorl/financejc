@@ -134,7 +134,7 @@ func InitES(es *elastic.Client) error {
 							"search_analyzer": "whitespace_analyzer",
 							"fields": map[string]interface{}{
 								"raw": map[string]interface{}{
-									"type":  "string",
+									"type":  "keyword",
 									"index": "not_analyzed",
 								},
 							},
@@ -148,7 +148,7 @@ func InitES(es *elastic.Client) error {
 							"search_analyzer": "whitespace_analyzer",
 							"fields": map[string]interface{}{
 								"raw": map[string]interface{}{
-									"type":  "string",
+									"type":  "keyword",
 									"index": "not_analyzed",
 								},
 							},
