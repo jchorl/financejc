@@ -20,6 +20,7 @@ import (
 
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 
 	db, err := sql.Open(constants.DB_DRIVER, constants.DB_ADDRESS)
 	if err != nil {
