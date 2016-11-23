@@ -36,9 +36,7 @@ export default class TransactionList extends React.Component {
   constructor (props) {
     super(props);
 
-    if (!props.accountTransactionTemplate.get(props.accountId).get('fetched')) {
-      props.dispatch(fetchTransactionTemplates(props.accountId));
-    }
+    this.fetchTransactionTemplatesIfNecessary(props);
 
     this.state = {
       newTransaction: false,
@@ -50,6 +48,13 @@ export default class TransactionList extends React.Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.accountTransaction.get(nextProps.accountId).get('transactions').size > this.props.accountTransaction.get(nextProps.accountId).get('transactions').size && this.state.isInfiniteLoading) {
       this.setState({ isInfiniteLoading: false });
+    }
+    this.fetchTransactionTemplatesIfNecessary(nextProps);
+  }
+
+  fetchTransactionTemplatesIfNecessary = (props) => {
+    if (!props.accountTransactionTemplate.get(props.accountId).get('fetched')) {
+      props.dispatch(fetchTransactionTemplates(props.accountId));
     }
   }
 
