@@ -11,7 +11,7 @@ export function toDecimal(whole, digitsAfterDecimal) {
 }
 
 export function toWhole(decimal, digitsAfterDecimal) {
-  return decimal * Math.pow(10, digitsAfterDecimal);
+  return Math.round(decimal * Math.pow(10, digitsAfterDecimal));
 }
 
 function pad(n) {
