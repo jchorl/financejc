@@ -55,6 +55,15 @@ const receiveRecurringTransactions = (recurringTransactions, accountId) => {
     };
 };
 
+export const DELETE_RECURRING_TRANSACTION = 'DELETE_RECURRING_TRANSACTION';
+const recurringTransactionDeleted = (id, accountId) => {
+    return {
+        type: DELETE_RECURRING_TRANSACTION,
+        accountId,
+        id
+    };
+};
+
 export const RECEIVE_TEMPLATES = 'RECEIVE_TEMPLATES';
 const receiveTemplates = (templates, accountId) => {
     return {
@@ -378,6 +387,24 @@ export function deleteTemplate(id, accountId) {
         }).then((resp) => {
             if (resp.ok) {
                 dispatch(templateDeleted(id, accountId));
+            }
+        });
+    };
+}
+
+export function deleteRecurringTransaction(id, accountId) {
+    let headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+
+    return function(dispatch) {
+        return fetch(`/api/recurringTransaction/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: headers
+        }).then((resp) => {
+            if (resp.ok) {
+                dispatch(recurringTransactionDeleted(id, accountId));
             }
         });
     };

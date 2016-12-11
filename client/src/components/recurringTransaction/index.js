@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
 import styles from './recurringTransaction.css';
 import { toCurrency, toDate, toDecimal, toWhole, toRFC3339, queryByFieldAndVal } from '../../utils';
-import { putRecurringTransaction } from '../../actions';
+import { putRecurringTransaction, deleteRecurringTransaction } from '../../actions';
 
 function getFixedType(scheduleType) {
     switch(scheduleType) {
@@ -40,34 +40,34 @@ export class RecurringTransaction extends React.Component {
 
     render () {
         const {
-      recurringTransaction,
-      currency
-    } = this.props;
+            recurringTransaction,
+            currency
+        } = this.props;
 
         return recurringTransaction ? (
-      this.state.editMode ? (
-        <RecurringTransactionForm recurringTransaction={ recurringTransaction } initialValues={ getFormInitialValues(recurringTransaction, currency) } done={ this.exitEditMode } currency={ currency } />
-      ) : (
-        <div className={ classNames(styles.recurringTransaction, styles.recurringTransactionFields) }>
-          <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ recurringTransaction.get('transaction').get('name') }</span>
-          <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(recurringTransaction.get('transaction').get('date')) }</span>
-          <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ recurringTransaction.get('transaction').get('category') }</span>
-          <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(recurringTransaction.get('transaction').get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
-          <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ recurringTransaction.get('scheduleType') === 'fixedInterval' ? 'Fixed Interval' : 'Fixed Period' }</span>
-          { recurringTransaction.get('scheduleType') === 'fixedInterval' ? (
-            <div className={ classNames(styles.recurringTransactionField, styles.nonEdit, styles.details) } onClick={ this.enterEditMode }>
-              <div className={ styles.detail }>Interval: { recurringTransaction.get('secondsBetween') / (24 * 60 * 60) } days</div>
-              <div className={ styles.detail }>Days before to post: { recurringTransaction.get('secondsBeforeToPost') / (24 * 60 * 60) } days</div>
-            </div>
-          ) : (
-            <div className={ classNames(styles.recurringTransactionField, styles.nonEdit, styles.details) } onClick={ this.enterEditMode }>
-              <div className={ styles.detail }>Transaction will be generated every { getFixedType(recurringTransaction.get('scheduleType')) } on the { recurringTransaction.get('dayOf') } day</div>
-              <div className={ styles.detail }>Days before to post: { recurringTransaction.get('secondsBeforeToPost') / (24 * 60 * 60) } days</div>
-            </div>
-          ) }
-        </div>
-      )
-    ) : null;
+            this.state.editMode ? (
+                <RecurringTransactionForm recurringTransaction={ recurringTransaction } initialValues={ getFormInitialValues(recurringTransaction, currency) } done={ this.exitEditMode } currency={ currency } />
+            ) : (
+                <div className={ classNames(styles.recurringTransaction, styles.recurringTransactionFields) }>
+                    <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ recurringTransaction.get('transaction').get('name') }</span>
+                    <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(recurringTransaction.get('transaction').get('date')) }</span>
+                    <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ recurringTransaction.get('transaction').get('category') }</span>
+                    <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(recurringTransaction.get('transaction').get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
+                    <span className={ classNames(styles.recurringTransactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ recurringTransaction.get('scheduleType') === 'fixedInterval' ? 'Fixed Interval' : 'Fixed Period' }</span>
+                    { recurringTransaction.get('scheduleType') === 'fixedInterval' ? (
+                        <div className={ classNames(styles.recurringTransactionField, styles.nonEdit, styles.details) } onClick={ this.enterEditMode }>
+                            <div className={ styles.detail }>Interval: { recurringTransaction.get('secondsBetween') / (24 * 60 * 60) } days</div>
+                            <div className={ styles.detail }>Days before to post: { recurringTransaction.get('secondsBeforeToPost') / (24 * 60 * 60) } days</div>
+                        </div>
+                    ) : (
+                        <div className={ classNames(styles.recurringTransactionField, styles.nonEdit, styles.details) } onClick={ this.enterEditMode }>
+                            <div className={ styles.detail }>Transaction will be generated every { getFixedType(recurringTransaction.get('scheduleType')) } on the { recurringTransaction.get('dayOf') } day</div>
+                            <div className={ styles.detail }>Days before to post: { recurringTransaction.get('secondsBeforeToPost') / (24 * 60 * 60) } days</div>
+                        </div>
+                    ) }
+                </div>
+            )
+        ) : null;
     }
 }
 
@@ -92,8 +92,8 @@ function getSuggestionValue(field, suggestion) {
 
 function renderSuggestion(field, suggestion) {
     return (
-    <span>{ suggestion[field] }</span>
-  );
+        <span>{ suggestion[field] }</span>
+    );
 }
 
 @connect()
@@ -102,7 +102,7 @@ export class RecurringTransactionForm extends React.Component {
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired,
         initialValues: React.PropTypes.object.isRequired,
-    // either recurringTransaction (for editing) or accountId (for new transactions) should be passed
+        // either recurringTransaction (for editing) or accountId (for new transactions) should be passed
         accountId: React.PropTypes.number,
         recurringTransaction: ImmutablePropTypes.map,
         done: React.PropTypes.func
@@ -131,9 +131,9 @@ export class RecurringTransactionForm extends React.Component {
 
     loadSuggestions = (field, value) => {
         const {
-      accountId,
-      recurringTransaction
-    } = this.props;
+            accountId,
+            recurringTransaction
+        } = this.props;
 
         let resolvedAccountId = accountId;
         if (recurringTransaction) {
@@ -147,9 +147,9 @@ export class RecurringTransactionForm extends React.Component {
 
         let that = this;
 
-    // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
+        // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
         queryByFieldAndVal(resolvedAccountId, field, value).then(transactions => {
-      // stale query
+            // stale query
             if (id !== that.state.lastRequestId) {
                 return;
             }
@@ -193,7 +193,7 @@ export class RecurringTransactionForm extends React.Component {
             values: {
                 transaction: {
                     name: suggestion.name,
-          // don't update the date
+                    // don't update the date
                     date: this.state.values.transaction.date,
                     category: suggestion.category,
                     amount: toDecimal(suggestion.amount, currency.get('digitsAfterDecimal'))
@@ -216,6 +216,18 @@ export class RecurringTransactionForm extends React.Component {
         this.setState({
             values: newState
         });
+    }
+
+    deleteRecurringTransaction = (e) => {
+        const {
+            dispatch,
+            done,
+            recurringTransaction
+        } = this.props;
+
+        dispatch(deleteRecurringTransaction(recurringTransaction.get('id'), recurringTransaction.get('transaction').get('accountId')));
+        done && done();
+        e.preventDefault();
     }
 
     transactionFieldChange = name => e => {
@@ -241,12 +253,12 @@ export class RecurringTransactionForm extends React.Component {
 
     submit = (e) => {
         const {
-      accountId,
-      currency,
-      dispatch,
-      done,
-      recurringTransaction
-    } = this.props;
+            accountId,
+            currency,
+            dispatch,
+            done,
+            recurringTransaction
+        } = this.props;
 
         const { values } = this.state;
 
@@ -287,10 +299,14 @@ export class RecurringTransactionForm extends React.Component {
 
     render () {
         const {
-      suggestions,
-      values,
-      fixedInterval
-    } = this.state;
+            recurringTransaction
+        } = this.props;
+
+        const {
+            fixedInterval,
+            suggestions,
+            values
+        } = this.state;
 
         const nameInputProps = {
             name: 'name',
@@ -307,78 +323,81 @@ export class RecurringTransactionForm extends React.Component {
         };
 
         return (
-      <div className={ styles.recurringTransaction }>
-        <form onSubmit={ this.submit }>
-          <div className={ styles.recurringTransactionFields }>
-            <Autosuggest
-              id="name"
-              suggestions={ suggestions.name }
-              onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'name') }
-              onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
-              onSuggestionSelected={ this.onNameSuggestionSelected }
-              getSuggestionValue={ getSuggestionValue.bind(undefined, 'name') }
-              renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
-              inputProps={ nameInputProps }
-              theme={ styles } />
-            <input type="date" name="date" value={ values.transaction.date } onChange={ this.transactionFieldChange('date') } className={ styles.recurringTransactionField } />
-            <Autosuggest
-              id="category"
-              suggestions={ suggestions.category }
-              onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'category') }
-              onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
-              getSuggestionValue={ getSuggestionValue.bind(undefined, 'category') }
-              renderSuggestion={ renderSuggestion.bind(undefined, 'category') }
-              inputProps={ categoryInputProps }
-              theme={ styles } />
-            <input type="text" name="amount" value={ values.transaction.amount } onChange={ this.transactionFieldChange('amount') } placeholder="0" className={ styles.recurringTransactionField } />
-            <div className={ styles.recurringTransactionField }>
-              <label>
-                <input
-                  type="radio"
-                  name="fixedInterval"
-                  value="true"
-                  defaultChecked={ fixedInterval }
-                  onChange={ this.changeSchedule } />
-                Fixed interval
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="fixedInterval"
-                  value="false"
-                  defaultChecked={ !fixedInterval }
-                  onChange={ this.changeSchedule } />
-                Fixed day
-              </label>
+            <div className={ styles.recurringTransaction }>
+                <form onSubmit={ this.submit }>
+                    <div className={ styles.recurringTransactionFields }>
+                        <Autosuggest
+                            id="name"
+                            suggestions={ suggestions.name }
+                            onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'name') }
+                            onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
+                            onSuggestionSelected={ this.onNameSuggestionSelected }
+                            getSuggestionValue={ getSuggestionValue.bind(undefined, 'name') }
+                            renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
+                            inputProps={ nameInputProps }
+                            theme={ styles } />
+                        <input type="date" name="date" value={ values.transaction.date } onChange={ this.transactionFieldChange('date') } className={ styles.recurringTransactionField } />
+                        <Autosuggest
+                            id="category"
+                            suggestions={ suggestions.category }
+                            onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'category') }
+                            onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
+                            getSuggestionValue={ getSuggestionValue.bind(undefined, 'category') }
+                            renderSuggestion={ renderSuggestion.bind(undefined, 'category') }
+                            inputProps={ categoryInputProps }
+                            theme={ styles } />
+                        <input type="text" name="amount" value={ values.transaction.amount } onChange={ this.transactionFieldChange('amount') } placeholder="0" className={ styles.recurringTransactionField } />
+                        <div className={ styles.recurringTransactionField }>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="fixedInterval"
+                                    value="true"
+                                    defaultChecked={ fixedInterval }
+                                    onChange={ this.changeSchedule } />
+                                Fixed interval
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="fixedInterval"
+                                    value="false"
+                                    defaultChecked={ !fixedInterval }
+                                    onChange={ this.changeSchedule } />
+                                Fixed day
+                            </label>
+                        </div>
+                        { fixedInterval ? (
+                            <div className={ classNames(styles.recurringTransactionField, styles.details) }>
+                                <div className={ styles.detail }>
+                                    Interval: <input type="number" name="interval" value={ values.secondsBetween / (24 * 60 * 60) } onChange={ this.fieldChange('secondsBetween') }></input> days
+                                </div>
+                                <div className={ styles.detail }>
+                                    Days before to post: <input type="number" name="daysBeforeToPost" value={ values.secondsBeforeToPost / (24 * 60 * 60) } onChange={ this.fieldChange('secondsBeforeToPost') }></input> days
+                                </div>
+                            </div>
+                        ) : (
+                            <div className={ classNames(styles.recurringTransactionField, styles.details) }>
+                                <div className={ styles.detail }>Transaction will be generated every <select name="period" value={ values.scheduleType } onChange={ this.fieldChange('scheduleType') }>
+                                        <option value="fixedDayWeek">week</option>
+                                        <option value="fixedDayMonth">month</option>
+                                        <option value="fixedDayYear">year</option>
+                                </select> on the <input type="number" name="dayOf" onChange={ this.fieldChange('dayOf') } value={ values.dayOf } /> day</div>
+                                <div className={ styles.detail }>
+                                    Days before to post: <input type="number" name="daysBeforeToPost" value={ values.secondsBeforeToPost / (24 * 60 * 60) } onChange={ this.fieldChange('secondsBeforeToPost') }></input> days
+                                </div>
+                            </div>
+                        ) }
+                    </div>
+                    <div className={ styles.saveExit }>
+                        <button type="button" onClick={ this.props.done }>Cancel</button>
+                        {
+                            recurringTransaction ? <button type="button" onClick={ this.deleteRecurringTransaction }>Delete</button> : null
+                        }
+                        <button type="submit">Save</button>
+                    </div>
+                </form>
             </div>
-            { fixedInterval ? (
-              <div className={ classNames(styles.recurringTransactionField, styles.details) }>
-                <div className={ styles.detail }>
-                  Interval: <input type="number" name="interval" value={ values.secondsBetween / (24 * 60 * 60) } onChange={ this.fieldChange('secondsBetween') }></input> days
-                </div>
-                <div className={ styles.detail }>
-                  Days before to post: <input type="number" name="daysBeforeToPost" value={ values.secondsBeforeToPost / (24 * 60 * 60) } onChange={ this.fieldChange('secondsBeforeToPost') }></input> days
-                </div>
-              </div>
-            ) : (
-              <div className={ classNames(styles.recurringTransactionField, styles.details) }>
-                <div className={ styles.detail }>Transaction will be generated every <select name="period" value={ values.scheduleType } onChange={ this.fieldChange('scheduleType') }>
-                    <option value="fixedDayWeek">week</option>
-                    <option value="fixedDayMonth">month</option>
-                    <option value="fixedDayYear">year</option>
-                </select> on the <input type="number" name="dayOf" onChange={ this.fieldChange('dayOf') } value={ values.dayOf } /> day</div>
-                <div className={ styles.detail }>
-                  Days before to post: <input type="number" name="daysBeforeToPost" value={ values.secondsBeforeToPost / (24 * 60 * 60) } onChange={ this.fieldChange('secondsBeforeToPost') }></input> days
-                </div>
-              </div>
-            ) }
-          </div>
-          <div className={ styles.saveExit }>
-            <button type="button" onClick={ this.props.done }>Cancel</button>
-            <button type="submit">Save</button>
-          </div>
-        </form>
-      </div>
-    );
+        );
     }
 }
