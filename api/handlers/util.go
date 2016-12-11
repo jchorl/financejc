@@ -12,6 +12,7 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
+// Paginated is an interface for entity lists that support pagination
 type Paginated interface {
 	Next() string
 	Values() []interface{}
@@ -19,7 +20,7 @@ type Paginated interface {
 
 func writePaginatedEntity(c echo.Context, entity Paginated) error {
 	u := url.URL{
-		RawPath: c.Request().URL().Path(),
+		RawPath: c.Request().URL.Path,
 	}
 	u.RawQuery = ""
 	c.Response().Header().Add("Link", fmt.Sprintf("<%s?start=%s>; rel=\"next\"", u.String(), entity.Next()))
@@ -48,8 +49,8 @@ func writeError(c echo.Context, err error) error {
 // Go context.Context that everything below the handlers can understand.
 func toContext(ctx echo.Context) context.Context {
 	ret := context.Background()
-	for _, ctx_key := range constants.CTX_KEYS {
-		switch ctx_key {
+	for _, ctxKey := range constants.CTX_KEYS {
+		switch ctxKey {
 		case constants.CTX_USER_ID:
 			// we'll catch errors later when we pull vals from ctx
 			// for now just make a valid ctx
@@ -64,11 +65,11 @@ func toContext(ctx echo.Context) context.Context {
 			}
 
 			claims := casted.Claims.(jwt.MapClaims)
-			userIdF := claims["sub"].(float64)
-			userId := uint(userIdF)
-			ret = context.WithValue(ret, ctx_key, userId)
+			userIDF := claims["sub"].(float64)
+			userID := uint(userIDF)
+			ret = context.WithValue(ret, ctxKey, userID)
 		default:
-			ret = context.WithValue(ret, ctx_key, ctx.Get(ctx_key))
+			ret = context.WithValue(ret, ctxKey, ctx.Get(ctxKey))
 		}
 	}
 

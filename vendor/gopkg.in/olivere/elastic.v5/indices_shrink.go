@@ -149,7 +149,7 @@ func (s *IndicesShrinkService) Do(ctx context.Context) (*IndicesShrinkResponse, 
 	var body interface{}
 	if s.bodyJson != nil {
 		body = s.bodyJson
-	} else {
+	} else if s.bodyString != "" {
 		body = s.bodyString
 	}
 

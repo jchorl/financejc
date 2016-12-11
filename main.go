@@ -7,7 +7,6 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
 	"gopkg.in/olivere/elastic.v5"
@@ -52,7 +51,7 @@ func main() {
 	handlers.Init(apiRoutes)
 
 	logrus.Debug("starting server")
-	e.Run(standard.New(":" + os.Getenv("PORT")))
+	e.Start(":" + os.Getenv("PORT"))
 }
 
 func dbMiddleware(db *sql.DB) echo.MiddlewareFunc {

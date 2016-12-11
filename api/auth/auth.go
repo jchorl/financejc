@@ -10,17 +10,19 @@ import (
 	"github.com/jchorl/financejc/api/user"
 )
 
+// Request represents a login request from a client
 type Request struct {
 	Token string `json:"token"` // provided by google
 }
 
-func AuthUser(c context.Context, token string) (user.User, error) {
-	googleId, email, err := getGoogleInfoFromToken(token)
+// LoginByGoogleToken takes a token from Google and returns a User
+func LoginByGoogleToken(c context.Context, token string) (user.User, error) {
+	googleID, email, err := getGoogleInfoFromToken(token)
 	if err != nil {
 		return user.User{}, err
 	}
 
-	resolved, err := user.FindOrCreateByGoogleId(c, googleId, email)
+	resolved, err := user.FindOrCreateByGoogleId(c, googleID, email)
 	if err != nil {
 		return user.User{}, err
 	}

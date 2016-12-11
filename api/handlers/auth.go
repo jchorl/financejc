@@ -12,6 +12,7 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
+// AuthUser authenticates a user based on a auth.Request JSON body
 func AuthUser(c echo.Context) error {
 	req := new(auth.Request)
 
@@ -23,7 +24,7 @@ func AuthUser(c echo.Context) error {
 		return err
 	}
 
-	user, err := auth.AuthUser(toContext(c), req.Token)
+	user, err := auth.LoginByGoogleToken(toContext(c), req.Token)
 	if err != nil {
 		return err
 	}
@@ -42,25 +43,26 @@ func AuthUser(c echo.Context) error {
 		return err
 	}
 
-	cookie := new(echo.Cookie)
-	cookie.SetName("Authorization")
-	cookie.SetValue(tokenStr)
-	cookie.SetHTTPOnly(true)
-	cookie.SetSecure(true)
-	cookie.SetPath("/")
+	cookie := new(http.Cookie)
+	cookie.Name = "Authorization"
+	cookie.Value = tokenStr
+	cookie.HttpOnly = true
+	cookie.Secure = true
+	cookie.Path = "/"
 	c.SetCookie(cookie)
 
 	return c.JSON(http.StatusOK, user)
 }
 
+// Logout logs the authenticated user out
 func Logout(c echo.Context) error {
-	cookie := new(echo.Cookie)
-	cookie.SetName("Authorization")
-	cookie.SetValue("")
-	cookie.SetHTTPOnly(true)
-	cookie.SetSecure(true)
-	cookie.SetPath("/")
-	cookie.SetExpires(time.Unix(1, 0))
+	cookie := new(http.Cookie)
+	cookie.Name = "Authorization"
+	cookie.Value = ""
+	cookie.HttpOnly = true
+	cookie.Secure = true
+	cookie.Path = "/"
+	cookie.Expires = time.Unix(1, 0)
 	c.SetCookie(cookie)
 
 	return c.NoContent(http.StatusNoContent)

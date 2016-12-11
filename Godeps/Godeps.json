@@ -1,20 +1,12 @@
 {
 	"ImportPath": "github.com/jchorl/financejc",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v74",
-	"Packages": [
-		"./..."
-	],
+	"GodepVersion": "v75",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.10.0-46-g380f64d",
-			"Rev": "380f64d344b252a007a59baa61f31820f59cba89"
-		},
-		{
-			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Comment": "v1.0.0-9-g346938d",
-			"Rev": "346938d642f2ec3594ed81d874461961cd0faa76"
+			"Comment": "v0.11.0-25-g881bee4",
+			"Rev": "881bee4e20a5d11a6a88a5667c6f292072ac1963"
 		},
 		{
 			"ImportPath": "github.com/dgrijalva/jwt-go",
@@ -23,139 +15,112 @@
 		},
 		{
 			"ImportPath": "github.com/labstack/echo",
-			"Comment": "v2.1-24-gb011150",
-			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
-		},
-		{
-			"ImportPath": "github.com/labstack/echo/context",
-			"Comment": "v2.1-24-gb011150",
-			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
-		},
-		{
-			"ImportPath": "github.com/labstack/echo/engine",
-			"Comment": "v2.1-24-gb011150",
-			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
-		},
-		{
-			"ImportPath": "github.com/labstack/echo/engine/standard",
-			"Comment": "v2.1-24-gb011150",
-			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
-		},
-		{
-			"ImportPath": "github.com/labstack/echo/log",
-			"Comment": "v2.1-24-gb011150",
-			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
+			"Comment": "v3.0.3-9-g5706940",
+			"Rev": "5706940bc8c4c824586194caf42eb0f46658e8ee"
 		},
 		{
 			"ImportPath": "github.com/labstack/echo/middleware",
-			"Comment": "v2.1-24-gb011150",
-			"Rev": "b0111506968ec0bd6f196d2b346db92d0478ee09"
+			"Comment": "v3.0.3-9-g5706940",
+			"Rev": "5706940bc8c4c824586194caf42eb0f46658e8ee"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/bytes",
-			"Comment": "v0.1.0",
-			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
+			"Comment": "v0.1.0-2-g447fe74",
+			"Rev": "447fe7433567c785af957e549aadae2bf2000071"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/color",
-			"Comment": "v0.1.0",
-			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
+			"Comment": "v0.1.0-2-g447fe74",
+			"Rev": "447fe7433567c785af957e549aadae2bf2000071"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/log",
-			"Comment": "v0.1.0",
-			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
+			"Comment": "v0.1.0-2-g447fe74",
+			"Rev": "447fe7433567c785af957e549aadae2bf2000071"
 		},
 		{
 			"ImportPath": "github.com/labstack/gommon/random",
-			"Comment": "v0.1.0",
-			"Rev": "2d272df536d051e737aea353b86c979d6e88bce0"
+			"Comment": "v0.1.0-2-g447fe74",
+			"Rev": "447fe7433567c785af957e549aadae2bf2000071"
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-125-ga37edb8",
-			"Rev": "a37edb86214894fa6c6c3401a4c4976b02176dd3"
+			"Comment": "go1.0-cutoff-128-g4a82388",
+			"Rev": "4a82388ebc5138c8289fe9bc602cb0b3e32cd617"
 		},
 		{
 			"ImportPath": "github.com/lib/pq/oid",
-			"Comment": "go1.0-cutoff-125-ga37edb8",
-			"Rev": "a37edb86214894fa6c6c3401a4c4976b02176dd3"
+			"Comment": "go1.0-cutoff-128-g4a82388",
+			"Rev": "4a82388ebc5138c8289fe9bc602cb0b3e32cd617"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-colorable",
-			"Comment": "v0.0.6-7-g6e26b35",
-			"Rev": "6e26b354bd2b0fc420cb632b0d878abccdc6544c"
+			"Comment": "v0.0.6-9-gd228849",
+			"Rev": "d228849504861217f796da67fae4f6e347643f15"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-isatty",
-			"Rev": "66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8"
+			"Rev": "30a891c33c7cde7b02a981314b4228ec99380cca"
 		},
 		{
-			"ImportPath": "github.com/pmezard/go-difflib/difflib",
-			"Comment": "v1.0.0",
-			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Comment": "v1.1.4-4-g976c720",
-			"Rev": "976c720a22c8eb4eb6a0b4348ad85ad12491a506"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/require",
-			"Comment": "v1.1.4-4-g976c720",
-			"Rev": "976c720a22c8eb4eb6a0b4348ad85ad12491a506"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/suite",
-			"Comment": "v1.1.4-4-g976c720",
-			"Rev": "976c720a22c8eb4eb6a0b4348ad85ad12491a506"
+			"ImportPath": "github.com/tylerb/graceful",
+			"Comment": "v1.2.13-2-g4df1190",
+			"Rev": "4df1190835320af7076dfcf27b3d071fd3612caf"
 		},
 		{
 			"ImportPath": "github.com/valyala/fasttemplate",
 			"Rev": "3b874956e03f1636d171bda64b130f9135f42cff"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/acme",
+			"Rev": "b07d8c96772f426812d3fc5530710ec1f3b205e7"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/acme/autocert",
+			"Rev": "b07d8c96772f426812d3fc5530710ec1f3b205e7"
+		},
+		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "4bb47a1098b37d69980d96237e2ae4ff56bb5a95"
+			"Rev": "b1a2d6e8c8b5fc8f601ead62536f02a8e1b6217d"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "4bb47a1098b37d69980d96237e2ae4ff56bb5a95"
+			"Rev": "b1a2d6e8c8b5fc8f601ead62536f02a8e1b6217d"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "c200b10b5d5e122be351b67af224adc6128af5bf"
+			"Rev": "478fcf54317e52ab69f40bb4c7a1520288d7f7ea"
 		},
 		{
 			"ImportPath": "google.golang.org/api/gensupport",
-			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
+			"Rev": "d48d03b8203ecb561b4625f933b17a48b2cb9166"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi",
-			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
+			"Rev": "d48d03b8203ecb561b4625f933b17a48b2cb9166"
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi/internal/uritemplates",
-			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
+			"Rev": "d48d03b8203ecb561b4625f933b17a48b2cb9166"
 		},
 		{
 			"ImportPath": "google.golang.org/api/oauth2/v2",
-			"Rev": "2262cc95b9819d2d038c72a2d6007aa7b9e12767"
+			"Rev": "d48d03b8203ecb561b4625f933b17a48b2cb9166"
 		},
 		{
 			"ImportPath": "gopkg.in/olivere/elastic.v5",
-			"Comment": "v5.0.3",
-			"Rev": "a5168d45c99368b983253ee19a4841b2a12f759f"
+			"Comment": "v5.0.13",
+			"Rev": "b272fab42387a42585235d56f8c6b53b13ddfb7d"
 		},
 		{
 			"ImportPath": "gopkg.in/olivere/elastic.v5/backoff",
-			"Comment": "v5.0.3",
-			"Rev": "a5168d45c99368b983253ee19a4841b2a12f759f"
+			"Comment": "v5.0.13",
+			"Rev": "b272fab42387a42585235d56f8c6b53b13ddfb7d"
 		},
 		{
 			"ImportPath": "gopkg.in/olivere/elastic.v5/uritemplates",
-			"Comment": "v5.0.3",
-			"Rev": "a5168d45c99368b983253ee19a4841b2a12f759f"
+			"Comment": "v5.0.13",
+			"Rev": "b272fab42387a42585235d56f8c6b53b13ddfb7d"
 		},
 		{
 			"ImportPath": "gopkg.in/robfig/cron.v2",
