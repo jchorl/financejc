@@ -1,10 +1,11 @@
 import Immutable from 'immutable';
 import {
-  ADD_ACCOUNT,
-  PUT_TRANSACTION_TEMPLATE,
-  RECEIVE_TRANSACTION_TEMPLATES,
-  RECEIVE_ACCOUNTS,
-  LOGOUT
+    ADD_ACCOUNT,
+    PUT_TRANSACTION_TEMPLATE,
+    DELETE_TEMPLATE,
+    RECEIVE_TRANSACTION_TEMPLATES,
+    RECEIVE_ACCOUNTS,
+    LOGOUT
 } from '../actions';
 
 export default (state = Immutable.Map(), action) => {
@@ -19,6 +20,10 @@ export default (state = Immutable.Map(), action) => {
     case PUT_TRANSACTION_TEMPLATE: {
         let transaction = Immutable.fromJS(action.transactionTemplate);
         return state.updateIn([transaction.get('accountId'), 'transactionTemplates'], transactions => transactions.set(transaction.get('id'), transaction).sortBy(t => t.getIn('name')));
+    }
+
+    case DELETE_TEMPLATE: {
+        return state.updateIn([action.accountId, 'transactionTemplates'], transactions => transactions.delete(action.id));
     }
 
     case ADD_ACCOUNT:

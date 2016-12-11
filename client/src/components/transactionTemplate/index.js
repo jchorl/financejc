@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
 import styles from './transactionTemplate.css';
 import { toCurrency, toDecimal, toWhole, queryByFieldAndVal } from '../../utils';
-import { putTransactionTemplate } from '../../actions';
+import { putTransactionTemplate, deleteTemplate } from '../../actions';
 
 export class TransactionTemplate extends React.Component {
     static propTypes = {
@@ -178,6 +178,18 @@ export class TransactionTemplateForm extends React.Component {
         });
     }
 
+    deleteTemplate = (e) => {
+        const {
+            dispatch,
+            done,
+            transactionTemplate
+        } = this.props;
+
+        dispatch(deleteTemplate(transactionTemplate.get('id'), transactionTemplate.get('accountId')));
+        done && done();
+        e.preventDefault();
+    }
+
     submit = (e) => {
         const {
             accountId,
@@ -206,6 +218,11 @@ export class TransactionTemplateForm extends React.Component {
     }
 
     render () {
+        const {
+            done,
+            transactionTemplate
+        } = this.props;
+
         const {
             suggestions,
             values
@@ -252,7 +269,10 @@ export class TransactionTemplateForm extends React.Component {
                         <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionTemplateField } />
                     </div>
                     <div className={ styles.saveExit }>
-                        <button type="button" onClick={ this.props.done }>Cancel</button>
+                        <button type="button" onClick={ done }>Cancel</button>
+                        {
+                            transactionTemplate ? <button type="button" onClick={ this.deleteTemplate }>Delete</button> : null
+                        }
                         <button type="submit">Save</button>
                     </div>
                 </form>

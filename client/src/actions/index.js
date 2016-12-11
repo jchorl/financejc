@@ -64,6 +64,15 @@ const receiveTransactionTemplates = (transactionTemplates, accountId) => {
     };
 };
 
+export const DELETE_TEMPLATE = 'DELETE_TEMPLATE';
+const deleteTransactionTemplate = (id, accountId) => {
+    return {
+        type: DELETE_TEMPLATE,
+        accountId,
+        id
+    };
+};
+
 export const PUT_TRANSACTION = 'PUT_TRANSACTION';
 const updateTransactions = (transaction) => {
     return {
@@ -108,10 +117,10 @@ const receiveCurrencies = (currencies) => {
 export function fetchCurrencies() {
     return function(dispatch) {
         return fetch('/api/currencies')
-      .then(response => response.json())
-      .then(json => {
-          dispatch(receiveCurrencies(json));
-      });
+            .then(response => response.json())
+            .then(json => {
+                dispatch(receiveCurrencies(json));
+            });
     };
 }
 
@@ -120,10 +129,10 @@ export function fetchAccounts() {
         return fetch('/api/account', {
             credentials: 'include'
         })
-      .then(response => response.json())
-      .then(json => {
-          dispatch(receiveAccounts(json));
-      });
+            .then(response => response.json())
+            .then(json => {
+                dispatch(receiveAccounts(json));
+            });
     };
 }
 
@@ -137,10 +146,10 @@ export function fetchTransactions(accountId, next) {
         return fetch(`/api/account/${accountId}/transactions${nextStr}`, {
             credentials: 'include'
         })
-      .then(response => Promise.all([response.json(), response.headers.get('Link')]))
-      .then(parsed => {
-          dispatch(receiveTransactions(parsed[0], accountId, parsed[1]));
-      });
+            .then(response => Promise.all([response.json(), response.headers.get('Link')]))
+            .then(parsed => {
+                dispatch(receiveTransactions(parsed[0], accountId, parsed[1]));
+            });
     };
 }
 
@@ -149,10 +158,10 @@ export function fetchRecurringTransactions(accountId) {
         return fetch(`/api/account/${accountId}/recurringTransactions`, {
             credentials: 'include'
         })
-      .then(response => response.json())
-      .then(parsed => {
-          dispatch(receiveRecurringTransactions(parsed, accountId));
-      });
+            .then(response => response.json())
+            .then(parsed => {
+                dispatch(receiveRecurringTransactions(parsed, accountId));
+            });
     };
 }
 
@@ -161,10 +170,10 @@ export function fetchTransactionTemplates(accountId) {
         return fetch(`/api/account/${accountId}/transactionTemplates`, {
             credentials: 'include'
         })
-      .then(response => response.json())
-      .then(parsed => {
-          dispatch(receiveTransactionTemplates(parsed, accountId));
-      });
+            .then(response => response.json())
+            .then(parsed => {
+                dispatch(receiveTransactionTemplates(parsed, accountId));
+            });
     };
 }
 
@@ -194,15 +203,15 @@ export function fetchUser(callback) {
         return fetch('/api/user', {
             credentials: 'include'
         })
-      .then(response => response.json())
-      .then(json => {
-          dispatch(receiveUser(json));
-          callback && callback();
-      })
-      .catch(() => {
-          dispatch(receiveUser(false));
-          callback && callback();
-      });
+            .then(response => response.json())
+            .then(json => {
+                dispatch(receiveUser(json));
+                callback && callback();
+            })
+            .catch(() => {
+                dispatch(receiveUser(false));
+                callback && callback();
+            });
     };
 }
 
@@ -219,12 +228,12 @@ export function login(googleUser, callback) {
             credentials: 'include',
             headers: headers
         })
-      .then(response => response.json())
-      .then(json => {
-          dispatch(receiveUser(json));
-          callback && callback();
-      })
-      .catch(() => dispatch(receiveUser(false)));
+            .then(response => response.json())
+            .then(json => {
+                dispatch(receiveUser(json));
+                callback && callback();
+            })
+            .catch(() => dispatch(receiveUser(false)));
     };
 }
 
@@ -234,11 +243,11 @@ export function logout(callback) {
             method: 'POST',
             credentials: 'include'
         })
-      .then(() => {
-          dispatch(logoutComplete());
-          callback && callback();
-      })
-      .catch(() => dispatch(logoutComplete()));
+            .then(() => {
+                dispatch(logoutComplete());
+                callback && callback();
+            })
+            .catch(() => dispatch(logoutComplete()));
     };
 }
 
@@ -254,8 +263,8 @@ export function newAccount(account) {
             credentials: 'include',
             headers: headers
         })
-      .then(response => response.json())
-      .then(json => dispatch(addAccount(json)));
+            .then(response => response.json())
+            .then(json => dispatch(addAccount(json)));
     };
 }
 
@@ -265,7 +274,7 @@ export function putTransaction(transaction, amountDifference) {
     headers.append('Accept', 'application/json');
     headers.append('Content-Type', 'application/json');
 
-  // if editing a transaction
+    // if editing a transaction
     if (transaction.id) {
         return function(dispatch) {
             return fetch('/api/transaction', {
@@ -274,13 +283,13 @@ export function putTransaction(transaction, amountDifference) {
                 credentials: 'include',
                 headers: headers
             })
-        .then(response => response.json())
-        .then(json => dispatch(updateTransactions(json)))
-        .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
+                .then(response => response.json())
+                .then(json => dispatch(updateTransactions(json)))
+                .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
         };
     }
 
-  // new transaction
+    // new transaction
     return function(dispatch) {
         return fetch(`/api/account/${transaction.accountId}/transactions`, {
             method: 'POST',
@@ -288,9 +297,9 @@ export function putTransaction(transaction, amountDifference) {
             credentials: 'include',
             headers: headers
         })
-      .then(response => response.json())
-      .then(json => dispatch(updateTransactions(json)))
-      .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
+            .then(response => response.json())
+            .then(json => dispatch(updateTransactions(json)))
+            .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
     };
 }
 
@@ -299,7 +308,7 @@ export function putRecurringTransaction(recurringTransaction) {
     headers.append('Accept', 'application/json');
     headers.append('Content-Type', 'application/json');
 
-  // if editing a transaction
+    // if editing a transaction
     if (recurringTransaction.id) {
         return function(dispatch) {
             return fetch('/api/recurringTransaction', {
@@ -308,8 +317,8 @@ export function putRecurringTransaction(recurringTransaction) {
                 credentials: 'include',
                 headers: headers
             })
-        .then(response => response.json())
-        .then(json => dispatch(updateRecurringTransactions(json)));
+                .then(response => response.json())
+                .then(json => dispatch(updateRecurringTransactions(json)));
         };
     }
 
@@ -320,8 +329,8 @@ export function putRecurringTransaction(recurringTransaction) {
             credentials: 'include',
             headers: headers
         })
-      .then(response => response.json())
-      .then(json => dispatch(updateRecurringTransactions(json)));
+            .then(response => response.json())
+            .then(json => dispatch(updateRecurringTransactions(json)));
     };
 }
 
@@ -330,7 +339,7 @@ export function putTransactionTemplate(transactionTemplate) {
     headers.append('Accept', 'application/json');
     headers.append('Content-Type', 'application/json');
 
-  // if editing a transaction
+    // if editing a transaction
     if (transactionTemplate.id) {
         return function(dispatch) {
             return fetch('/api/transactionTemplate', {
@@ -339,8 +348,8 @@ export function putTransactionTemplate(transactionTemplate) {
                 credentials: 'include',
                 headers: headers
             })
-        .then(response => response.json())
-        .then(json => dispatch(updateTransactionTemplates(json)));
+                .then(response => response.json())
+                .then(json => dispatch(updateTransactionTemplates(json)));
         };
     }
 
@@ -351,7 +360,25 @@ export function putTransactionTemplate(transactionTemplate) {
             credentials: 'include',
             headers: headers
         })
-      .then(response => response.json())
-      .then(json => dispatch(updateTransactionTemplates(json)));
+            .then(response => response.json())
+            .then(json => dispatch(updateTransactionTemplates(json)));
+    };
+}
+
+export function deleteTemplate(id, accountId) {
+    let headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+
+    return function(dispatch) {
+        return fetch(`/api/transactionTemplate/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: headers
+        }).then((resp) => {
+            if (resp.ok) {
+                dispatch(deleteTransactionTemplate(id, accountId));
+            }
+        });
     };
 }
