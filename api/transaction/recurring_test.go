@@ -21,10 +21,11 @@ type RecurringTestSuite struct {
 }
 
 func (suite *RecurringTestSuite) SetupTest() {
-	db := integration.FreshDb(suite.T())
-	ctx := integration.ContextWithUserAndDB(0, db)
+	db := integration.FreshDB(suite.T())
+	es := integration.ESConn(suite.T())
+	ctx := integration.ContextWithUserDBES(0, db, es)
 	uid := integration.NewUser(suite.T(), ctx)
-	suite.Ctx = integration.ContextWithUserAndDB(uid, db)
+	suite.Ctx = integration.ContextWithUserDBES(uid, db, es)
 }
 
 func (suite *RecurringTestSuite) TestNewRecurring() {

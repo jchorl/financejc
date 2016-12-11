@@ -12,13 +12,14 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/jchorl/financejc/api/account"
 	"github.com/jchorl/financejc/api/user"
 	"github.com/jchorl/financejc/constants"
 )
 
-func FreshDb(t *testing.T) *sql.DB {
+func FreshDB(t *testing.T) *sql.DB {
 	db, err := sql.Open(constants.DB_DRIVER, constants.DB_ADDRESS)
 	require.NoError(t, err, "unable to connect to db")
 
@@ -47,16 +48,23 @@ func FreshDb(t *testing.T) *sql.DB {
 	return db
 }
 
-func ContextWithUserAndDB(uid uint, db *sql.DB) context.Context {
-	return context.WithValue(context.WithValue(context.Background(), constants.CTX_USER_ID, uid), constants.CTX_DB, db)
+// ESConn returns a connection to elasticsearch, not necessarily fresh
+func ESConn(t *testing.T) *elastic.Client {
+	es, err := elastic.NewClient(elastic.SetURL(constants.ES_ADDRESS))
+	require.NoError(t, err, "unable to connect to ES")
+	return es
+}
+
+func ContextWithUserDBES(uid uint, db *sql.DB, es *elastic.Client) context.Context {
+	return context.WithValue(context.WithValue(context.WithValue(context.Background(), constants.CTX_USER_ID, uid), constants.CTX_DB, db), constants.CTX_ES, es)
 }
 
 func NewUser(t *testing.T, ctx context.Context) uint {
 	googleId := rand.Int()
-	uid, err := user.FindOrCreateByGoogleId(ctx, strconv.Itoa(googleId))
+	u, err := user.FindOrCreateByGoogleID(ctx, strconv.Itoa(googleId), strconv.Itoa(googleId))
 	require.NoError(t, err, "unable to create user")
 
-	return uid
+	return u.ID
 }
 
 func NewAccount(t *testing.T, ctx context.Context) *account.Account {

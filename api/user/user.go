@@ -9,100 +9,103 @@ import (
 	"github.com/jchorl/financejc/api/util"
 )
 
+// User represents a user
 type User struct {
-	Id       uint   `json:"id"`
+	ID       uint   `json:"id"`
 	Email    string `json:"email"`
-	GoogleId string `json:"-"`
+	GoogleID string `json:"-"`
 }
 
 type userDB struct {
-	Id       uint
+	ID       uint
 	Email    string
-	GoogleId sql.NullString
+	GoogleID sql.NullString
 }
 
+// Get gets a user from the ID baked into the context
 func Get(c context.Context) (User, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return User{}, err
 	}
 
-	userId, err := util.UserIdFromContext(c)
+	userID, err := util.UserIdFromContext(c)
 	if err != nil {
 		return User{}, err
 	}
 
-	var email, googleId string
-	err = db.QueryRow("SELECT email, googleId FROM users WHERE id = $1", userId).Scan(&email, &googleId)
+	var email, googleID string
+	err = db.QueryRow("SELECT email, googleId FROM users WHERE id = $1", userID).Scan(&email, &googleID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,
-			"googleId": googleId,
+			"googleId": googleID,
 		}).Error("failed to select user from users table")
 		return User{}, err
 	}
 
 	return User{
-		Id:       userId,
+		ID:       userID,
 		Email:    email,
-		GoogleId: googleId,
+		GoogleID: googleID,
 	}, nil
 }
 
-func FindOrCreateByGoogleId(c context.Context, googleId, email string) (User, error) {
+// FindOrCreateByGoogleID finds a user with the given googleId, otherwise it creates one and returns it
+func FindOrCreateByGoogleID(c context.Context, googleID, email string) (User, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return User{}, err
 	}
 
 	var id uint
-	err = db.QueryRow("SELECT id FROM users WHERE googleId = $1", googleId).Scan(&id)
+	err = db.QueryRow("SELECT id FROM users WHERE googleId = $1", googleID).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,
-			"googleId": googleId,
+			"googleId": googleID,
 		}).Error("failed to select id from users table")
 		return User{}, err
 	} else if err == nil {
 		return User{
-			Id:       id,
+			ID:       id,
 			Email:    email,
-			GoogleId: googleId,
+			GoogleID: googleID,
 		}, nil
 	}
 
 	user := User{
 		Email:    email,
-		GoogleId: googleId,
+		GoogleID: googleID,
 	}
 	udb := toDB(user)
-	err = db.QueryRow("INSERT INTO users (googleId, email) VALUES($1, $2) RETURNING id", udb.GoogleId, udb.Email).Scan(&id)
+	err = db.QueryRow("INSERT INTO users (googleId, email) VALUES($1, $2) RETURNING id", udb.GoogleID, udb.Email).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,
-			"googleId": googleId,
+			"googleId": googleID,
 			"user":     user,
 			"userDb":   udb,
 		}).Error("failed to insert user")
 		return User{}, err
 	}
 
-	user.Id = id
+	user.ID = id
 	return user, nil
 }
 
 func toDB(user User) *userDB {
 	return &userDB{
-		Id:       user.Id,
+		ID:       user.ID,
 		Email:    user.Email,
-		GoogleId: util.ToNullStringNonEmpty(user.GoogleId),
+		GoogleID: util.ToNullStringNonEmpty(user.GoogleID),
 	}
 }
 
 func fromDB(user userDB) *User {
 	return &User{
-		Id:       user.Id,
+		ID:       user.ID,
 		Email:    user.Email,
-		GoogleId: util.FromNullStringNonEmpty(user.GoogleId),
+		GoogleID: util.FromNullStringNonEmpty(user.GoogleID),
 	}
 }

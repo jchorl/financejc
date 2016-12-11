@@ -22,7 +22,7 @@ func LoginByGoogleToken(c context.Context, token string) (user.User, error) {
 		return user.User{}, err
 	}
 
-	resolved, err := user.FindOrCreateByGoogleId(c, googleID, email)
+	resolved, err := user.FindOrCreateByGoogleID(c, googleID, email)
 	if err != nil {
 		return user.User{}, err
 	}

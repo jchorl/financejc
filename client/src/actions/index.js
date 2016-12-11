@@ -212,10 +212,16 @@ export function fetchUser(callback) {
         return fetch('/api/user', {
             credentials: 'include'
         })
-            .then(response => response.json())
-            .then(json => {
-                dispatch(receiveUser(json));
-                callback && callback();
+            .then(response => {
+                if (response.ok) {
+                    response.json().then(json => {
+                        dispatch(receiveUser(json));
+                        callback && callback();
+                    });
+                } else {
+                    dispatch(receiveUser(false));
+                    callback && callback();
+                }
             })
             .catch(() => {
                 dispatch(receiveUser(false));

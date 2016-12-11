@@ -1,8 +1,8 @@
 import Immutable from 'immutable';
 import {
-  FETCHING_USER,
-  RECEIVE_USER,
-  LOGOUT
+    FETCHING_USER,
+    RECEIVE_USER,
+    LOGOUT
 } from '../actions';
 
 export default (state = Immutable.Map({
