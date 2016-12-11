@@ -1,4 +1,4 @@
-.transactionTemplate {
+.template {
   &:nth-child(odd) {
     background: ~colors.secondaryLight;
   }
@@ -10,11 +10,11 @@
   }
 }
 
-.transactionTemplateFields {
+.templateFields {
   lost-flex-container: row;
   padding: 5px;
 
-  .transactionTemplateField {
+  .templateField {
     lost-column: 1/4;
     box-sizing: border-box;
     padding: 5px;

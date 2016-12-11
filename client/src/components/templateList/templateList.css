@@ -8,7 +8,7 @@
   }
 }
 
-.newTransactionTemplate {
+.newTemplate {
   lost-column: 1/1;
   border: none;
   background: ~colors.primaryLight;

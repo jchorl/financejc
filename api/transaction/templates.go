@@ -39,7 +39,7 @@ func GetTemplates(c context.Context, accountID int) ([]Template, error) {
 		return transactions, constants.Forbidden
 	}
 
-	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM transactionTemplates WHERE accountId = $1", accountID)
+	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM templates WHERE accountId = $1", accountID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -86,7 +86,7 @@ func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 
 	tdb := templateToDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO transactionTemplates(templateName, name, category, amount, note, accountId) VALUES($1, $2, $3, $4, $5, $6) RETURNING id", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID).Scan(&id)
+	err = db.QueryRow("INSERT INTO templates(templateName, name, category, amount, note, accountId) VALUES($1, $2, $3, $4, $5, $6) RETURNING id", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err,
@@ -108,7 +108,7 @@ func UpdateTemplate(c context.Context, transaction *Template) (*Template, error)
 	}
 
 	tdb := templateToDB(*transaction)
-	_, err = db.Exec("UPDATE transactionTemplates SET templateName = $1, name = $2, category = $3, amount = $4, note = $5, accountId = $6 WHERE id = $7", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ID)
+	_, err = db.Exec("UPDATE templates SET templateName = $1, name = $2, category = $3, amount = $4, note = $5, accountId = $6 WHERE id = $7", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err,
@@ -133,7 +133,7 @@ func DeleteTemplate(ctx context.Context, transactionID int) error {
 		return constants.Forbidden
 	}
 
-	_, err = db.Exec("DELETE FROM transactionTemplates WHERE id = $1", transactionID)
+	_, err = db.Exec("DELETE FROM templates WHERE id = $1", transactionID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":      err,
@@ -157,7 +157,7 @@ func userOwnsTemplate(c context.Context, template int) (bool, error) {
 	}
 
 	var owner uint
-	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactionTemplates t ON t.accountId = a.id WHERE t.id = $1", template).Scan(&owner)
+	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN templates t ON t.accountId = a.id WHERE t.id = $1", template).Scan(&owner)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,

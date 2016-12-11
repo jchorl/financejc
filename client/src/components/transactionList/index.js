@@ -4,7 +4,7 @@ import Immutable from 'immutable';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import Infinite from 'react-infinite';
 import classNames from 'classnames';
-import { fetchTransactions, fetchTransactionTemplates } from '../../actions';
+import { fetchTransactions, fetchTemplates } from '../../actions';
 import styles from './transactionList.css';
 import { Transaction, TransactionForm } from '../transaction';
 import { toRFC3339, toDecimal } from '../../utils';
@@ -18,29 +18,29 @@ function getEmptyTemplate() {
     });
 }
 
-function fetchTransactionTemplatesIfNecessary(props) {
+function fetchTemplatesIfNecessary(props) {
     const {
         accountId,
-        accountTransactionTemplate,
+        accountTemplate,
         dispatch
     } = props;
 
-    if (!accountTransactionTemplate.get(accountId).get('fetched')) {
-        dispatch(fetchTransactionTemplates(accountId));
+    if (!accountTemplate.get(accountId).get('fetched')) {
+        dispatch(fetchTemplates(accountId));
     }
 }
 
 @connect((state) => {
     return {
         accountTransaction: state.accountTransaction,
-        accountTransactionTemplate: state.accountTransactionTemplate
+        accountTemplate: state.accountTemplate
     };
 })
 export default class TransactionList extends React.Component {
     static propTypes = {
         accountId: React.PropTypes.number.isRequired,
         accountTransaction: ImmutablePropTypes.map.isRequired,
-        accountTransactionTemplate: ImmutablePropTypes.map.isRequired,
+        accountTemplate: ImmutablePropTypes.map.isRequired,
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired
     };
@@ -56,14 +56,14 @@ export default class TransactionList extends React.Component {
     }
 
     componentDidMount() {
-        fetchTransactionTemplatesIfNecessary(this.props);
+        fetchTemplatesIfNecessary(this.props);
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.accountTransaction.get(nextProps.accountId).get('transactions').size > this.props.accountTransaction.get(nextProps.accountId).get('transactions').size && this.state.isInfiniteLoading) {
             this.setState({ isInfiniteLoading: false });
         }
-        fetchTransactionTemplatesIfNecessary(nextProps);
+        fetchTemplatesIfNecessary(nextProps);
     }
 
     startNewTransaction = template => () => {
@@ -100,7 +100,7 @@ export default class TransactionList extends React.Component {
         const {
             accountId,
             accountTransaction,
-            accountTransactionTemplate,
+            accountTemplate,
             currency
         } = this.props;
 
@@ -109,7 +109,7 @@ export default class TransactionList extends React.Component {
         } = this.state;
 
         let transactions = accountTransaction.get(accountId).get('transactions');
-        let transactionTemplates = accountTransactionTemplate.get(accountId).get('transactionTemplates');
+        let templates = accountTemplate.get(accountId).get('templates');
 
         return (
         <div>
@@ -128,7 +128,7 @@ export default class TransactionList extends React.Component {
                         <div className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(getEmptyTemplate()) }>
                         Empty
                         </div>
-                        { transactionTemplates.map(transactionTemplate => (<div key={ transactionTemplate.get('id') } className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(transactionTemplate) }>{ transactionTemplate.get('templateName') }</div>)).toOrderedSet().toArray() }
+                        { templates.map(template => (<div key={ template.get('id') } className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(template) }>{ template.get('templateName') }</div>)).toOrderedSet().toArray() }
                         </div>
                         ) : (
                             <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ values.toObject() } />

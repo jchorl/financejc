@@ -3,13 +3,13 @@ import classNames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
-import styles from './transactionTemplate.css';
+import styles from './template.css';
 import { toCurrency, toDecimal, toWhole, queryByFieldAndVal } from '../../utils';
-import { putTransactionTemplate, deleteTemplate } from '../../actions';
+import { putTemplate, deleteTemplate } from '../../actions';
 
-export class TransactionTemplate extends React.Component {
+export class Template extends React.Component {
     static propTypes = {
-        transactionTemplate: React.PropTypes.object,
+        template: React.PropTypes.object,
         currency: ImmutablePropTypes.map.isRequired,
     };
 
@@ -32,31 +32,31 @@ export class TransactionTemplate extends React.Component {
 
     render () {
         const {
-            transactionTemplate,
+            template,
             currency
         } = this.props;
 
-        return transactionTemplate ? (
+        return template ? (
             this.state.editMode ? (
-                <TransactionTemplateForm transactionTemplate={ transactionTemplate } initialValues={ getFormInitialValues(transactionTemplate, currency) } done={ this.exitEditMode } currency={ currency } />
+                <TemplateForm template={ template } initialValues={ getFormInitialValues(template, currency) } done={ this.exitEditMode } currency={ currency } />
             ) : (
-                <div className={ classNames(styles.transactionTemplate, styles.transactionTemplateFields) }>
-                    <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transactionTemplate.get('templateName') }</span>
-                    <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transactionTemplate.get('name') }</span>
-                    <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transactionTemplate.get('category') }</span>
-                    <span className={ classNames(styles.transactionTemplateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transactionTemplate.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
+                <div className={ classNames(styles.template, styles.templateFields) }>
+                    <span className={ classNames(styles.templateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ template.get('templateName') }</span>
+                    <span className={ classNames(styles.templateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ template.get('name') }</span>
+                    <span className={ classNames(styles.templateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ template.get('category') }</span>
+                    <span className={ classNames(styles.templateField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(template.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
                 </div>
             )
         ) : null;
     }
 }
 
-function getFormInitialValues(transactionTemplate, currency) {
+function getFormInitialValues(template, currency) {
     return {
-        templateName: transactionTemplate.get('templateName'),
-        name: transactionTemplate.get('name'),
-        category: transactionTemplate.get('category'),
-        amount: toDecimal(transactionTemplate.get('amount'), currency.get('digitsAfterDecimal'))
+        templateName: template.get('templateName'),
+        name: template.get('name'),
+        category: template.get('category'),
+        amount: toDecimal(template.get('amount'), currency.get('digitsAfterDecimal'))
     };
 }
 
@@ -71,14 +71,14 @@ function renderSuggestion(field, suggestion) {
 }
 
 @connect()
-export class TransactionTemplateForm extends React.Component {
+export class TemplateForm extends React.Component {
     static propTypes = {
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired,
         initialValues: React.PropTypes.object.isRequired,
-        // either transactionTemplate (for editing) or accountId (for new transactionTemplates) should be passed
+        // either template (for editing) or accountId (for new templates) should be passed
         accountId: React.PropTypes.number,
-        transactionTemplate: ImmutablePropTypes.map,
+        template: ImmutablePropTypes.map,
         done: React.PropTypes.func
     };
 
@@ -105,12 +105,12 @@ export class TransactionTemplateForm extends React.Component {
     loadSuggestions = (field, value) => {
         const {
             accountId,
-            transactionTemplate
+            template
         } = this.props;
 
         let resolvedAccountId = accountId;
-        if (transactionTemplate) {
-            resolvedAccountId = transactionTemplate.get('accountId');
+        if (template) {
+            resolvedAccountId = template.get('accountId');
         }
 
         let id = Math.random();
@@ -121,7 +121,7 @@ export class TransactionTemplateForm extends React.Component {
         let that = this;
 
         // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
-        queryByFieldAndVal(resolvedAccountId, field, value).then(transactionTemplates => {
+        queryByFieldAndVal(resolvedAccountId, field, value).then(templates => {
             // stale query
             if (id !== that.state.lastRequestId) {
                 return;
@@ -129,7 +129,7 @@ export class TransactionTemplateForm extends React.Component {
 
             let newState = { suggestions: {} };
             Object.assign(newState.suggestions, that.state.suggestions);
-            newState.suggestions[field] = transactionTemplates;
+            newState.suggestions[field] = templates;
             that.setState(newState);
         });
     }
@@ -182,10 +182,10 @@ export class TransactionTemplateForm extends React.Component {
         const {
             dispatch,
             done,
-            transactionTemplate
+            template
         } = this.props;
 
-        dispatch(deleteTemplate(transactionTemplate.get('id'), transactionTemplate.get('accountId')));
+        dispatch(deleteTemplate(template.get('id'), template.get('accountId')));
         done && done();
         e.preventDefault();
     }
@@ -196,7 +196,7 @@ export class TransactionTemplateForm extends React.Component {
             currency,
             dispatch,
             done,
-            transactionTemplate
+            template
         } = this.props;
 
         let obj = {
@@ -207,12 +207,12 @@ export class TransactionTemplateForm extends React.Component {
             accountId
         };
 
-        if (transactionTemplate) {
-            obj = Object.assign(transactionTemplate.toObject(), obj);
-            obj.accountId = transactionTemplate.get('accountId');
+        if (template) {
+            obj = Object.assign(template.toObject(), obj);
+            obj.accountId = template.get('accountId');
         }
 
-        dispatch(putTransactionTemplate(obj));
+        dispatch(putTemplate(obj));
         done && done();
         e.preventDefault();
     }
@@ -220,7 +220,7 @@ export class TransactionTemplateForm extends React.Component {
     render () {
         const {
             done,
-            transactionTemplate
+            template
         } = this.props;
 
         const {
@@ -243,10 +243,10 @@ export class TransactionTemplateForm extends React.Component {
         };
 
         return (
-            <div className={ styles.transactionTemplate }>
+            <div className={ styles.template }>
                 <form onSubmit={ this.submit }>
-                    <div className={ styles.transactionTemplateFields }>
-                        <input type="text" name="templateName" placeholder="Template Name" value={ values.templateName } onChange={ this.fieldChange('templateName') } className={ styles.transactionTemplateField } />
+                    <div className={ styles.templateFields }>
+                        <input type="text" name="templateName" placeholder="Template Name" value={ values.templateName } onChange={ this.fieldChange('templateName') } className={ styles.templateField } />
                         <Autosuggest
                             id="name"
                             suggestions={ suggestions.name }
@@ -266,12 +266,12 @@ export class TransactionTemplateForm extends React.Component {
                             renderSuggestion={ renderSuggestion.bind(undefined, 'category') }
                             inputProps={ categoryInputProps }
                             theme={ styles } />
-                        <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionTemplateField } />
+                        <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.templateField } />
                     </div>
                     <div className={ styles.saveExit }>
                         <button type="button" onClick={ done }>Cancel</button>
                         {
-                            transactionTemplate ? <button type="button" onClick={ this.deleteTemplate }>Delete</button> : null
+                            template ? <button type="button" onClick={ this.deleteTemplate }>Delete</button> : null
                         }
                         <button type="submit">Save</button>
                     </div>

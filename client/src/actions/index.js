@@ -55,17 +55,17 @@ const receiveRecurringTransactions = (recurringTransactions, accountId) => {
     };
 };
 
-export const RECEIVE_TRANSACTION_TEMPLATES = 'RECEIVE_TRANSACTION_TEMPLATES';
-const receiveTransactionTemplates = (transactionTemplates, accountId) => {
+export const RECEIVE_TEMPLATES = 'RECEIVE_TEMPLATES';
+const receiveTemplates = (templates, accountId) => {
     return {
-        type: RECEIVE_TRANSACTION_TEMPLATES,
+        type: RECEIVE_TEMPLATES,
         accountId,
-        transactionTemplates
+        templates
     };
 };
 
 export const DELETE_TEMPLATE = 'DELETE_TEMPLATE';
-const deleteTransactionTemplate = (id, accountId) => {
+const templateDeleted = (id, accountId) => {
     return {
         type: DELETE_TEMPLATE,
         accountId,
@@ -89,11 +89,11 @@ const updateRecurringTransactions = (recurringTransaction) => {
     };
 };
 
-export const PUT_TRANSACTION_TEMPLATE = 'PUT_TRANSACTION_TEMPLATE';
-const updateTransactionTemplates = (transactionTemplate) => {
+export const PUT_TEMPLATE = 'PUT_TEMPLATE';
+const updateTemplates = (template) => {
     return {
-        type: PUT_TRANSACTION_TEMPLATE,
-        transactionTemplate
+        type: PUT_TEMPLATE,
+        template
     };
 };
 
@@ -165,14 +165,14 @@ export function fetchRecurringTransactions(accountId) {
     };
 }
 
-export function fetchTransactionTemplates(accountId) {
+export function fetchTemplates(accountId) {
     return function(dispatch) {
-        return fetch(`/api/account/${accountId}/transactionTemplates`, {
+        return fetch(`/api/account/${accountId}/templates`, {
             credentials: 'include'
         })
             .then(response => response.json())
             .then(parsed => {
-                dispatch(receiveTransactionTemplates(parsed, accountId));
+                dispatch(receiveTemplates(parsed, accountId));
             });
     };
 }
@@ -334,34 +334,34 @@ export function putRecurringTransaction(recurringTransaction) {
     };
 }
 
-export function putTransactionTemplate(transactionTemplate) {
+export function putTemplate(template) {
     let headers = new Headers();
     headers.append('Accept', 'application/json');
     headers.append('Content-Type', 'application/json');
 
     // if editing a transaction
-    if (transactionTemplate.id) {
+    if (template.id) {
         return function(dispatch) {
-            return fetch('/api/transactionTemplate', {
+            return fetch('/api/template', {
                 method: 'PUT',
-                body: JSON.stringify(transactionTemplate),
+                body: JSON.stringify(template),
                 credentials: 'include',
                 headers: headers
             })
                 .then(response => response.json())
-                .then(json => dispatch(updateTransactionTemplates(json)));
+                .then(json => dispatch(updateTemplates(json)));
         };
     }
 
     return function(dispatch) {
-        return fetch(`/api/account/${transactionTemplate.accountId}/transactionTemplates`, {
+        return fetch(`/api/account/${template.accountId}/templates`, {
             method: 'POST',
-            body: JSON.stringify(transactionTemplate),
+            body: JSON.stringify(template),
             credentials: 'include',
             headers: headers
         })
             .then(response => response.json())
-            .then(json => dispatch(updateTransactionTemplates(json)));
+            .then(json => dispatch(updateTemplates(json)));
     };
 }
 
@@ -371,13 +371,13 @@ export function deleteTemplate(id, accountId) {
     headers.append('Content-Type', 'application/json');
 
     return function(dispatch) {
-        return fetch(`/api/transactionTemplate/${id}`, {
+        return fetch(`/api/template/${id}`, {
             method: 'DELETE',
             credentials: 'include',
             headers: headers
         }).then((resp) => {
             if (resp.ok) {
-                dispatch(deleteTransactionTemplate(id, accountId));
+                dispatch(templateDeleted(id, accountId));
             }
         });
     };

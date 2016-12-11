@@ -52,7 +52,7 @@ func GetRecurringTransactions(c echo.Context) error {
 	return c.JSON(http.StatusOK, transactions)
 }
 
-func GetTransactionTemplates(c echo.Context) error {
+func GetTemplates(c echo.Context) error {
 	accountIdStr := c.Param("accountId")
 	accountId, err := strconv.Atoi(accountIdStr)
 	if err != nil {
@@ -132,7 +132,7 @@ func NewRecurringTransaction(c echo.Context) error {
 	return c.JSON(http.StatusOK, tr)
 }
 
-func NewTransactionTemplate(c echo.Context) error {
+func NewTemplate(c echo.Context) error {
 	tr := new(transaction.Template)
 	if err := c.Bind(tr); err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -198,7 +198,7 @@ func UpdateRecurringTransaction(c echo.Context) error {
 	return c.JSON(http.StatusOK, tr)
 }
 
-func UpdateTransactionTemplate(c echo.Context) error {
+func UpdateTemplate(c echo.Context) error {
 	tr := new(transaction.Template)
 	if err := c.Bind(tr); err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -254,13 +254,13 @@ func DeleteRecurringTransaction(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func DeleteTransactionTemplate(c echo.Context) error {
-	transactionIdStr := c.Param("transactionTemplateId")
+func DeleteTemplate(c echo.Context) error {
+	transactionIdStr := c.Param("templateId")
 	transactionId, err := strconv.Atoi(transactionIdStr)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                 err,
-			"transactionTemplateId": transactionIdStr,
+			"templateId": transactionIdStr,
 		}).Error("error parsing transaction template ID to int")
 		return writeError(c, constants.BadRequest)
 	}

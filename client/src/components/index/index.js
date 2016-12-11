@@ -59,7 +59,7 @@ export default class App extends React.Component {
               <div className={ styles.navOptions }>
                 <div className={ styles.navOption }><Link to={ '/transactions' } className={ styles.unstyledLink }>Transactions</Link></div>
                 <div className={ styles.navOption }><Link to={ '/transactions/recurring' } className={ styles.unstyledLink }>Recurring Transactions</Link></div>
-                <div className={ styles.navOption }><Link to={ '/transactions/templates' } className={ styles.unstyledLink }>Transaction Templates</Link></div>
+                <div className={ styles.navOption }><Link to={ '/transactions/templates' } className={ styles.unstyledLink }>Templates</Link></div>
               </div>
             ) : null
             }

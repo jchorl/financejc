@@ -37,7 +37,7 @@ CREATE TABLE recurringTransactions (
     secondsBeforeToPost integer NOT NULL
 );
 
-CREATE TABLE transactionTemplates (
+CREATE TABLE templates (
     id serial PRIMARY KEY,
     templateName varchar(40) NOT NULL,
     name varchar(100) NOT NULL,
@@ -52,4 +52,4 @@ CREATE INDEX ON accounts(userId);
 CREATE INDEX ON transactions(accountId, occurred DESC, id);
 CREATE INDEX ON recurringTransactions(accountId);
 CREATE INDEX ON recurringTransactions((nextOccurs - interval '1 second' * secondsBeforeToPost));
-CREATE INDEX ON transactionTemplates(accountId);
+CREATE INDEX ON templates(accountId);

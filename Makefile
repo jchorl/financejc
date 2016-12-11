@@ -66,7 +66,6 @@ nginx: network
 		--restart=always \
 		--network financejcnet \
 		-e DOMAIN=finance.joshchorlton.com \
-		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
 		-v financejcletsencrypt:/etc/letsencrypt \
 		-v wellknown:/usr/share/nginx/wellknown \
 		-p 80:80 \
