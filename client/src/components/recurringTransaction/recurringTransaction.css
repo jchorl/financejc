@@ -3,14 +3,10 @@
     background: ~colors.secondaryLight;
   }
 
-  .extra {
+  .saveExit {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 0 5px 5px;
-
-    .saveExit {
-      align-self: flex-end;
-    }
   }
 }
 
