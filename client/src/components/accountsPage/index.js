@@ -26,8 +26,8 @@ class AccountsPage extends React.Component {
     constructor (props) {
         super(props);
         let selected = props.accounts.get('accounts').size !== 0
-      ? props.accounts.get('accounts').first().get('id')
-      : -1;
+            ? props.accounts.get('accounts').first().get('id')
+            : -1;
         this.state = {
             selected: selected
         };
@@ -53,10 +53,10 @@ class AccountsPage extends React.Component {
 
     render () {
         const {
-      accounts,
-      currencies,
-      children
-    } = this.props;
+            accounts,
+            currencies,
+            children
+        } = this.props;
         const selected = this.state.selected;
 
         let currency;
@@ -66,24 +66,24 @@ class AccountsPage extends React.Component {
         }
 
         return (
-      <div className={ styles.accountsPage }>
-        <div className={ styles.accountList }>
-          <AccountList selected={ selected } onSelect={ this.selectAccount } />
-        </div>
-        {
-          selected !== -1 ? (
-            <div className={ styles.transactionList }>
-              {
-                React.cloneElement(children, {
-                    accountId: selected,
-                    currency: currency
-                })
-              }
+            <div className={ styles.accountsPage }>
+                <div className={ styles.accountList }>
+                    <AccountList selected={ selected } onSelect={ this.selectAccount } />
+                </div>
+                {
+                    selected !== -1 ? (
+                        <div className={ styles.transactionList }>
+                            {
+                                React.cloneElement(children, {
+                                    accountId: selected,
+                                    currency: currency
+                                })
+                            }
+                        </div>
+                    ) : <AccountForm />
+                }
             </div>
-          ) : <AccountForm />
-        }
-      </div>
-    );
+        );
     }
 }
 
@@ -109,15 +109,15 @@ export default class AccountsPageWrapper extends React.Component {
 
     render () {
         const {
-      accounts,
-      currencies,
-      children
-    } = this.props;
+            accounts,
+            currencies,
+            children
+        } = this.props;
 
         return (
-      <Loader loading={ !accounts.get('fetched') || !currencies.get('fetched') }>
-        <AccountsPage children={ children }/>
-      </Loader>
-    );
+            <Loader loading={ !accounts.get('fetched') || !currencies.get('fetched') }>
+                <AccountsPage children={ children }/>
+            </Loader>
+        );
     }
 }
