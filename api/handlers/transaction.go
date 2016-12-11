@@ -133,7 +133,7 @@ func NewRecurringTransaction(c echo.Context) error {
 }
 
 func NewTransactionTemplate(c echo.Context) error {
-	tr := new(transaction.TransactionTemplate)
+	tr := new(transaction.Template)
 	if err := c.Bind(tr); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err,
@@ -199,7 +199,7 @@ func UpdateRecurringTransaction(c echo.Context) error {
 }
 
 func UpdateTransactionTemplate(c echo.Context) error {
-	tr := new(transaction.TransactionTemplate)
+	tr := new(transaction.Template)
 	if err := c.Bind(tr); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err,

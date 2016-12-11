@@ -9,49 +9,52 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
-type TransactionTemplate struct {
+// Template represents a template to create a new transaction
+// The date part of the embedded transaction is ignored
+type Template struct {
 	Transaction
 	TemplateName string `json:"templateName"`
 }
 
-type transactionTemplateDB struct {
-	Id           int
+type templateDB struct {
+	ID           int
 	TemplateName string
 	Name         string
 	Category     string
 	Amount       int
 	Note         string
-	AccountId    int
+	AccountID    int
 }
 
-func GetTemplates(c context.Context, accountId int) ([]TransactionTemplate, error) {
-	transactions := []TransactionTemplate{}
+// GetTemplates fetches the templates for account accountID
+func GetTemplates(c context.Context, accountID int) ([]Template, error) {
+	transactions := []Template{}
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return transactions, err
 	}
 
-	valid, err := userOwnsAccount(c, accountId)
+	valid, err := userOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return transactions, constants.Forbidden
 	}
 
-	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM transactionTemplates WHERE accountId = $1", accountId)
+	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM transactionTemplates WHERE accountId = $1", accountID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountID": accountID,
 		}).Error("failed to fetch transaction templates")
 		return transactions, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var transaction transactionTemplateDB
-		if err := rows.Scan(&transaction.Id, &transaction.TemplateName, &transaction.Name, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountId); err != nil {
+		var transaction templateDB
+		if err := rows.Scan(&transaction.ID, &transaction.TemplateName, &transaction.Name, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountID); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
-				"accountId": accountId,
+				"accountID": accountID,
 			}).Error("failed to scan into transaction template")
 			return transactions, err
 		}
@@ -61,7 +64,7 @@ func GetTemplates(c context.Context, accountId int) ([]TransactionTemplate, erro
 	if err := rows.Err(); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountID": accountID,
 		}).Error("failed to get transaction templates from rows")
 		return transactions, err
 	}
@@ -69,7 +72,8 @@ func GetTemplates(c context.Context, accountId int) ([]TransactionTemplate, erro
 	return transactions, nil
 }
 
-func NewTemplate(c context.Context, transaction *TransactionTemplate) (*TransactionTemplate, error) {
+// NewTemplate creates a new template
+func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return nil, err
@@ -82,12 +86,12 @@ func NewTemplate(c context.Context, transaction *TransactionTemplate) (*Transact
 
 	tdb := templateToDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO transactionTemplates(templateName, name, category, amount, note, accountId) VALUES($1, $2, $3, $4, $5, $6) RETURNING id", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountId).Scan(&id)
+	err = db.QueryRow("INSERT INTO transactionTemplates(templateName, name, category, amount, note, accountId) VALUES($1, $2, $3, $4, $5, $6) RETURNING id", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"error":                 err,
-			"transactionTemplateDB": tdb,
-			"transactionTemplate":   transaction,
+			"error":      err,
+			"templateDB": tdb,
+			"template":   transaction,
 		}).Errorf("failed to insert transaction template row")
 		return nil, err
 	}
@@ -96,19 +100,20 @@ func NewTemplate(c context.Context, transaction *TransactionTemplate) (*Transact
 	return transaction, nil
 }
 
-func UpdateTemplate(c context.Context, transaction *TransactionTemplate) (*TransactionTemplate, error) {
+// UpdateTemplate updates a template
+func UpdateTemplate(c context.Context, transaction *Template) (*Template, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return nil, err
 	}
 
 	tdb := templateToDB(*transaction)
-	_, err = db.Exec("UPDATE transactionTemplates SET templateName = $1, name = $2, category = $3, amount = $4, note = $5, accountId = $6", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountId)
+	_, err = db.Exec("UPDATE transactionTemplates SET templateName = $1, name = $2, category = $3, amount = $4, note = $5, accountId = $6 WHERE id = $7", tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"error":                 err,
-			"transactionTemplateDB": tdb,
-			"transactionTemplate":   transaction,
+			"error":      err,
+			"templateDB": tdb,
+			"template":   transaction,
 		}).Errorf("failed to update transaction template row")
 		return nil, err
 	}
@@ -116,22 +121,23 @@ func UpdateTemplate(c context.Context, transaction *TransactionTemplate) (*Trans
 	return transaction, nil
 }
 
-func DeleteTemplate(ctx context.Context, transactionId int) error {
+// DeleteTemplate deletes a template
+func DeleteTemplate(ctx context.Context, transactionID int) error {
 	db, err := util.DBFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	valid, err := userOwnsTransactionTemplate(ctx, transactionId)
+	valid, err := userOwnsTemplate(ctx, transactionID)
 	if err != nil || !valid {
 		return constants.Forbidden
 	}
 
-	_, err = db.Exec("DELETE FROM transactionTemplates WHERE id = $1", transactionId)
+	_, err = db.Exec("DELETE FROM transactionTemplates WHERE id = $1", transactionID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"error":                 err,
-			"transactionTemplateId": transactionId,
+			"error":      err,
+			"templateId": transactionID,
 		}).Errorf("could not delete transaction template")
 		return err
 	}
@@ -139,8 +145,8 @@ func DeleteTemplate(ctx context.Context, transactionId int) error {
 	return nil
 }
 
-func userOwnsTransactionTemplate(c context.Context, transactionTemplate int) (bool, error) {
-	userId, err := util.UserIdFromContext(c)
+func userOwnsTemplate(c context.Context, template int) (bool, error) {
+	userID, err := util.UserIdFromContext(c)
 	if err != nil {
 		return false, err
 	}
@@ -151,41 +157,41 @@ func userOwnsTransactionTemplate(c context.Context, transactionTemplate int) (bo
 	}
 
 	var owner uint
-	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactionTemplates t ON t.accountId = a.id WHERE t.id = $1", transactionTemplate).Scan(&owner)
+	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactionTemplates t ON t.accountId = a.id WHERE t.id = $1", template).Scan(&owner)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"error":               err,
-			"userId":              userId,
-			"transactionTemplate": transactionTemplate,
+			"error":    err,
+			"userId":   userID,
+			"template": template,
 		}).Error("error checking owner of transaction template")
 		return false, err
 	}
 
-	return owner == userId, nil
+	return owner == userID, nil
 }
 
-func templateToDB(transaction TransactionTemplate) *transactionTemplateDB {
-	return &transactionTemplateDB{
+func templateToDB(transaction Template) *templateDB {
+	return &templateDB{
 		TemplateName: transaction.TemplateName,
-		Id:           transaction.Id,
+		ID:           transaction.Id,
 		Name:         transaction.Name,
 		Category:     transaction.Category,
 		Amount:       transaction.Amount,
 		Note:         transaction.Note,
-		AccountId:    transaction.AccountId,
+		AccountID:    transaction.AccountId,
 	}
 }
 
-func templateFromDB(transaction transactionTemplateDB) TransactionTemplate {
-	return TransactionTemplate{
+func templateFromDB(transaction templateDB) Template {
+	return Template{
 		TemplateName: transaction.TemplateName,
 		Transaction: Transaction{
-			Id:        transaction.Id,
+			Id:        transaction.ID,
 			Name:      transaction.Name,
 			Category:  transaction.Category,
 			Amount:    transaction.Amount,
 			Note:      transaction.Note,
-			AccountId: transaction.AccountId,
+			AccountId: transaction.AccountID,
 		},
 	}
 }

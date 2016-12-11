@@ -8,35 +8,35 @@ import { toCurrency, toDate, toDecimal, toWhole, toRFC3339, queryByFieldAndVal }
 import { putTransaction } from '../../actions';
 
 export class Transaction extends React.Component {
-  static propTypes = {
-    transaction: React.PropTypes.object,
-    currency: ImmutablePropTypes.map.isRequired,
-  };
+    static propTypes = {
+        transaction: React.PropTypes.object,
+        currency: ImmutablePropTypes.map.isRequired,
+    };
 
-  constructor(props) {
-    super(props);
-    this.state = { editMode: false };
-  }
+    constructor(props) {
+        super(props);
+        this.state = { editMode: false };
+    }
 
-  enterEditMode = () => {
-    this.setState({ editMode: true });
-  }
+    enterEditMode = () => {
+        this.setState({ editMode: true });
+    }
 
-  exitEditMode = () => {
-    this.setState({ editMode: false });
-  }
+    exitEditMode = () => {
+        this.setState({ editMode: false });
+    }
 
-  save = () => {
-    this.exitEditMode();
-  }
+    save = () => {
+        this.exitEditMode();
+    }
 
-  render () {
-    const {
+    render () {
+        const {
       transaction,
       currency
     } = this.props;
 
-    return transaction ? (
+        return transaction ? (
       this.state.editMode ? (
         <TransactionForm transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
       ) : (
@@ -48,24 +48,24 @@ export class Transaction extends React.Component {
         </div>
       )
     ) : null;
-  }
+    }
 }
 
 function getFormInitialValues(transaction, currency) {
-  return {
-    name: transaction.get('name'),
-    date: toRFC3339(transaction.get('date')),
-    category: transaction.get('category'),
-    amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
-  };
+    return {
+        name: transaction.get('name'),
+        date: toRFC3339(transaction.get('date')),
+        category: transaction.get('category'),
+        amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
+    };
 }
 
 function getSuggestionValue(field, suggestion) {
-  return suggestion[field];
+    return suggestion[field];
 }
 
 function renderSuggestion(field, suggestion) {
-  return (
+    return (
     <span>{ suggestion[field] }</span>
   );
 }
@@ -73,116 +73,116 @@ function renderSuggestion(field, suggestion) {
 // getting suggestions async example: http://codepen.io/moroshko/pen/EPZpev
 @connect()
 export class TransactionForm extends React.Component {
-  static propTypes = {
-    currency: ImmutablePropTypes.map.isRequired,
-    dispatch: React.PropTypes.func.isRequired,
-    initialValues: React.PropTypes.object.isRequired,
+    static propTypes = {
+        currency: ImmutablePropTypes.map.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
+        initialValues: React.PropTypes.object.isRequired,
     // either transaction (for editing) or accountId (for new transactions) should be passed
-    accountId: React.PropTypes.number,
-    transaction: ImmutablePropTypes.map,
-    done: React.PropTypes.func
-  };
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      values: props.initialValues,
-      suggestions: {
-        name: [],
-        category: []
-      }
+        accountId: React.PropTypes.number,
+        transaction: ImmutablePropTypes.map,
+        done: React.PropTypes.func
     };
 
-    this.lastRequestId = null;
-  }
+    constructor(props) {
+        super(props);
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      values: nextProps.initialValues
-    });
-  }
+        this.state = {
+            values: props.initialValues,
+            suggestions: {
+                name: [],
+                category: []
+            }
+        };
 
-  loadSuggestions = (field, value) => {
-    const {
+        this.lastRequestId = null;
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            values: nextProps.initialValues
+        });
+    }
+
+    loadSuggestions = (field, value) => {
+        const {
       accountId,
       transaction
     } = this.props;
 
-    let resolvedAccountId = accountId;
-    if (transaction) {
-      resolvedAccountId = transaction.get('accountId');
-    }
+        let resolvedAccountId = accountId;
+        if (transaction) {
+            resolvedAccountId = transaction.get('accountId');
+        }
 
-    let id = Math.random();
-    this.setState({
-      lastRequestId: id
-    });
+        let id = Math.random();
+        this.setState({
+            lastRequestId: id
+        });
 
-    let that = this;
+        let that = this;
 
     // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
-    queryByFieldAndVal(resolvedAccountId, field, value).then(transactions => {
+        queryByFieldAndVal(resolvedAccountId, field, value).then(transactions => {
       // stale query
-      if (id !== that.state.lastRequestId) {
-        return;
-      }
+            if (id !== that.state.lastRequestId) {
+                return;
+            }
 
-      let newState = { suggestions: {} };
-      Object.assign(newState.suggestions, that.state.suggestions);
-      newState.suggestions[field] = transactions;
-      that.setState(newState);
-    });
-  }
+            let newState = { suggestions: {} };
+            Object.assign(newState.suggestions, that.state.suggestions);
+            newState.suggestions[field] = transactions;
+            that.setState(newState);
+        });
+    }
 
-  onChange = field => {
-    let that = this;
-    return function(event, { newValue }) {
-      let values = Object.assign({}, that.state.values);
-      values[field] = newValue;
-      that.setState({
-        values
-      });
+    onChange = field => {
+        let that = this;
+        return function(event, { newValue }) {
+            let values = Object.assign({}, that.state.values);
+            values[field] = newValue;
+            that.setState({
+                values
+            });
+        };
     };
-  };
 
-  onSuggestionsFetchRequested = (field, { value }) => {
-    this.loadSuggestions(field, value);
-  };
+    onSuggestionsFetchRequested = (field, { value }) => {
+        this.loadSuggestions(field, value);
+    };
 
-  onSuggestionsClearRequested = () => {
-    this.setState({
-      suggestions: {
-        name: [],
-        category: []
-      }
-    });
-  };
+    onSuggestionsClearRequested = () => {
+        this.setState({
+            suggestions: {
+                name: [],
+                category: []
+            }
+        });
+    };
 
-  onNameSuggestionSelected = (event, { suggestion }) => {
-    const { currency } = this.props;
+    onNameSuggestionSelected = (event, { suggestion }) => {
+        const { currency } = this.props;
 
-    this.setState({
-      values: {
-        name: suggestion.name,
+        this.setState({
+            values: {
+                name: suggestion.name,
         // don't update the date
-        date: this.state.values.date,
-        category: suggestion.category,
-        amount: toDecimal(suggestion.amount, currency.get('digitsAfterDecimal'))
-      }
-    });
-  }
+                date: this.state.values.date,
+                category: suggestion.category,
+                amount: toDecimal(suggestion.amount, currency.get('digitsAfterDecimal'))
+            }
+        });
+    }
 
-  fieldChange = name => e => {
-    let newState = Object.assign({}, this.state.values);
-    newState[name] = e.target.value;
-    this.setState({
-      values: newState
-    });
-  }
+    fieldChange = name => e => {
+        let newState = Object.assign({}, this.state.values);
+        newState[name] = e.target.value;
+        this.setState({
+            values: newState
+        });
+    }
 
-  submit = (e) => {
-    const {
+    submit = (e) => {
+        const {
       accountId,
       currency,
       dispatch,
@@ -190,47 +190,47 @@ export class TransactionForm extends React.Component {
       transaction
     } = this.props;
 
-    let obj = {
-      name: e.target['name'].value,
-      date: new Date(e.target['date'].value),
-      category: e.target['category'].value,
-      amount: toWhole(parseFloat(e.target['amount'].value), currency.get('digitsAfterDecimal')),
-      accountId
-    };
-    let difference = obj.amount;
+        let obj = {
+            name: e.target['name'].value,
+            date: new Date(e.target['date'].value),
+            category: e.target['category'].value,
+            amount: toWhole(parseFloat(e.target['amount'].value), currency.get('digitsAfterDecimal')),
+            accountId
+        };
+        let difference = obj.amount;
 
-    if (transaction) {
-      obj = Object.assign(transaction.toObject(), obj);
-      difference = difference - transaction.get('amount');
-      obj.accountId = transaction.get('accountId');
+        if (transaction) {
+            obj = Object.assign(transaction.toObject(), obj);
+            difference = difference - transaction.get('amount');
+            obj.accountId = transaction.get('accountId');
+        }
+
+        dispatch(putTransaction(obj, difference));
+        done && done();
+        e.preventDefault();
     }
 
-    dispatch(putTransaction(obj, difference));
-    done && done();
-    e.preventDefault();
-  }
-
-  render () {
-    const {
+    render () {
+        const {
       suggestions,
       values
     } = this.state;
 
-    const nameInputProps = {
-      name: 'name',
-      placeholder: 'Name',
-      value: values.name,
-      onChange: this.onChange('name')
-    };
+        const nameInputProps = {
+            name: 'name',
+            placeholder: 'Name',
+            value: values.name,
+            onChange: this.onChange('name')
+        };
 
-    const categoryInputProps = {
-      name: 'category',
-      placeholder: 'Category',
-      value: values.category,
-      onChange: this.onChange('category')
-    };
+        const categoryInputProps = {
+            name: 'category',
+            placeholder: 'Category',
+            value: values.category,
+            onChange: this.onChange('category')
+        };
 
-    return (
+        return (
       <div className={ styles.transaction }>
         <form onSubmit={ this.submit }>
           <div className={ styles.transactionFields }>
@@ -263,5 +263,5 @@ export class TransactionForm extends React.Component {
         </form>
       </div>
     );
-  }
+    }
 }

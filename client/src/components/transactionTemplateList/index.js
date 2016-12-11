@@ -5,70 +5,85 @@ import { fetchTransactionTemplates } from '../../actions';
 import styles from './transactionTemplateList.css';
 import { TransactionTemplate, TransactionTemplateForm } from '../transactionTemplate';
 
+
+function fetchTransactionTemplatesIfNecessary(props) {
+    const {
+        accountId,
+        accountTransactionTemplate,
+        dispatch
+    } = props;
+
+    if (!accountTransactionTemplate.get(accountId).get('fetched')) {
+        dispatch(fetchTransactionTemplates(accountId));
+    }
+}
+
 @connect((state) => {
-  return {
-    accountTransactionTemplate: state.accountTransactionTemplate
-  };
+    return {
+        accountTransactionTemplate: state.accountTransactionTemplate
+    };
 })
 export default class TransactionTemplateList extends React.Component {
-  static propTypes = {
-    accountId: React.PropTypes.number.isRequired,
-    accountTransactionTemplate: ImmutablePropTypes.map.isRequired,
-    currency: ImmutablePropTypes.map.isRequired,
-    dispatch: React.PropTypes.func.isRequired
-  };
-
-  constructor (props) {
-    super(props);
-    this.state = {
-      newTransactionTemplate: false
+    static propTypes = {
+        accountId: React.PropTypes.number.isRequired,
+        accountTransactionTemplate: ImmutablePropTypes.map.isRequired,
+        currency: ImmutablePropTypes.map.isRequired,
+        dispatch: React.PropTypes.func.isRequired
     };
 
-    if (!props.accountTransactionTemplate.get(props.accountId).get('fetched')) {
-      props.dispatch(fetchTransactionTemplates(props.accountId));
+    constructor (props) {
+        super(props);
+        this.state = {
+            newTransactionTemplate: false
+        };
+
+        fetchTransactionTemplatesIfNecessary(props);
     }
-  }
 
-  startNewTransactionTemplate = () => {
-    this.setState({
-      newTransactionTemplate: true
-    });
-  }
+    componentWillReceiveProps(newProps) {
+        fetchTransactionTemplatesIfNecessary(newProps);
+    }
 
-  exitNewTransactionTemplate = () => {
-    this.setState({
-      newTransactionTemplate: false
-    });
-  }
+    startNewTransactionTemplate = () => {
+        this.setState({
+            newTransactionTemplate: true
+        });
+    }
 
-  render () {
-    const {
-      accountId,
-      accountTransactionTemplate,
-      currency
-    } = this.props;
+    exitNewTransactionTemplate = () => {
+        this.setState({
+            newTransactionTemplate: false
+        });
+    }
 
-    let transactions = accountTransactionTemplate.get(accountId).get('transactionTemplates');
+    render () {
+        const {
+            accountId,
+            accountTransactionTemplate,
+            currency
+        } = this.props;
 
-    return (
-      <div>
-        <div className={ styles.headings }>
-          <span className={ styles.column }>Template Name</span>
-          <span className={ styles.column }>Name</span>
-          <span className={ styles.column }>Category</span>
-          <span className={ styles.column }>Amount</span>
-        </div>
-        { !this.state.newTransactionTemplate ?
-            (
-              <button className={ styles.newTransactionTemplate } onClick={ this.startNewTransactionTemplate }>
-                New
-              </button>
-            ) : (
-              <TransactionTemplateForm accountId={ accountId } form='new' done={ this.exitNewTransactionTemplate } currency={ currency } initialValues={ { templateName: '', name: '', category: '', amount: 0 } } />
-            )
-        }
-        { transactions.map(transaction => (<TransactionTemplate key={ transaction.get('id') } transactionTemplate={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
-      </div>
-    );
-  }
+        let transactions = accountTransactionTemplate.get(accountId).get('transactionTemplates');
+
+        return (
+            <div>
+                <div className={ styles.headings }>
+                    <span className={ styles.column }>Template Name</span>
+                    <span className={ styles.column }>Name</span>
+                    <span className={ styles.column }>Category</span>
+                    <span className={ styles.column }>Amount</span>
+                </div>
+                { !this.state.newTransactionTemplate ?
+                        (
+                            <button className={ styles.newTransactionTemplate } onClick={ this.startNewTransactionTemplate }>
+                                New
+                            </button>
+                        ) : (
+                            <TransactionTemplateForm accountId={ accountId } form='new' done={ this.exitNewTransactionTemplate } currency={ currency } initialValues={ { templateName: '', name: '', category: '', amount: 0 } } />
+                        )
+                }
+                { transactions.map(transaction => (<TransactionTemplate key={ transaction.get('id') } transactionTemplate={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
+            </div>
+        );
+    }
 }

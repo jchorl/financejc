@@ -7,10 +7,10 @@ import accountTransactionTemplate from './accountTransactionTemplate';
 import currencies from './currencies';
 
 export default combineReducers({
-  auth,
-  accounts,
-  accountTransaction,
-  accountRecurringTransaction,
-  accountTransactionTemplate,
-  currencies
+    auth,
+    accounts,
+    accountTransaction,
+    accountRecurringTransaction,
+    accountTransactionTemplate,
+    currencies
 });

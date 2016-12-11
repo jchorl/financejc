@@ -2,13 +2,13 @@ import React from 'react';
 import styles from './loader.css';
 
 export default class Loader extends React.Component {
-  static propTypes = {
-    loading: React.PropTypes.bool.isRequired,
-    children: React.PropTypes.any
-  }
+    static propTypes = {
+        loading: React.PropTypes.bool.isRequired,
+        children: React.PropTypes.any
+    }
 
-  render () {
-    return (
+    render () {
+        return (
 			<div>
 				{ this.props.loading
 					? (<div className={ styles.loader }>Loading...</div>)
@@ -19,5 +19,5 @@ export default class Loader extends React.Component {
 					)}
 			</div>
 		);
-  }
+    }
 }

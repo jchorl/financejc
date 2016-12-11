@@ -6,38 +6,38 @@ import {
 } from '../actions';
 
 export default (state = Immutable.Map({
-  fetched: false,
-  user: Immutable.Map(),
-  authd: false
+    fetched: false,
+    user: Immutable.Map(),
+    authd: false
 }), action) => {
-  switch (action.type) {
-  case FETCHING_USER:
-    return state.set('fetched', false);
+    switch (action.type) {
+    case FETCHING_USER:
+        return state.set('fetched', false);
 
-  case RECEIVE_USER:
-    if (action.user) {
-      return Immutable.Map({
-        fetched: true,
-        user: Immutable.fromJS(action.user),
-        authd: true
-      });
+    case RECEIVE_USER:
+        if (action.user) {
+            return Immutable.Map({
+                fetched: true,
+                user: Immutable.fromJS(action.user),
+                authd: true
+            });
+        }
+
+        return Immutable.Map({
+            fetched: true,
+            user: Immutable.Map(),
+            authd: false
+        });
+
+    case LOGOUT:
+        return Immutable.Map({
+            fetched: true,
+            user: Immutable.Map(),
+            authd: false
+        });
+
+    default:
+        return state;
     }
-
-    return Immutable.Map({
-      fetched: true,
-      user: Immutable.Map(),
-      authd: false
-    });
-
-  case LOGOUT:
-    return Immutable.Map({
-      fetched: true,
-      user: Immutable.Map(),
-      authd: false
-    });
-
-  default:
-    return state;
-  }
 };
 

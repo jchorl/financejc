@@ -8,49 +8,49 @@ import styles from './index.css';
 
 @withRouter
 @connect((state) => {
-  return { auth: state.auth };
+    return { auth: state.auth };
 })
 export default class App extends React.Component {
-  static propTypes = {
-    auth: ImmutablePropTypes.map.isRequired,
-    dispatch: React.PropTypes.func.isRequired,
-    children: React.PropTypes.element.isRequired,
-    router: React.PropTypes.object.isRequired
-  }
+    static propTypes = {
+        auth: ImmutablePropTypes.map.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
+        children: React.PropTypes.element.isRequired,
+        router: React.PropTypes.object.isRequired
+    }
 
-  fileChange = e => {
-    const {
+    fileChange = e => {
+        const {
       dispatch,
     } = this.props;
 
-    dispatch(importData(e.target.files));
-  }
+        dispatch(importData(e.target.files));
+    }
 
-  dispatchLogout = () => {
-    const {
+    dispatchLogout = () => {
+        const {
       dispatch,
       router: { push }
     } = this.props;
 
-    dispatch(logout(function() {
-      push('/');
-    }));
-  }
+        dispatch(logout(function() {
+            push('/');
+        }));
+    }
 
-  goToTransactions = () => {
-    const {
+    goToTransactions = () => {
+        const {
       router: { push }
     } = this.props;
 
-    push('/transactions');
-  }
+        push('/transactions');
+    }
 
-  render () {
-    const {
+    render () {
+        const {
       auth
     } = this.props;
 
-    return (
+        return (
       <div>
         <nav className={ styles.navBar }>
           <div className={ styles.logoAndNavOptions }>
@@ -79,5 +79,5 @@ export default class App extends React.Component {
         { this.props.children }
       </div>
     );
-  }
+    }
 }

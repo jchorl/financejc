@@ -5,36 +5,36 @@ import { newAccount } from '../../actions';
 // import styles from './accountForm.css';
 
 @connect((state) => {
-  return {
-    currencies: state.currencies
-  };
+    return {
+        currencies: state.currencies
+    };
 })
 export default class AccountForm extends React.Component {
-  static propTypes = {
-    currencies: ImmutablePropTypes.map.isRequired,
-    dispatch: React.PropTypes.func.isRequired
-  };
+    static propTypes = {
+        currencies: ImmutablePropTypes.map.isRequired,
+        dispatch: React.PropTypes.func.isRequired
+    };
 
-  onSubmit = (e) => {
-    const {
+    onSubmit = (e) => {
+        const {
       dispatch
     } = this.props;
 
-    let data = {
-      name: e.target['name'].value,
-      currency: e.target['currency'].value
-    };
+        let data = {
+            name: e.target['name'].value,
+            currency: e.target['currency'].value
+        };
 
-    dispatch(newAccount(data));
-    e.preventDefault();
-  }
+        dispatch(newAccount(data));
+        e.preventDefault();
+    }
 
-  render () {
-    const {
+    render () {
+        const {
       currencies
     } = this.props;
 
-    return (
+        return (
       <form onSubmit={ this.onSubmit }>
         <div>
           <label htmlFor="name">Name</label>
@@ -50,5 +50,5 @@ export default class AccountForm extends React.Component {
         <button type="submit">Save</button>
       </form>
     );
-  }
+    }
 }

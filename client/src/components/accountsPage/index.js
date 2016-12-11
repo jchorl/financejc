@@ -8,64 +8,64 @@ import Loader from '../loader';
 import styles from './accountsPage.css';
 
 @connect((state) => {
-  return {
-    accounts: state.accounts,
-    accountTransaction: state.accountTransaction,
-    currencies: state.currencies
-  };
+    return {
+        accounts: state.accounts,
+        accountTransaction: state.accountTransaction,
+        currencies: state.currencies
+    };
 })
 class AccountsPage extends React.Component {
-  static propTypes = {
-    accounts: ImmutablePropTypes.map.isRequired,
-    accountTransaction: ImmutablePropTypes.map.isRequired,
-    currencies: ImmutablePropTypes.map.isRequired,
-    dispatch: React.PropTypes.func.isRequired,
-    children: React.PropTypes.element.isRequired
-  }
+    static propTypes = {
+        accounts: ImmutablePropTypes.map.isRequired,
+        accountTransaction: ImmutablePropTypes.map.isRequired,
+        currencies: ImmutablePropTypes.map.isRequired,
+        dispatch: React.PropTypes.func.isRequired,
+        children: React.PropTypes.element.isRequired
+    }
 
-  constructor (props) {
-    super(props);
-    let selected = props.accounts.get('accounts').size !== 0
+    constructor (props) {
+        super(props);
+        let selected = props.accounts.get('accounts').size !== 0
       ? props.accounts.get('accounts').first().get('id')
       : -1;
-    this.state = {
-      selected: selected
-    };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    let nextAccounts = nextProps.accounts.get('accounts');
-    let currIds = this.props.accounts.get('accounts').keySeq();
-    if (nextAccounts.size > currIds.size) {
-      this.selectAccount(nextAccounts.keySeq().find((id, i) => currIds.get(i) !== id));
+        this.state = {
+            selected: selected
+        };
     }
-  }
 
-  selectAccount = (id) => {
-    this.setState({
-      selected: id
-    });
-  }
+    componentWillReceiveProps(nextProps) {
+        let nextAccounts = nextProps.accounts.get('accounts');
+        let currIds = this.props.accounts.get('accounts').keySeq();
+        if (nextAccounts.size > currIds.size) {
+            this.selectAccount(nextAccounts.keySeq().find((id, i) => currIds.get(i) !== id));
+        }
+    }
 
-  importButton = () => {
-    this.props.dispatch(importData());
-  }
+    selectAccount = (id) => {
+        this.setState({
+            selected: id
+        });
+    }
 
-  render () {
-    const {
+    importButton = () => {
+        this.props.dispatch(importData());
+    }
+
+    render () {
+        const {
       accounts,
       currencies,
       children
     } = this.props;
-    const selected = this.state.selected;
+        const selected = this.state.selected;
 
-    let currency;
-    if (selected !== -1) {
-      let currencyCode = accounts.get('accounts').get(selected).get('currency');
-      currency = currencies.get('currencies').get(currencyCode);
-    }
+        let currency;
+        if (selected !== -1) {
+            let currencyCode = accounts.get('accounts').get(selected).get('currency');
+            currency = currencies.get('currencies').get(currencyCode);
+        }
 
-    return (
+        return (
       <div className={ styles.accountsPage }>
         <div className={ styles.accountList }>
           <AccountList selected={ selected } onSelect={ this.selectAccount } />
@@ -75,8 +75,8 @@ class AccountsPage extends React.Component {
             <div className={ styles.transactionList }>
               {
                 React.cloneElement(children, {
-                  accountId: selected,
-                  currency: currency
+                    accountId: selected,
+                    currency: currency
                 })
               }
             </div>
@@ -84,40 +84,40 @@ class AccountsPage extends React.Component {
         }
       </div>
     );
-  }
+    }
 }
 
 @connect((state) => {
-  return {
-    accounts: state.accounts,
-    currencies: state.currencies
-  };
+    return {
+        accounts: state.accounts,
+        currencies: state.currencies
+    };
 })
 export default class AccountsPageWrapper extends React.Component {
-  static propTypes = {
-    accounts: ImmutablePropTypes.map.isRequired,
-    currencies: ImmutablePropTypes.map.isRequired,
-    children: React.PropTypes.element.isRequired,
-    dispatch: React.PropTypes.func.isRequired
-  }
+    static propTypes = {
+        accounts: ImmutablePropTypes.map.isRequired,
+        currencies: ImmutablePropTypes.map.isRequired,
+        children: React.PropTypes.element.isRequired,
+        dispatch: React.PropTypes.func.isRequired
+    }
 
-  constructor (props) {
-    super(props);
-    props.dispatch(fetchAccounts());
-    props.dispatch(fetchCurrencies());
-  }
+    constructor (props) {
+        super(props);
+        props.dispatch(fetchAccounts());
+        props.dispatch(fetchCurrencies());
+    }
 
-  render () {
-    const {
+    render () {
+        const {
       accounts,
       currencies,
       children
     } = this.props;
 
-    return (
+        return (
       <Loader loading={ !accounts.get('fetched') || !currencies.get('fetched') }>
         <AccountsPage children={ children }/>
       </Loader>
     );
-  }
+    }
 }

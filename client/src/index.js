@@ -24,29 +24,29 @@ let store = createStore(
 );
 
 function fetchAuth(nextState, replace, callback) {
-  if (!store.getState().auth.get('fetched')) {
-    store.dispatch(fetchUser(callback));
-  } else {
-    callback();
-  }
+    if (!store.getState().auth.get('fetched')) {
+        store.dispatch(fetchUser(callback));
+    } else {
+        callback();
+    }
 }
 
 function checkAuth(nextState, replace, callback) {
-  if (!store.getState().auth.get('authd')) {
-    replace({
-      pathname: '/'
-    });
-  }
-  callback();
+    if (!store.getState().auth.get('authd')) {
+        replace({
+            pathname: '/'
+        });
+    }
+    callback();
 }
 
 function goToTransactions(nextState, replace, callback) {
-  if (store.getState().auth.get('authd')) {
-    replace({
-      pathname: '/transactions'
-    });
-  }
-  callback();
+    if (store.getState().auth.get('authd')) {
+        replace({
+            pathname: '/transactions'
+        });
+    }
+    callback();
 }
 
 render(
