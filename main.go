@@ -38,6 +38,7 @@ func main() {
 		// ignore the error because it should already be logged in GenRecurringTransactions
 		transaction.GenRecurringTransactions(ctx)
 	})
+	c.Start()
 
 	e := echo.New()
 	e.Use(
