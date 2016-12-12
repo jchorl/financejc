@@ -79,7 +79,7 @@ func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.AccountId)
+	valid, err := userOwnsAccount(c, transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
@@ -96,7 +96,7 @@ func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 		return nil, err
 	}
 
-	transaction.Id = id
+	transaction.ID = id
 	return transaction, nil
 }
 
@@ -173,12 +173,12 @@ func userOwnsTemplate(c context.Context, template int) (bool, error) {
 func templateToDB(transaction Template) *templateDB {
 	return &templateDB{
 		TemplateName: transaction.TemplateName,
-		ID:           transaction.Id,
+		ID:           transaction.ID,
 		Name:         transaction.Name,
 		Category:     transaction.Category,
 		Amount:       transaction.Amount,
 		Note:         transaction.Note,
-		AccountID:    transaction.AccountId,
+		AccountID:    transaction.AccountID,
 	}
 }
 
@@ -186,12 +186,12 @@ func templateFromDB(transaction templateDB) Template {
 	return Template{
 		TemplateName: transaction.TemplateName,
 		Transaction: Transaction{
-			Id:        transaction.ID,
+			ID:        transaction.ID,
 			Name:      transaction.Name,
 			Category:  transaction.Category,
 			Amount:    transaction.Amount,
 			Note:      transaction.Note,
-			AccountId: transaction.AccountID,
+			AccountID: transaction.AccountID,
 		},
 	}
 }

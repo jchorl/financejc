@@ -20,49 +20,52 @@ const (
 	limitPerQuery = 25
 )
 
+// Transactions is a paginated list of transactions, with a link to the next page
 type Transactions struct {
 	NextLink     string
 	Transactions []Transaction `json:"transactions"`
 }
 
+// Transaction is a transaction
 type Transaction struct {
-	Id                   int       `json:"id,omitempty"`
+	ID                   int       `json:"id,omitempty"`
 	Name                 string    `json:"name"`
 	Date                 time.Time `json:"date"`
 	Category             string    `json:"category"`
 	Amount               int       `json:"amount"`
 	Note                 string    `json:"note"`
-	RelatedTransactionId int       `json:"relatedTransactionId,omitempty"`
-	AccountId            int       `json:"accountId"`
+	RelatedTransactionID int       `json:"relatedTransactionId,omitempty"`
+	AccountID            int       `json:"accountId"`
 }
 
-type TransactionQuery struct {
+// Query holds params to query transactions by a specific field/value pair
+type Query struct {
 	Field     string `json:"field"`
 	Value     string `json:"value"`
-	AccountId int    `json:"accountId"`
+	AccountID int    `json:"accountId"`
 }
 
 type transactionDB struct {
-	Id                   int
+	ID                   int
 	Name                 string
 	Occurred             time.Time
 	Category             sql.NullString
 	Amount               int
 	Note                 sql.NullString
-	RelatedTransactionId sql.NullInt64
-	AccountId            int
+	RelatedTransactionID sql.NullInt64
+	AccountID            int
 }
 
 type transactionES struct {
-	Id                   int       `json:"id,omitempty"`
+	ID                   int       `json:"id,omitempty"`
 	Name                 string    `json:"name"`
 	Date                 time.Time `json:"date"`
 	Category             string    `json:"category"`
 	Amount               int       `json:"amount"`
 	Note                 string    `json:"note"`
-	RelatedTransactionId int       `json:"relatedTransactionId,omitempty"`
-	AccountId            int       `json:"accountId"`
-	UserId               uint      `json:"userId"`
+	RelatedTransactionID int       `json:"relatedTransactionId,omitempty"`
+	AccountID            int       `json:"accountId"`
+	UserID               uint      `json:"userId"`
 }
 
 type nextPageParams struct {
@@ -70,10 +73,12 @@ type nextPageParams struct {
 	Offset    int
 }
 
+// Next returns a link to query for the next page
 func (t Transactions) Next() string {
 	return t.NextLink
 }
 
+// Values returns the actual transactions for the current page
 func (t Transactions) Values() (ret []interface{}) {
 	for _, tr := range t.Transactions {
 		ret = append(ret, tr)
@@ -82,6 +87,7 @@ func (t Transactions) Values() (ret []interface{}) {
 	return ret
 }
 
+// InitES initializes elasticsearch with proper analysis config
 func InitES(es *elastic.Client) error {
 	// largely based on https://qbox.io/blog/multi-field-partial-word-autocomplete-in-elasticsearch-using-ngrams
 	resp, err := es.CreateIndex(constants.ES_INDEX).BodyJson(
@@ -186,13 +192,14 @@ func InitES(es *elastic.Client) error {
 	return nil
 }
 
-func Get(c context.Context, accountId int, nextEncoded string) (Transactions, error) {
+// Get fetches transactions for a given account and page parameters
+func Get(c context.Context, accountID int, nextEncoded string) (Transactions, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return Transactions{}, err
 	}
 
-	valid, err := userOwnsAccount(c, accountId)
+	valid, err := userOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return Transactions{}, constants.Forbidden
 	}
@@ -211,16 +218,16 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"accountId":     accountId,
+		"accountId":     accountID,
 		"reference":     reference,
 		"limitPerQuery": limitPerQuery,
 		"offset":        offset,
 	}).Info("about to query")
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountId, reference, limitPerQuery, offset)
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountID, reference, limitPerQuery, offset)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountId": accountID,
 			"next":      nextEncoded,
 		}).Error("failed to fetch transactions")
 		return Transactions{}, err
@@ -229,10 +236,10 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 
 	for rows.Next() {
 		var transaction transactionDB
-		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionId, &transaction.AccountId); err != nil {
+		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionID, &transaction.AccountID); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
-				"accountId": accountId,
+				"accountId": accountID,
 				"next":      nextEncoded,
 			}).Error("failed to scan into transaction")
 			return Transactions{}, err
@@ -243,7 +250,7 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 	if err := rows.Err(); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountId": accountID,
 			"next":      nextEncoded,
 		}).Error("failed to get transactions from rows")
 		return Transactions{}, err
@@ -261,13 +268,14 @@ func Get(c context.Context, accountId int, nextEncoded string) (Transactions, er
 	return transactions, nil
 }
 
-func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transaction, error) {
+// GetFuture gets all transactions for an account after a given reference time
+func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transaction, error) {
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, accountId)
+	valid, err := userOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
@@ -278,11 +286,11 @@ func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transa
 		now := time.Now()
 		reference = &now
 	}
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred > $2 ORDER BY occurred DESC, id", accountId, reference)
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred > $2 ORDER BY occurred DESC, id", accountID, reference)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountId": accountID,
 		}).Error("failed to fetch future transactions")
 		return transactions, err
 	}
@@ -290,10 +298,10 @@ func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transa
 
 	for rows.Next() {
 		var transaction transactionDB
-		if err := rows.Scan(&transaction.Id, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionId, &transaction.AccountId); err != nil {
+		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionID, &transaction.AccountID); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
-				"accountId": accountId,
+				"accountId": accountID,
 			}).Error("failed to scan into transaction for future fetch")
 			return transactions, err
 		}
@@ -303,7 +311,7 @@ func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transa
 	if err := rows.Err(); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountId": accountID,
 		}).Error("failed to get transactions from rows for future fetch")
 		return transactions, err
 	}
@@ -311,13 +319,14 @@ func GetFuture(c context.Context, accountId int, reference *time.Time) ([]Transa
 	return transactions, nil
 }
 
-func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, error) {
-	userId, err := util.UserIdFromContext(ctx)
+// QueryES queries elasticsearch given query params
+func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
+	userID, err := util.UserIdFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(ctx, query.AccountId)
+	valid, err := userOwnsAccount(ctx, query.AccountID)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
@@ -335,13 +344,13 @@ func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, e
 	searchResult, err := es.Search().
 		Index(constants.ES_INDEX).
 		Query(
-		elastic.NewBoolQuery().
-			Filter(elastic.NewTermQuery("userId", userId)).
-			Must(elastic.NewMatchQuery(query.Field, query.Value).Operator("and").Fuzziness("AUTO")).
-			Should(elastic.NewTermQuery("accountId", query.AccountId))).
+			elastic.NewBoolQuery().
+				Filter(elastic.NewTermQuery("userId", userID)).
+				Must(elastic.NewMatchQuery(query.Field, query.Value).Operator("and").Fuzziness("AUTO")).
+				Should(elastic.NewTermQuery("accountId", query.AccountID))).
 		Aggregation("top_agg",
-		elastic.NewTermsAggregation().Field(query.Field+".raw").Size(10).SubAggregation(
-			"top_agg_hits", elastic.NewTopHitsAggregation().Size(1))).
+			elastic.NewTermsAggregation().Field(query.Field+".raw").Size(10).SubAggregation(
+				"top_agg_hits", elastic.NewTopHitsAggregation().Size(1))).
 		Sort("date", false).
 		Size(50).
 		Do(context.Background())
@@ -390,20 +399,27 @@ func GetESByField(ctx context.Context, query TransactionQuery) ([]Transaction, e
 	return results, nil
 }
 
+// New creates a new transaction for a user
 func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
+	valid, err := userOwnsAccount(ctx, transaction.AccountID)
+	if err != nil || !valid {
+		return nil, constants.Forbidden
+	}
+
+	return newWithoutVerifyingAccountOwnership(ctx, transaction)
+}
+
+// newWithoutVerifyingAccountOwnership creates a new transaction without checking that the context has the owner
+// of the account. This is useful when generating a transaction on behalf of a user, e.g. recurringTransaction
+func newWithoutVerifyingAccountOwnership(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 	db, err := util.DBFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(ctx, transaction.AccountId)
-	if err != nil || !valid {
-		return nil, constants.Forbidden
-	}
-
 	tdb := toDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransactionId, accountId) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionId, tdb.AccountId).Scan(&id)
+	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransactionId, accountId) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.AccountID).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
@@ -413,14 +429,14 @@ func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 		return nil, err
 	}
 
-	transaction.Id = id
+	transaction.ID = id
 
 	es, err := util.ESFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userId, err := util.UserIdFromContext(ctx)
+	userID, err := util.UserIdFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -428,8 +444,8 @@ func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 	_, err = es.Index().
 		Index(constants.ES_INDEX).
 		Type(esType).
-		Id(strconv.Itoa(transaction.Id)).
-		BodyJson(toES(transaction, userId)).
+		Id(strconv.Itoa(transaction.ID)).
+		BodyJson(toES(transaction, userID)).
 		Do(context.Background())
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -442,19 +458,20 @@ func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 	return transaction, nil
 }
 
+// Update updates a transaction
 func Update(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 	db, err := util.DBFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(ctx, transaction.AccountId)
+	valid, err := userOwnsAccount(ctx, transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
 
 	tdb := toDB(*transaction)
-	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransactionId = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionId, tdb.Id)
+	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransactionId = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
@@ -469,7 +486,7 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 		return nil, err
 	}
 
-	userId, err := util.UserIdFromContext(ctx)
+	userID, err := util.UserIdFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -478,8 +495,8 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 	_, err = es.Index().
 		Index(constants.ES_INDEX).
 		Type(esType).
-		Id(strconv.Itoa(transaction.Id)).
-		BodyJson(toES(transaction, userId)).
+		Id(strconv.Itoa(transaction.ID)).
+		BodyJson(toES(transaction, userID)).
 		Do(context.Background())
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -492,22 +509,23 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 	return transaction, nil
 }
 
-func Delete(ctx context.Context, transactionId int) error {
+// Delete deletes a transaction
+func Delete(ctx context.Context, transactionID int) error {
 	db, err := util.DBFromContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	valid, err := userOwnsTransaction(ctx, transactionId)
+	valid, err := userOwnsTransaction(ctx, transactionID)
 	if err != nil || !valid {
 		return constants.Forbidden
 	}
 
-	_, err = db.Exec("DELETE FROM transactions WHERE id = $1", transactionId)
+	_, err = db.Exec("DELETE FROM transactions WHERE id = $1", transactionID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
-			"transactionID": transactionId,
+			"transactionID": transactionID,
 		}).Errorf("could not delete transaction")
 		return err
 	}
@@ -520,12 +538,12 @@ func Delete(ctx context.Context, transactionId int) error {
 	_, err = es.Delete().
 		Index(constants.ES_INDEX).
 		Type(esType).
-		Id(strconv.Itoa(transactionId)).
+		Id(strconv.Itoa(transactionID)).
 		Do(context.Background())
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
-			"transactionId": transactionId,
+			"transactionId": transactionID,
 		}).Error("failed to delete transaction in elasticsearch")
 		return err
 	}
@@ -534,7 +552,7 @@ func Delete(ctx context.Context, transactionId int) error {
 }
 
 func userOwnsAccount(c context.Context, account int) (bool, error) {
-	userId, err := util.UserIdFromContext(c)
+	userID, err := util.UserIdFromContext(c)
 	if err != nil {
 		return false, err
 	}
@@ -549,17 +567,17 @@ func userOwnsAccount(c context.Context, account int) (bool, error) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err,
-			"userId":  userId,
+			"userId":  userID,
 			"account": account,
 		}).Error("error checking owner of account")
 		return false, err
 	}
 
-	return owner == userId, nil
+	return owner == userID, nil
 }
 
 func userOwnsTransaction(c context.Context, transaction int) (bool, error) {
-	userId, err := util.UserIdFromContext(c)
+	userID, err := util.UserIdFromContext(c)
 	if err != nil {
 		return false, err
 	}
@@ -574,13 +592,13 @@ func userOwnsTransaction(c context.Context, transaction int) (bool, error) {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":       err,
-			"userId":      userId,
+			"userId":      userID,
 			"transaction": transaction,
 		}).Error("error checking owner of transaction")
 		return false, err
 	}
 
-	return owner == userId, nil
+	return owner == userID, nil
 }
 
 func encodeNextPage(decoded nextPageParams) (string, error) {
@@ -612,53 +630,53 @@ func decodeNextPage(encoded string) (nextPageParams, error) {
 
 func toDB(transaction Transaction) *transactionDB {
 	return &transactionDB{
-		Id:                   transaction.Id,
+		ID:                   transaction.ID,
 		Name:                 transaction.Name,
 		Occurred:             transaction.Date,
 		Category:             util.ToNullStringNonEmpty(transaction.Category),
 		Amount:               transaction.Amount,
 		Note:                 util.ToNullStringNonEmpty(transaction.Note),
-		RelatedTransactionId: util.ToNullIntNonZero(transaction.RelatedTransactionId),
-		AccountId:            transaction.AccountId,
+		RelatedTransactionID: util.ToNullIntNonZero(transaction.RelatedTransactionID),
+		AccountID:            transaction.AccountID,
 	}
 }
 
 func fromDB(transaction transactionDB) Transaction {
 	return Transaction{
-		Id:                   transaction.Id,
+		ID:                   transaction.ID,
 		Name:                 transaction.Name,
 		Date:                 transaction.Occurred,
 		Category:             util.FromNullStringNonEmpty(transaction.Category),
 		Amount:               transaction.Amount,
 		Note:                 util.FromNullStringNonEmpty(transaction.Note),
-		RelatedTransactionId: util.FromNullIntNonZero(transaction.RelatedTransactionId),
-		AccountId:            transaction.AccountId,
+		RelatedTransactionID: util.FromNullIntNonZero(transaction.RelatedTransactionID),
+		AccountID:            transaction.AccountID,
 	}
 }
 
-func toES(transaction *Transaction, userId uint) transactionES {
+func toES(transaction *Transaction, userID uint) transactionES {
 	return transactionES{
-		Id:                   transaction.Id,
+		ID:                   transaction.ID,
 		Name:                 transaction.Name,
 		Date:                 transaction.Date,
 		Category:             transaction.Category,
 		Amount:               transaction.Amount,
 		Note:                 transaction.Note,
-		RelatedTransactionId: transaction.RelatedTransactionId,
-		AccountId:            transaction.AccountId,
-		UserId:               userId,
+		RelatedTransactionID: transaction.RelatedTransactionID,
+		AccountID:            transaction.AccountID,
+		UserID:               userID,
 	}
 }
 
 func fromES(transaction transactionES) Transaction {
 	return Transaction{
-		Id:                   transaction.Id,
+		ID:                   transaction.ID,
 		Name:                 transaction.Name,
 		Date:                 transaction.Date,
 		Category:             transaction.Category,
 		Amount:               transaction.Amount,
 		Note:                 transaction.Note,
-		RelatedTransactionId: transaction.RelatedTransactionId,
-		AccountId:            transaction.AccountId,
+		RelatedTransactionID: transaction.RelatedTransactionID,
+		AccountID:            transaction.AccountID,
 	}
 }

@@ -140,7 +140,7 @@ func NewRecurring(c context.Context, transaction *RecurringTransaction) (*Recurr
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.Transaction.AccountId)
+	valid, err := userOwnsAccount(c, transaction.Transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.Forbidden
 	}
@@ -368,7 +368,7 @@ func generateFromRecurringAndUpdateRecurring(ctx context.Context, recurringTrans
 	// keep generating until it is too early to post the next transaction
 	now := time.Now()
 	for recurringTransaction.Transaction.Date.Add(time.Second * time.Duration(-recurringTransaction.SecondsBeforeToPost)).Before(now) {
-		if _, err := New(ctx, &recurringTransaction.Transaction); err != nil {
+		if _, err := newWithoutVerifyingAccountOwnership(ctx, &recurringTransaction.Transaction); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":                err,
 				"recurringTransaction": recurringTransaction,
@@ -404,7 +404,7 @@ func recurringToDB(transaction RecurringTransaction) *recurringTransactionDB {
 		Category:   transaction.Transaction.Category,
 		Amount:     transaction.Transaction.Amount,
 		Note:       transaction.Transaction.Note,
-		AccountID:  transaction.Transaction.AccountId,
+		AccountID:  transaction.Transaction.AccountID,
 
 		ScheduleType:        transaction.ScheduleType,
 		SecondsBetween:      util.ToNullInt(transaction.SecondsBetween),
@@ -422,7 +422,7 @@ func recurringFromDB(transaction recurringTransactionDB) RecurringTransaction {
 			Category:  transaction.Category,
 			Amount:    transaction.Amount,
 			Note:      transaction.Note,
-			AccountId: transaction.AccountID,
+			AccountID: transaction.AccountID,
 		},
 
 		ScheduleType:        transaction.ScheduleType,

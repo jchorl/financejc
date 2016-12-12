@@ -93,7 +93,7 @@ func NewTransaction(c echo.Context) error {
 		return writeError(c, constants.BadRequest)
 	}
 
-	tr.AccountId = accountId
+	tr.AccountID = accountId
 	tr, err = transaction.New(toContext(c), tr)
 	if err != nil {
 		return writeError(c, err)
@@ -123,7 +123,7 @@ func NewRecurringTransaction(c echo.Context) error {
 		return writeError(c, constants.BadRequest)
 	}
 
-	tr.Transaction.AccountId = accountId
+	tr.Transaction.AccountID = accountId
 	tr, err = transaction.NewRecurring(toContext(c), tr)
 	if err != nil {
 		return writeError(c, err)
@@ -153,7 +153,7 @@ func NewTemplate(c echo.Context) error {
 		return writeError(c, constants.BadRequest)
 	}
 
-	tr.AccountId = accountId
+	tr.AccountID = accountId
 	tr, err = transaction.NewTemplate(toContext(c), tr)
 	if err != nil {
 		return writeError(c, err)
@@ -259,7 +259,7 @@ func DeleteTemplate(c echo.Context) error {
 	transactionId, err := strconv.Atoi(transactionIdStr)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"error":                 err,
+			"error":      err,
 			"templateId": transactionIdStr,
 		}).Error("error parsing transaction template ID to int")
 		return writeError(c, constants.BadRequest)
@@ -285,12 +285,12 @@ func QueryES(ctx echo.Context) error {
 		return writeError(ctx, constants.BadRequest)
 	}
 
-	query := transaction.TransactionQuery{
+	query := transaction.Query{
 		Field:     ctx.QueryParam("field"),
 		Value:     ctx.QueryParam("value"),
-		AccountId: accountId,
+		AccountID: accountId,
 	}
-	transactions, err := transaction.GetESByField(toContext(ctx), query)
+	transactions, err := transaction.QueryES(toContext(ctx), query)
 	if err != nil {
 		return writeError(ctx, err)
 	}
