@@ -47,6 +47,13 @@ db: network
 		-e POSTGRES_PASSWORD \
 		postgres
 
+backup:
+	docker run -it --rm \
+		--network financejcnet \
+		-v $(PWD)/backup:/backup \
+		postgres \
+		pg_dump -h financejcdb -U '$(POSTGRES_USER)' --data-only -f /backup/$$(date +%Y_%m_%d__%H_%M_%S).sql
+
 es: network
 	docker ps | grep financejces || \
 		docker run -d \
@@ -182,4 +189,4 @@ kibana:
 		-p 5601:5601 \
 		kibana
 
-.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang
+.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang backup
