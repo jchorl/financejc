@@ -54,6 +54,13 @@ backup:
 		postgres \
 		pg_dump -h financejcdb -U '$(POSTGRES_USER)' --data-only -f /backup/$$(date +%Y_%m_%d__%H_%M_%S).sql
 
+restore:
+	docker run -it --rm \
+		--network financejcnet \
+		-v $(PWD)/backup:/backup \
+		postgres \
+		sh -c 'cat /$(BACKUP_FILE) | psql -h financejcdb -U "$(POSTGRES_USER)"'
+
 es: network
 	docker ps | grep financejces || \
 		docker run -d \
