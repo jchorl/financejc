@@ -59,7 +59,7 @@ restore:
 		--network financejcnet \
 		-v $(PWD)/backup:/backup \
 		postgres \
-		pg_restore -h financejcdb -U '$(POSTGRES_USER)' --data-only -Fc /$(BACKUP_FILE)
+		pg_restore -h financejcdb -U '$(POSTGRES_USER)' --data-only -d '$(POSTGRES_USER)' --disable-triggers -Fc /$(BACKUP_FILE)
 
 es: network
 	docker ps | grep financejces || \
@@ -123,6 +123,7 @@ serve-dev: network
 		-h financejc \
 		-e DOMAIN=localhost \
 		-e PORT=443 \
+		-e DB_ADDRESS \
 		jchorl/financejc
 
 build-nginx:
