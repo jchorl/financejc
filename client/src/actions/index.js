@@ -82,6 +82,15 @@ const templateDeleted = (id, accountId) => {
     };
 };
 
+export const DELETE_TRANSACTION = 'DELETE_TRANSACTION';
+const transactionDeleted = (id, accountId) => {
+    return {
+        type: DELETE_TRANSACTION,
+        accountId,
+        id
+    };
+};
+
 export const PUT_TRANSACTION = 'PUT_TRANSACTION';
 const updateTransactions = (transaction) => {
     return {
@@ -315,6 +324,25 @@ export function putTransaction(transaction, amountDifference) {
             .then(response => response.json())
             .then(json => dispatch(updateTransactions(json)))
             .then(resp => dispatch(updateAccountValue(resp.transaction.accountId, amountDifference)));
+    };
+}
+
+export function deleteTransaction(id, accountId, amount) {
+    let headers = new Headers();
+    headers.append('Accept', 'application/json');
+    headers.append('Content-Type', 'application/json');
+
+    return function(dispatch) {
+        return fetch(`/api/transaction/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: headers
+        }).then((resp) => {
+            if (resp.ok) {
+                dispatch(transactionDeleted(id, accountId));
+                dispatch(updateAccountValue(accountId, -amount));
+            }
+        });
     };
 }
 

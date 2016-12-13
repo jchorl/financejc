@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
 import styles from './transaction.css';
 import { toCurrency, toDate, toDecimal, toWhole, toRFC3339, queryByFieldAndVal } from '../../utils';
-import { putTransaction } from '../../actions';
+import { deleteTransaction, putTransaction } from '../../actions';
 
 export class Transaction extends React.Component {
     static propTypes = {
@@ -32,22 +32,22 @@ export class Transaction extends React.Component {
 
     render () {
         const {
-      transaction,
-      currency
-    } = this.props;
+            transaction,
+            currency
+        } = this.props;
 
         return transaction ? (
-      this.state.editMode ? (
-        <TransactionForm transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
-      ) : (
-        <div className={ classNames(styles.transaction, styles.transactionFields) }>
-          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
-          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.get('date')) }</span>
-          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('category') }</span>
-          <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
-        </div>
-      )
-    ) : null;
+            this.state.editMode ? (
+                <TransactionForm transaction={ transaction } initialValues={ getFormInitialValues(transaction, currency) } done={ this.exitEditMode } currency={ currency } />
+            ) : (
+                <div className={ classNames(styles.transaction, styles.transactionFields) }>
+                    <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('name') }</span>
+                    <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toDate(transaction.get('date')) }</span>
+                    <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ transaction.get('category') }</span>
+                    <span className={ classNames(styles.transactionField, styles.nonEdit) } onClick={ this.enterEditMode }>{ toCurrency(toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')), currency.get('code')) }</span>
+                </div>
+            )
+        ) : null;
     }
 }
 
@@ -66,8 +66,8 @@ function getSuggestionValue(field, suggestion) {
 
 function renderSuggestion(field, suggestion) {
     return (
-    <span>{ suggestion[field] }</span>
-  );
+        <span>{ suggestion[field] }</span>
+    );
 }
 
 // getting suggestions async example: http://codepen.io/moroshko/pen/EPZpev
@@ -77,7 +77,7 @@ export class TransactionForm extends React.Component {
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired,
         initialValues: React.PropTypes.object.isRequired,
-    // either transaction (for editing) or accountId (for new transactions) should be passed
+        // either transaction (for editing) or accountId (for new transactions) should be passed
         accountId: React.PropTypes.number,
         transaction: ImmutablePropTypes.map,
         done: React.PropTypes.func
@@ -105,9 +105,9 @@ export class TransactionForm extends React.Component {
 
     loadSuggestions = (field, value) => {
         const {
-      accountId,
-      transaction
-    } = this.props;
+            accountId,
+            transaction
+        } = this.props;
 
         let resolvedAccountId = accountId;
         if (transaction) {
@@ -121,9 +121,9 @@ export class TransactionForm extends React.Component {
 
         let that = this;
 
-    // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
+        // ideally requests are made from actions, buuuuut it is much easier and faster to skip redux
         queryByFieldAndVal(resolvedAccountId, field, value).then(transactions => {
-      // stale query
+            // stale query
             if (id !== that.state.lastRequestId) {
                 return;
             }
@@ -165,7 +165,7 @@ export class TransactionForm extends React.Component {
         this.setState({
             values: {
                 name: suggestion.name,
-        // don't update the date
+                // don't update the date
                 date: this.state.values.date,
                 category: suggestion.category,
                 amount: toDecimal(suggestion.amount, currency.get('digitsAfterDecimal'))
@@ -181,14 +181,26 @@ export class TransactionForm extends React.Component {
         });
     }
 
+    deleteTransaction = (e) => {
+        const {
+            dispatch,
+            done,
+            transaction
+        } = this.props;
+
+        dispatch(deleteTransaction(transaction.get('id'), transaction.get('accountId'), transaction.get('amount')));
+        done && done();
+        e.preventDefault();
+    }
+
     submit = (e) => {
         const {
-      accountId,
-      currency,
-      dispatch,
-      done,
-      transaction
-    } = this.props;
+            accountId,
+            currency,
+            dispatch,
+            done,
+            transaction
+        } = this.props;
 
         let obj = {
             name: e.target['name'].value,
@@ -212,9 +224,13 @@ export class TransactionForm extends React.Component {
 
     render () {
         const {
-      suggestions,
-      values
-    } = this.state;
+            transaction
+        } = this.props;
+
+        const {
+            suggestions,
+            values
+        } = this.state;
 
         const nameInputProps = {
             name: 'name',
@@ -231,37 +247,40 @@ export class TransactionForm extends React.Component {
         };
 
         return (
-      <div className={ styles.transaction }>
-        <form onSubmit={ this.submit }>
-          <div className={ styles.transactionFields }>
-            <Autosuggest
-              id="name"
-              suggestions={ suggestions.name }
-              onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'name') }
-              onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
-              onSuggestionSelected={ this.onNameSuggestionSelected }
-              getSuggestionValue={ getSuggestionValue.bind(undefined, 'name') }
-              renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
-              inputProps={ nameInputProps }
-              theme={ styles } />
-            <input type="date" name="date" value={ values.date } onChange={ this.fieldChange('date') } className={ styles.transactionField } />
-            <Autosuggest
-              id="category"
-              suggestions={ suggestions.category }
-              onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'category') }
-              onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
-              getSuggestionValue={ getSuggestionValue.bind(undefined, 'category') }
-              renderSuggestion={ renderSuggestion.bind(undefined, 'category') }
-              inputProps={ categoryInputProps }
-              theme={ styles } />
-            <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionField } />
-          </div>
-          <div className={ styles.saveExit }>
-            <button type="button" onClick={ this.props.done }>Cancel</button>
-            <button type="submit">Save</button>
-          </div>
-        </form>
-      </div>
-    );
+            <div className={ styles.transaction }>
+                <form onSubmit={ this.submit }>
+                    <div className={ styles.transactionFields }>
+                        <Autosuggest
+                            id="name"
+                            suggestions={ suggestions.name }
+                            onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'name') }
+                            onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
+                            onSuggestionSelected={ this.onNameSuggestionSelected }
+                            getSuggestionValue={ getSuggestionValue.bind(undefined, 'name') }
+                            renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
+                            inputProps={ nameInputProps }
+                            theme={ styles } />
+                        <input type="date" name="date" value={ values.date } onChange={ this.fieldChange('date') } className={ styles.transactionField } />
+                        <Autosuggest
+                            id="category"
+                            suggestions={ suggestions.category }
+                            onSuggestionsFetchRequested={ this.onSuggestionsFetchRequested.bind(this, 'category') }
+                            onSuggestionsClearRequested={ this.onSuggestionsClearRequested }
+                            getSuggestionValue={ getSuggestionValue.bind(undefined, 'category') }
+                            renderSuggestion={ renderSuggestion.bind(undefined, 'category') }
+                            inputProps={ categoryInputProps }
+                            theme={ styles } />
+                        <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionField } />
+                    </div>
+                    <div className={ styles.saveExit }>
+                        <button type="button" onClick={ this.props.done }>Cancel</button>
+                        {
+                            transaction ? <button type="button" onClick={ this.deleteTransaction }>Delete</button> : null
+                        }
+                        <button type="submit">Save</button>
+                    </div>
+                </form>
+            </div>
+        );
     }
 }
