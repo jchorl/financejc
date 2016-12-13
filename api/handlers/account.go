@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
@@ -10,6 +9,7 @@ import (
 	"github.com/jchorl/financejc/api/account"
 )
 
+// GetAccounts fetches accounts
 func GetAccounts(c echo.Context) error {
 	accounts, err := account.Get(toContext(c))
 	if err != nil {
@@ -18,6 +18,7 @@ func GetAccounts(c echo.Context) error {
 	return c.JSON(http.StatusOK, accounts)
 }
 
+// NewAccount creates a new account
 func NewAccount(c echo.Context) error {
 	acc := new(account.Account)
 	if err := c.Bind(acc); err != nil {
@@ -36,6 +37,7 @@ func NewAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, acc)
 }
 
+// UpdateAccount updates an account
 func UpdateAccount(c echo.Context) error {
 	acc := new(account.Account)
 	if err := c.Bind(acc); err != nil {
@@ -54,18 +56,14 @@ func UpdateAccount(c echo.Context) error {
 	return c.JSON(http.StatusOK, acc)
 }
 
+// DeleteAccount deletes an account
 func DeleteAccount(c echo.Context) error {
-	accountIdStr := c.Param("accountId")
-	accountId, err := strconv.Atoi(accountIdStr)
+	accountID, err := idFromParam(c, "accountId")
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":     err,
-			"accountId": accountIdStr,
-		}).Error("error parsing account ID to int")
 		return writeError(c, err)
 	}
 
-	if err := account.Delete(toContext(c), accountId); err != nil {
+	if err := account.Delete(toContext(c), accountID); err != nil {
 		return writeError(c, err)
 	}
 

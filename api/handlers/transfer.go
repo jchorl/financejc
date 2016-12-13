@@ -9,6 +9,7 @@ import (
 	"github.com/jchorl/financejc/api/transfer"
 )
 
+// Transfer manages importing files
 func Transfer(c echo.Context) error {
 	file, err := c.FormFile("file")
 	if err != nil {

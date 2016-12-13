@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 
@@ -42,6 +44,22 @@ func writeError(c echo.Context, err error) error {
 	default:
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+}
+
+func idFromParam(c echo.Context, paramName string) (int, error) {
+	IDStr := c.Param(paramName)
+	ID, err := strconv.Atoi(IDStr)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":     err,
+			"context":   c,
+			"IDStr":     IDStr,
+			"paramName": paramName,
+		})
+		return 0, constants.ErrBadRequest
+	}
+
+	return ID, nil
 }
 
 // toContext is supposed to take a context/middleware injected value
