@@ -15,6 +15,8 @@ const (
 	FIXED_DAY_WEEK  = "fixedDayWeek"
 	FIXED_DAY_MONTH = "fixedDayMonth"
 	FIXED_DAY_YEAR  = "fixedDayYear"
+
+	ADMIN_UID = uint(1)
 )
 
 var CTX_KEYS = [...]string{

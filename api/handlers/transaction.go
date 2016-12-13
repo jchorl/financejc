@@ -297,3 +297,11 @@ func QueryES(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, transactions)
 }
+
+func PushAllToES(ctx echo.Context) error {
+	if err := transaction.PushAllToES(toContext(ctx)); err != nil {
+		return writeError(ctx, err)
+	}
+
+	return ctx.NoContent(http.StatusNoContent)
+}

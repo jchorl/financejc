@@ -14,6 +14,7 @@ var (
 	})
 )
 
+// Init takes an echo group and registers all the api handlers on it
 func Init(api *echo.Group) {
 	api.POST("/auth", AuthUser)
 	api.POST("/auth/logout", Logout)
@@ -39,6 +40,7 @@ func Init(api *echo.Group) {
 	api.DELETE("/transaction/:transactionId", DeleteTransaction, jwtMiddleware)
 	api.DELETE("/recurringTransaction/:recurringTransactionId", DeleteRecurringTransaction, jwtMiddleware)
 	api.DELETE("/template/:templateId", DeleteTemplate, jwtMiddleware)
+	api.GET("/transaction/pushAllToES", PushAllToES, jwtMiddleware)
 
 	api.GET("/user", GetUser, jwtMiddleware)
 

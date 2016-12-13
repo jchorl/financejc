@@ -551,6 +551,73 @@ func Delete(ctx context.Context, transactionID int) error {
 	return nil
 }
 
+// PushAllToES pushes all transactions to elasticsearch
+func PushAllToES(c context.Context) error {
+	userID, err := util.UserIdFromContext(c)
+	if err != nil || userID != constants.ADMIN_UID {
+		return constants.Forbidden
+	}
+
+	es, err := util.ESFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	// clear out ES
+	_, err = es.DeleteIndex(constants.ES_INDEX).
+		Do(context.Background())
+	if err != nil {
+		logrus.WithError(err).Error("failed to delete all transactions from elasticsearch")
+		return err
+	}
+
+	err = InitES(es)
+	if err != nil {
+		return err
+	}
+
+	// get all transactions
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	esBulkReq := es.Bulk().Index(constants.ES_INDEX).Type(esType)
+
+	rows, err := db.Query("SELECT t.id, t.name, t.occurred, t.category, t.amount, t.note, t.relatedTransactionId, t.accountId, a.userId FROM transactions t JOIN accounts a on t.accountId = a.id")
+	if err != nil {
+		logrus.WithError(err).Error("failed to fetch all transactions")
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var transaction transactionDB
+		var userID uint
+		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionID, &transaction.AccountID, &userID); err != nil {
+			logrus.WithError(err).Error("failed to scan into transaction")
+			return err
+		}
+
+		parsed := fromDB(transaction)
+		esBulkReq.Add(
+			elastic.NewBulkIndexRequest().Id(strconv.Itoa(transaction.ID)).Doc(toES(&parsed, userID)),
+		)
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithError(err).Error("failed to get transactions from rows")
+		return err
+	}
+
+	_, err = esBulkReq.Do(context.Background())
+	if err != nil {
+		logrus.WithError(err).Error("failed to bulk post all transactions to es")
+		return err
+	}
+
+	return nil
+}
+
 func userOwnsAccount(c context.Context, account int) (bool, error) {
 	userID, err := util.UserIdFromContext(c)
 	if err != nil {
