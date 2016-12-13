@@ -52,14 +52,14 @@ backup:
 		--network financejcnet \
 		-v $(PWD)/backup:/backup \
 		postgres \
-		pg_dump -h financejcdb -U '$(POSTGRES_USER)' --data-only -f /backup/$$(date +%Y_%m_%d__%H_%M_%S).sql
+		sh -c 'pg_dump -h financejcdb -d postgres -U "$(POSTGRES_USER)" --data-only -Fc > /backup/$$(date +%Y_%m_%d__%H_%M_%S).sql'
 
 restore:
 	docker run -it --rm \
 		--network financejcnet \
 		-v $(PWD)/backup:/backup \
 		postgres \
-		sh -c 'cat /$(BACKUP_FILE) | psql -h financejcdb -U "$(POSTGRES_USER)"'
+		pg_restore -h financejcdb -d postgres -U '$(POSTGRES_USER)' /$(BACKUP_FILE)
 
 es: network
 	docker ps | grep financejces || \
@@ -196,4 +196,4 @@ kibana:
 		-p 5601:5601 \
 		kibana
 
-.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang backup
+.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang backup restore
