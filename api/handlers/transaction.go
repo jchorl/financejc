@@ -305,3 +305,11 @@ func PushAllToES(ctx echo.Context) error {
 
 	return ctx.NoContent(http.StatusNoContent)
 }
+
+func GenRecurringTransactions(ctx echo.Context) error {
+	if err := transaction.GenRecurringTransactions(toContext(ctx)); err != nil {
+		return writeError(ctx, err)
+	}
+
+	return ctx.NoContent(http.StatusNoContent)
+}

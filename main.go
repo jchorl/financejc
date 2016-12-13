@@ -33,7 +33,7 @@ func main() {
 	configureEsIndices(es)
 
 	c := cron.New()
-	ctx := context.WithValue(context.WithValue(context.Background(), constants.CtxDB, db), constants.CtxES, es)
+	ctx := context.WithValue(context.WithValue(context.WithValue(context.Background(), constants.CtxDB, db), constants.CtxES, es), constants.CtxUserID, constants.AdminUID)
 	c.AddFunc("@daily", func() {
 		// ignore the error because it should already be logged in GenRecurringTransactions
 		transaction.GenRecurringTransactions(ctx)

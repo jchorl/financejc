@@ -38,9 +38,14 @@ type recurringTransactionDB struct {
 }
 
 // GenRecurringTransactions generates transactions from recurring transactions
-func GenRecurringTransactions(ctx context.Context) error {
+func GenRecurringTransactions(c context.Context) error {
 	logrus.Debug("running GenRecurringTransactions")
-	db, err := util.SQLDBFromContext(ctx)
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || userID != constants.AdminUID {
+		return constants.ErrForbidden
+	}
+
+	db, err := util.SQLDBFromContext(c)
 	if err != nil {
 		return err
 	}
@@ -59,11 +64,11 @@ func GenRecurringTransactions(ctx context.Context) error {
 	}
 
 	// replace the sql Db in the context with the sql Tx
-	ctx = context.WithValue(ctx, constants.CtxDB, tx)
+	c = context.WithValue(c, constants.CtxDB, tx)
 
 	for _, recurringTransaction := range recurringTransactions {
 		logrus.WithField("recurringTransaction", recurringTransaction).Debug("about to generate recurring transaction")
-		if err := generateFromRecurringAndUpdateRecurring(ctx, recurringTransaction); err != nil {
+		if err := generateFromRecurringAndUpdateRecurring(c, recurringTransaction); err != nil {
 			tx.Rollback()
 			return err
 		}

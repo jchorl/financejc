@@ -41,6 +41,7 @@ func Init(api *echo.Group) {
 	api.DELETE("/recurringTransaction/:recurringTransactionId", DeleteRecurringTransaction, jwtMiddleware)
 	api.DELETE("/template/:templateId", DeleteTemplate, jwtMiddleware)
 	api.GET("/transaction/pushAllToES", PushAllToES, jwtMiddleware)
+	api.GET("/transaction/genRecurring", GenRecurringTransactions, jwtMiddleware)
 
 	api.GET("/user", GetUser, jwtMiddleware)
 
