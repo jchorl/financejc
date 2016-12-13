@@ -29,7 +29,7 @@ func Get(c context.Context) (User, error) {
 		return User{}, err
 	}
 
-	userID, err := util.UserIdFromContext(c)
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return User{}, err
 	}

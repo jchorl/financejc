@@ -18,7 +18,7 @@ type Account struct {
 }
 
 func Get(c context.Context) ([]*Account, error) {
-	userId, err := util.UserIdFromContext(c)
+	userId, err := util.UserIDFromContext(c)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func Get(c context.Context) ([]*Account, error) {
 }
 
 func New(c context.Context, account *Account) (*Account, error) {
-	userId, err := util.UserIdFromContext(c)
+	userId, err := util.UserIDFromContext(c)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func New(c context.Context, account *Account) (*Account, error) {
 
 	_, valid := constants.CurrencyInfo[account.Currency]
 	if !valid {
-		return nil, constants.InvalidCurrency
+		return nil, constants.ErrInvalidCurrency
 	}
 
 	var id int
@@ -95,7 +95,7 @@ func New(c context.Context, account *Account) (*Account, error) {
 }
 
 func Update(c context.Context, account *Account) (*Account, error) {
-	userId, err := util.UserIdFromContext(c)
+	userId, err := util.UserIDFromContext(c)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func Update(c context.Context, account *Account) (*Account, error) {
 
 	_, valid := constants.CurrencyInfo[account.Currency]
 	if !valid {
-		return nil, constants.InvalidCurrency
+		return nil, constants.ErrInvalidCurrency
 	}
 
 	_, err = db.Exec("UPDATE accounts SET name = $1, currency = $2 WHERE id = $3 AND userId = $4", account.Name, account.Currency, account.Id, userId)
@@ -123,7 +123,7 @@ func Update(c context.Context, account *Account) (*Account, error) {
 }
 
 func Delete(c context.Context, accountId int) error {
-	userId, err := util.UserIdFromContext(c)
+	userId, err := util.UserIDFromContext(c)
 	if err != nil {
 		return err
 	}

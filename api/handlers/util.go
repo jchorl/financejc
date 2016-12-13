@@ -33,11 +33,11 @@ func writePaginatedEntity(c echo.Context, entity Paginated) error {
 
 func writeError(c echo.Context, err error) error {
 	switch err {
-	case constants.NotLoggedIn:
+	case constants.ErrNotLoggedIn:
 		return c.String(http.StatusUnauthorized, err.Error())
-	case constants.Forbidden:
+	case constants.ErrForbidden:
 		return c.String(http.StatusForbidden, err.Error())
-	case constants.BadRequest:
+	case constants.ErrBadRequest:
 		return c.String(http.StatusBadRequest, err.Error())
 	default:
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -49,9 +49,9 @@ func writeError(c echo.Context, err error) error {
 // Go context.Context that everything below the handlers can understand.
 func toContext(ctx echo.Context) context.Context {
 	ret := context.Background()
-	for _, ctxKey := range constants.CTX_KEYS {
+	for _, ctxKey := range constants.CtxKeys {
 		switch ctxKey {
-		case constants.CTX_USER_ID:
+		case constants.CtxUserID:
 			// we'll catch errors later when we pull vals from ctx
 			// for now just make a valid ctx
 			user := ctx.Get("user")

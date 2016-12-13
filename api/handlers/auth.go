@@ -26,7 +26,7 @@ func AuthUser(c echo.Context) error {
 
 	user, err := auth.LoginByGoogleToken(toContext(c), req.Token)
 	if err != nil {
-		return constants.NotLoggedIn
+		return constants.ErrNotLoggedIn
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -40,7 +40,7 @@ func AuthUser(c echo.Context) error {
 			"token":   token,
 			"context": c,
 		}).Error("error getting signed jwt")
-		return constants.NotLoggedIn
+		return constants.ErrNotLoggedIn
 	}
 
 	cookie := new(http.Cookie)

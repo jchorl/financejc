@@ -39,7 +39,7 @@ func Import(c context.Context, file io.Reader) error {
 }
 
 func TransferQIF(c context.Context, file io.Reader) error {
-	userId, err := util.UserIdFromContext(c)
+	userId, err := util.UserIDFromContext(c)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func TransferQIF(c context.Context, file io.Reader) error {
 		logrus.WithError(err).Error("could not begin transaction")
 	}
 
-	c = context.WithValue(c, constants.CTX_DB, tx)
+	c = context.WithValue(c, constants.CtxDB, tx)
 
 	for scanner.Scan() {
 		line := scanner.Text()

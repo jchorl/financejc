@@ -90,7 +90,7 @@ func (t Transactions) Values() (ret []interface{}) {
 // InitES initializes elasticsearch with proper analysis config
 func InitES(es *elastic.Client) error {
 	// largely based on https://qbox.io/blog/multi-field-partial-word-autocomplete-in-elasticsearch-using-ngrams
-	resp, err := es.CreateIndex(constants.ES_INDEX).BodyJson(
+	resp, err := es.CreateIndex(constants.ESIndex).BodyJson(
 		map[string]interface{}{
 			"settings": map[string]interface{}{
 				"analysis": map[string]interface{}{
@@ -201,7 +201,7 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 
 	valid, err := userOwnsAccount(c, accountID)
 	if err != nil || !valid {
-		return Transactions{}, constants.Forbidden
+		return Transactions{}, constants.ErrForbidden
 	}
 
 	transactions := Transactions{}
@@ -277,7 +277,7 @@ func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transa
 
 	valid, err := userOwnsAccount(c, accountID)
 	if err != nil || !valid {
-		return nil, constants.Forbidden
+		return nil, constants.ErrForbidden
 	}
 
 	transactions := []Transaction{}
@@ -321,19 +321,19 @@ func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transa
 
 // QueryES queries elasticsearch given query params
 func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
-	userID, err := util.UserIdFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	valid, err := userOwnsAccount(ctx, query.AccountID)
 	if err != nil || !valid {
-		return nil, constants.Forbidden
+		return nil, constants.ErrForbidden
 	}
 
 	if query.Field != "name" && query.Field != "category" {
 		logrus.WithField("query.Field", query.Field).Error("querying for unsupported field")
-		return nil, constants.BadRequest
+		return nil, constants.ErrBadRequest
 	}
 
 	es, err := util.ESFromContext(ctx)
@@ -342,7 +342,7 @@ func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
 	}
 
 	searchResult, err := es.Search().
-		Index(constants.ES_INDEX).
+		Index(constants.ESIndex).
 		Query(
 			elastic.NewBoolQuery().
 				Filter(elastic.NewTermQuery("userId", userID)).
@@ -403,7 +403,7 @@ func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
 func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 	valid, err := userOwnsAccount(ctx, transaction.AccountID)
 	if err != nil || !valid {
-		return nil, constants.Forbidden
+		return nil, constants.ErrForbidden
 	}
 
 	return newWithoutVerifyingAccountOwnership(ctx, transaction)
@@ -436,13 +436,13 @@ func newWithoutVerifyingAccountOwnership(ctx context.Context, transaction *Trans
 		return nil, err
 	}
 
-	userID, err := util.UserIdFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = es.Index().
-		Index(constants.ES_INDEX).
+		Index(constants.ESIndex).
 		Type(esType).
 		Id(strconv.Itoa(transaction.ID)).
 		BodyJson(toES(transaction, userID)).
@@ -467,7 +467,7 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 
 	valid, err := userOwnsAccount(ctx, transaction.AccountID)
 	if err != nil || !valid {
-		return nil, constants.Forbidden
+		return nil, constants.ErrForbidden
 	}
 
 	tdb := toDB(*transaction)
@@ -486,14 +486,14 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 		return nil, err
 	}
 
-	userID, err := util.UserIdFromContext(ctx)
+	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// indexing a doc with the same id will replace and bump the version number
 	_, err = es.Index().
-		Index(constants.ES_INDEX).
+		Index(constants.ESIndex).
 		Type(esType).
 		Id(strconv.Itoa(transaction.ID)).
 		BodyJson(toES(transaction, userID)).
@@ -518,7 +518,7 @@ func Delete(ctx context.Context, transactionID int) error {
 
 	valid, err := userOwnsTransaction(ctx, transactionID)
 	if err != nil || !valid {
-		return constants.Forbidden
+		return constants.ErrForbidden
 	}
 
 	_, err = db.Exec("DELETE FROM transactions WHERE id = $1", transactionID)
@@ -536,7 +536,7 @@ func Delete(ctx context.Context, transactionID int) error {
 	}
 
 	_, err = es.Delete().
-		Index(constants.ES_INDEX).
+		Index(constants.ESIndex).
 		Type(esType).
 		Id(strconv.Itoa(transactionID)).
 		Do(context.Background())
@@ -553,9 +553,9 @@ func Delete(ctx context.Context, transactionID int) error {
 
 // PushAllToES pushes all transactions to elasticsearch
 func PushAllToES(c context.Context) error {
-	userID, err := util.UserIdFromContext(c)
-	if err != nil || userID != constants.ADMIN_UID {
-		return constants.Forbidden
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || userID != constants.AdminUID {
+		return constants.ErrForbidden
 	}
 
 	es, err := util.ESFromContext(c)
@@ -564,7 +564,7 @@ func PushAllToES(c context.Context) error {
 	}
 
 	// clear out ES
-	_, err = es.DeleteIndex(constants.ES_INDEX).
+	_, err = es.DeleteIndex(constants.ESIndex).
 		Do(context.Background())
 	if err != nil {
 		logrus.WithError(err).Error("failed to delete all transactions from elasticsearch")
@@ -582,7 +582,7 @@ func PushAllToES(c context.Context) error {
 		return err
 	}
 
-	esBulkReq := es.Bulk().Index(constants.ES_INDEX).Type(esType)
+	esBulkReq := es.Bulk().Index(constants.ESIndex).Type(esType)
 
 	rows, err := db.Query("SELECT t.id, t.name, t.occurred, t.category, t.amount, t.note, t.relatedTransactionId, t.accountId, a.userId FROM transactions t JOIN accounts a on t.accountId = a.id")
 	if err != nil {
@@ -619,7 +619,7 @@ func PushAllToES(c context.Context) error {
 }
 
 func userOwnsAccount(c context.Context, account int) (bool, error) {
-	userID, err := util.UserIdFromContext(c)
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return false, err
 	}
@@ -644,7 +644,7 @@ func userOwnsAccount(c context.Context, account int) (bool, error) {
 }
 
 func userOwnsTransaction(c context.Context, transaction int) (bool, error) {
-	userID, err := util.UserIdFromContext(c)
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return false, err
 	}

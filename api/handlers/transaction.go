@@ -20,7 +20,7 @@ func GetTransactions(c echo.Context) error {
 			"context":   c,
 			"accountId": accountIdStr,
 		})
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	next := c.QueryParam("start")
@@ -41,7 +41,7 @@ func GetRecurringTransactions(c echo.Context) error {
 			"context":   c,
 			"accountId": accountIdStr,
 		})
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	transactions, err := transaction.GetRecurring(toContext(c), accountId)
@@ -61,7 +61,7 @@ func GetTemplates(c echo.Context) error {
 			"context":   c,
 			"accountId": accountIdStr,
 		})
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	transactions, err := transaction.GetTemplates(toContext(c), accountId)
@@ -79,7 +79,7 @@ func NewTransaction(c echo.Context) error {
 			"error":   err,
 			"context": c,
 		}).Error("unable to parse request to create transaction")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	accountIdStr := c.Param("accountId")
@@ -90,7 +90,7 @@ func NewTransaction(c echo.Context) error {
 			"context":   c,
 			"accountId": accountIdStr,
 		})
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	tr.AccountID = accountId
@@ -109,7 +109,7 @@ func NewRecurringTransaction(c echo.Context) error {
 			"error":   err,
 			"context": c,
 		}).Error("unable to parse request to create recurring transaction")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	accountIdStr := c.Param("accountId")
@@ -120,7 +120,7 @@ func NewRecurringTransaction(c echo.Context) error {
 			"context":   c,
 			"accountId": accountIdStr,
 		})
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	tr.Transaction.AccountID = accountId
@@ -139,7 +139,7 @@ func NewTemplate(c echo.Context) error {
 			"error":   err,
 			"context": c,
 		}).Error("unable to parse request to create transaction template")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	accountIdStr := c.Param("accountId")
@@ -150,7 +150,7 @@ func NewTemplate(c echo.Context) error {
 			"context":   c,
 			"accountId": accountIdStr,
 		})
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	tr.AccountID = accountId
@@ -169,7 +169,7 @@ func UpdateTransaction(c echo.Context) error {
 			"error":   err,
 			"context": c,
 		}).Error("unable to parse request to update transaction")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	tr, err := transaction.Update(toContext(c), tr)
@@ -187,7 +187,7 @@ func UpdateRecurringTransaction(c echo.Context) error {
 			"error":   err,
 			"context": c,
 		}).Error("unable to parse request to update recurring transaction")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	tr, err := transaction.UpdateRecurring(toContext(c), tr)
@@ -205,7 +205,7 @@ func UpdateTemplate(c echo.Context) error {
 			"error":   err,
 			"context": c,
 		}).Error("unable to parse request to update transaction template")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	tr, err := transaction.UpdateTemplate(toContext(c), tr)
@@ -224,7 +224,7 @@ func DeleteTransaction(c echo.Context) error {
 			"error":         err,
 			"transactionId": transactionIdStr,
 		}).Error("error parsing transaction ID to int")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	err = transaction.Delete(toContext(c), transactionId)
@@ -243,7 +243,7 @@ func DeleteRecurringTransaction(c echo.Context) error {
 			"error":                  err,
 			"recurringTransactionId": transactionIdStr,
 		}).Error("error parsing recurring transaction ID to int")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	err = transaction.DeleteRecurring(toContext(c), transactionId)
@@ -262,7 +262,7 @@ func DeleteTemplate(c echo.Context) error {
 			"error":      err,
 			"templateId": transactionIdStr,
 		}).Error("error parsing transaction template ID to int")
-		return writeError(c, constants.BadRequest)
+		return writeError(c, constants.ErrBadRequest)
 	}
 
 	err = transaction.DeleteTemplate(toContext(c), transactionId)
@@ -282,7 +282,7 @@ func QueryES(ctx echo.Context) error {
 			"context":   ctx,
 			"accountId": accountIdStr,
 		})
-		return writeError(ctx, constants.BadRequest)
+		return writeError(ctx, constants.ErrBadRequest)
 	}
 
 	query := transaction.Query{

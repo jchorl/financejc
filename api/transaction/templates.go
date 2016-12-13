@@ -36,7 +36,7 @@ func GetTemplates(c context.Context, accountID int) ([]Template, error) {
 
 	valid, err := userOwnsAccount(c, accountID)
 	if err != nil || !valid {
-		return transactions, constants.Forbidden
+		return transactions, constants.ErrForbidden
 	}
 
 	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM templates WHERE accountId = $1", accountID)
@@ -81,7 +81,7 @@ func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 
 	valid, err := userOwnsAccount(c, transaction.AccountID)
 	if err != nil || !valid {
-		return nil, constants.Forbidden
+		return nil, constants.ErrForbidden
 	}
 
 	tdb := templateToDB(*transaction)
@@ -130,7 +130,7 @@ func DeleteTemplate(ctx context.Context, transactionID int) error {
 
 	valid, err := userOwnsTemplate(ctx, transactionID)
 	if err != nil || !valid {
-		return constants.Forbidden
+		return constants.ErrForbidden
 	}
 
 	_, err = db.Exec("DELETE FROM templates WHERE id = $1", transactionID)
@@ -146,7 +146,7 @@ func DeleteTemplate(ctx context.Context, transactionID int) error {
 }
 
 func userOwnsTemplate(c context.Context, template int) (bool, error) {
-	userID, err := util.UserIdFromContext(c)
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return false, err
 	}

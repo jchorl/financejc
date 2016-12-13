@@ -4,32 +4,40 @@ import (
 	"errors"
 )
 
+// AdminUID is the user ID of the admin
+const AdminUID = uint(1)
+
+// Keys for values stored in context
 const (
-	CTX_DB      = "database"
-	CTX_ES      = "elasticsearch"
-	CTX_USER_ID = "user"
-
-	ES_INDEX = "financejc"
-
-	FIXED_INTERVAL  = "fixedInterval"
-	FIXED_DAY_WEEK  = "fixedDayWeek"
-	FIXED_DAY_MONTH = "fixedDayMonth"
-	FIXED_DAY_YEAR  = "fixedDayYear"
-
-	ADMIN_UID = uint(1)
+	CtxDB     = "database"
+	CtxES     = "elasticsearch"
+	CtxUserID = "user"
 )
 
-var CTX_KEYS = [...]string{
-	CTX_DB,
-	CTX_ES,
-	CTX_USER_ID,
+// ESIndex is the primary elasticsearch index used
+const ESIndex = "financejc"
+
+// Recurrence types for recurring transactions
+const (
+	FixedInterval = "fixedInterval"
+	FixedDayWeek  = "fixedDayWeek"
+	FixedDayMonth = "fixedDayMonth"
+	FixedDayYear  = "fixedDayYear"
+)
+
+// CtxKeys keeps track of all context keys for easy iteration
+var CtxKeys = [...]string{
+	CtxDB,
+	CtxES,
+	CtxUserID,
 }
 
+// Common errors that get mapped to proper http status codes in a handler helper function to return errors
 var (
-	Forbidden       = errors.New("User does not have permission to access this resource.")
-	NotLoggedIn     = errors.New("User is not logged in.")
-	BadRequest      = errors.New("Request contains malformed data.")
-	InvalidCurrency = errors.New("The specified currency is not recognized.")
+	ErrForbidden       = errors.New("User does not have permission to access this resource.")
+	ErrNotLoggedIn     = errors.New("User is not logged in.")
+	ErrBadRequest      = errors.New("Request contains malformed data.")
+	ErrInvalidCurrency = errors.New("The specified currency is not recognized.")
 )
 
 type currency struct {
@@ -38,6 +46,7 @@ type currency struct {
 	DigitsAfterDecimal int    `json:"digitsAfterDecimal"`
 }
 
+// CurrencyInfo stores info on all supported currencies
 var CurrencyInfo = map[string]currency{
 	"SDG": currency{
 		Name:               "Sudanese Pound",

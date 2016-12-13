@@ -33,7 +33,7 @@ func main() {
 	configureEsIndices(es)
 
 	c := cron.New()
-	ctx := context.WithValue(context.WithValue(context.Background(), constants.CTX_DB, db), constants.CTX_ES, es)
+	ctx := context.WithValue(context.WithValue(context.Background(), constants.CtxDB, db), constants.CtxES, es)
 	c.AddFunc("@daily", func() {
 		// ignore the error because it should already be logged in GenRecurringTransactions
 		transaction.GenRecurringTransactions(ctx)
@@ -58,7 +58,7 @@ func main() {
 func dbMiddleware(db *sql.DB) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Set(constants.CTX_DB, db)
+			c.Set(constants.CtxDB, db)
 			return next(c)
 		}
 	}
@@ -67,14 +67,14 @@ func dbMiddleware(db *sql.DB) echo.MiddlewareFunc {
 func esMiddleware(client *elastic.Client) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Set(constants.CTX_ES, client)
+			c.Set(constants.CtxES, client)
 			return next(c)
 		}
 	}
 }
 
 func configureEsIndices(client *elastic.Client) {
-	exists, err := client.IndexExists(constants.ES_INDEX).Do(context.Background())
+	exists, err := client.IndexExists(constants.ESIndex).Do(context.Background())
 	if err != nil {
 		logrus.WithField("error", err).Fatal("failed to check if transactions index exists")
 	}

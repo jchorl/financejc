@@ -12,7 +12,7 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
-// Both *sql.DB and *sql.Tx conform to DB
+// DB is an interface that both *sql.DB and *sql.Tx conform to
 // Functions take the DB interface so they can be passed
 // a *sql.DB or a *sql.Tx and use them the same way.
 type DB interface {
@@ -77,6 +77,7 @@ func FromNullIntNonZero(i sql.NullInt64) int {
 	return int(i.Int64)
 }
 
+// ToNullString turns a string pointer into a sql nullable string
 func ToNullString(s *string) sql.NullString {
 	if s == nil {
 		return sql.NullString{}
@@ -84,13 +85,7 @@ func ToNullString(s *string) sql.NullString {
 	return sql.NullString{String: *s, Valid: true}
 }
 
-func ToNullInt(i *int) sql.NullInt64 {
-	if i == nil {
-		return sql.NullInt64{}
-	}
-	return sql.NullInt64{Int64: int64(*i), Valid: true}
-}
-
+// FromNullString takes a sql nullable string and returns a string pointer
 func FromNullString(s sql.NullString) *string {
 	if !s.Valid {
 		return nil
@@ -98,6 +93,15 @@ func FromNullString(s sql.NullString) *string {
 	return &s.String
 }
 
+// ToNullInt turns an int pointer into a sql nullable int
+func ToNullInt(i *int) sql.NullInt64 {
+	if i == nil {
+		return sql.NullInt64{}
+	}
+	return sql.NullInt64{Int64: int64(*i), Valid: true}
+}
+
+// FromNullInt takes a sql nullable int and returns an int pointer
 func FromNullInt(i sql.NullInt64) *int {
 	if !i.Valid {
 		return nil
@@ -106,19 +110,21 @@ func FromNullInt(i sql.NullInt64) *int {
 	return &conv
 }
 
-func UserIdFromContext(c context.Context) (uint, error) {
-	userId, ok := c.Value(constants.CTX_USER_ID).(uint)
+// UserIDFromContext pulls a user ID from a context
+func UserIDFromContext(c context.Context) (uint, error) {
+	userID, ok := c.Value(constants.CtxUserID).(uint)
 	if !ok {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
 		}).Error("Unable to get userId from context")
 		return 0, errors.New("Unable to get userId from context")
 	}
-	return userId, nil
+	return userID, nil
 }
 
+// DBFromContext pulls a database connection from a context
 func DBFromContext(c context.Context) (DB, error) {
-	db := c.Value(constants.CTX_DB).(DB)
+	db := c.Value(constants.CtxDB).(DB)
 	if db == nil {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
@@ -129,8 +135,9 @@ func DBFromContext(c context.Context) (DB, error) {
 	return db, nil
 }
 
+// ESFromContext pulls an elasticsearch connection from a context
 func ESFromContext(c context.Context) (*elastic.Client, error) {
-	es := c.Value(constants.CTX_ES)
+	es := c.Value(constants.CtxES)
 	if es == nil {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
@@ -149,8 +156,10 @@ func ESFromContext(c context.Context) (*elastic.Client, error) {
 	return parsed, nil
 }
 
+// SQLDBFromContext returns a *sql.DB from a context
+// make sure to call with a context that will have a *sql.db and not a DB
 func SQLDBFromContext(c context.Context) (*sql.DB, error) {
-	db, ok := c.Value(constants.CTX_DB).(*sql.DB)
+	db, ok := c.Value(constants.CtxDB).(*sql.DB)
 	if !ok {
 		logrus.WithFields(logrus.Fields{
 			"context": c,
@@ -161,6 +170,7 @@ func SQLDBFromContext(c context.Context) (*sql.DB, error) {
 	return db, nil
 }
 
+// Min returns the min of two ints
 func Min(a, b int) int {
 	if a < b {
 		return a
@@ -172,6 +182,7 @@ func isLeap(year int) bool {
 	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }
 
+// DaysIn returns the number of days in a month
 func DaysIn(m time.Month, year int) int {
 	if m == time.February && isLeap(year) {
 		return 29
@@ -179,6 +190,7 @@ func DaysIn(m time.Month, year int) int {
 	return int(daysBefore[m] - daysBefore[m-1])
 }
 
+// WeekdayToInt converts a weekday to an integer value
 func WeekdayToInt(d time.Weekday) int {
 	return weekdayToInt[d]
 }
