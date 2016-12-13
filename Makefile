@@ -24,6 +24,7 @@ client/dest/bundle.js: $(shell find client/src) client/webpack.production.config
 		-w /usr/src/app \
 		node:latest \
 		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors"
+	gzip -k -9 -f client/dest/bundle.js
 
 ui-watch:
 	docker run -it --rm \
