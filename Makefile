@@ -1,16 +1,8 @@
 all: certs network db es build ui build-nginx serve nginx
 dev: network db es build serve-dev ui build-nginx nginx-dev
+images: build build-nginx
 
 POSTGRES_USER ?= postgres
-
-deploy:
-	$(MAKE) build
-	$(MAKE) ui
-	$(MAKE) build-nginx
-	-docker rm -f financejc
-	$(MAKE) serve
-	-docker rm -f financejcnginx
-	$(MAKE) nginx
 
 network:
 	docker network ls | grep financejcnet || \
@@ -165,6 +157,15 @@ certs:
 		quay.io/letsencrypt/letsencrypt:latest \
 		certonly --standalone --noninteractive --agree-tos --keep --expand -d finance.joshchorlton.com --email=josh@joshchorlton.com
 
+push:
+	docker push jchorl/financejc
+	docker push jchorl/financejcnginx
+
+deploy:
+	docker pull jchorl/financejc
+	docker pull jchorl/financejcnginx
+	$(MAKE) serve
+	$(MAKE) nginx
 
 # useful targets for dev
 # npm target makes it easy to add new npm packages
@@ -198,4 +199,4 @@ kibana:
 		-p 5601:5601 \
 		kibana
 
-.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang backup restore
+.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang backup restore images push deploy
