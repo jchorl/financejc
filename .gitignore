@@ -3,3 +3,4 @@ client/node_modules
 client/dest
 prod.sh
 backup
+bin

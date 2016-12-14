@@ -15,8 +15,7 @@ client/dest/bundle.js: $(shell find client/src) client/webpack.production.config
 		-v $(PWD)/client:/usr/src/app \
 		-w /usr/src/app \
 		node:latest \
-		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors"
-	gzip -k -9 -f client/dest/bundle.js
+		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors; gzip -k -9 -f dest/bundle.js"
 
 ui-watch:
 	docker run -it --rm \
@@ -119,10 +118,16 @@ serve-dev: network
 		-e DB_ADDRESS \
 		jchorl/financejc
 
-build-nginx:
+build-nginx: ui
 	docker build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
 build:
+	docker run -it --rm \
+		-v $(PWD):/go/src/github.com/jchorl/financejc \
+		-v $(PWD)/bin:/go/bin \
+		-w /go/src/github.com/jchorl/financejc \
+		golang \
+		sh -c 'go-wrapper download; go-wrapper install'
 	docker build -t jchorl/financejc .
 
 test: clean network db es test-all
@@ -145,7 +150,7 @@ clean:
 	-docker volume rm financejcesdata
 	-docker network rm wellknown
 	-docker network rm financejcnet
-	-rm client/dest/bundle.js
+	-rm client/dest/*
 
 certs:
 	docker run -it --rm \
@@ -164,6 +169,8 @@ push:
 deploy:
 	docker pull jchorl/financejc
 	docker pull jchorl/financejcnginx
+	docker rm -f financejc
+	docker rm -f financejcnginx
 	$(MAKE) serve
 	$(MAKE) nginx
 
