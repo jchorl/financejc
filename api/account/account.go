@@ -9,16 +9,18 @@ import (
 	"github.com/jchorl/financejc/constants"
 )
 
+// Account is a user's bank account
 type Account struct {
-	Id          int     `json:"id,omitempty"`
+	ID          int     `json:"id,omitempty"`
 	Name        string  `json:"name"`
 	Currency    string  `json:"currency"`
 	User        uint    `json:"-"`
 	FutureValue float64 `json:"futureValue"`
 }
 
+// Get fetches all accounts of a user
 func Get(c context.Context) ([]*Account, error) {
-	userId, err := util.UserIDFromContext(c)
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return nil, err
 	}
@@ -28,12 +30,12 @@ func Get(c context.Context) ([]*Account, error) {
 		return nil, err
 	}
 
-	accounts := make([]*Account, 0)
-	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.accountId=a.id WHERE a.userId = $1 GROUP BY a.id", userId)
+	accounts := []*Account{}
+	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.accountId=a.id WHERE a.userId = $1 GROUP BY a.id", userID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":  err,
-			"userId": userId,
+			"userId": userID,
 		}).Error("failed to fetch accounts")
 		return nil, err
 	}
@@ -41,10 +43,10 @@ func Get(c context.Context) ([]*Account, error) {
 
 	for rows.Next() {
 		var account Account
-		if err := rows.Scan(&account.Id, &account.Name, &account.Currency, &account.User, &account.FutureValue); err != nil {
+		if err := rows.Scan(&account.ID, &account.Name, &account.Currency, &account.User, &account.FutureValue); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":  err,
-				"userId": userId,
+				"userId": userID,
 			}).Error("failed to scan into account")
 			return nil, err
 		}
@@ -54,7 +56,7 @@ func Get(c context.Context) ([]*Account, error) {
 	if err := rows.Err(); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":  err,
-			"userId": userId,
+			"userId": userID,
 		}).Error("failed to get accounts from rows")
 		return nil, err
 	}
@@ -62,8 +64,9 @@ func Get(c context.Context) ([]*Account, error) {
 	return accounts, nil
 }
 
+// New creates a new account
 func New(c context.Context, account *Account) (*Account, error) {
-	userId, err := util.UserIDFromContext(c)
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +76,7 @@ func New(c context.Context, account *Account) (*Account, error) {
 		return nil, err
 	}
 
-	account.User = userId
+	account.User = userID
 
 	_, valid := constants.CurrencyInfo[account.Currency]
 	if !valid {
@@ -90,14 +93,15 @@ func New(c context.Context, account *Account) (*Account, error) {
 		return nil, err
 	}
 
-	account.Id = id
+	account.ID = id
 	return account, nil
 }
 
+// Update updates an account
 func Update(c context.Context, account *Account) (*Account, error) {
-	userId, err := util.UserIDFromContext(c)
-	if err != nil {
-		return nil, err
+	valid, err := util.UserOwnsAccount(c, account.ID)
+	if err != nil || !valid {
+		return nil, constants.ErrForbidden
 	}
 
 	db, err := util.DBFromContext(c)
@@ -105,12 +109,12 @@ func Update(c context.Context, account *Account) (*Account, error) {
 		return nil, err
 	}
 
-	_, valid := constants.CurrencyInfo[account.Currency]
+	_, valid = constants.CurrencyInfo[account.Currency]
 	if !valid {
 		return nil, constants.ErrInvalidCurrency
 	}
 
-	_, err = db.Exec("UPDATE accounts SET name = $1, currency = $2 WHERE id = $3 AND userId = $4", account.Name, account.Currency, account.Id, userId)
+	_, err = db.Exec("UPDATE accounts SET name = $1, currency = $2 WHERE id = $3", account.Name, account.Currency, account.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err,
@@ -122,10 +126,11 @@ func Update(c context.Context, account *Account) (*Account, error) {
 	return account, nil
 }
 
-func Delete(c context.Context, accountId int) error {
-	userId, err := util.UserIDFromContext(c)
-	if err != nil {
-		return err
+// Delete deletes an account
+func Delete(c context.Context, accountID int) error {
+	valid, err := util.UserOwnsAccount(c, accountID)
+	if err != nil || !valid {
+		return constants.ErrForbidden
 	}
 
 	db, err := util.DBFromContext(c)
@@ -133,11 +138,11 @@ func Delete(c context.Context, accountId int) error {
 		return err
 	}
 
-	_, err = db.Exec("DELETE FROM accounts WHERE id = $1 AND userId = $2", accountId, userId)
+	_, err = db.Exec("DELETE FROM accounts WHERE id = $1", accountID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
-			"accountId": accountId,
+			"accountId": accountID,
 		}).Errorf("could not delete account")
 		return err
 	}

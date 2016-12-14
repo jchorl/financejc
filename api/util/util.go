@@ -194,3 +194,55 @@ func DaysIn(m time.Month, year int) int {
 func WeekdayToInt(d time.Weekday) int {
 	return weekdayToInt[d]
 }
+
+// UserOwnsAccount checks if a user owns an account
+func UserOwnsAccount(c context.Context, accountID int) (bool, error) {
+	userID, err := UserIDFromContext(c)
+	if err != nil {
+		return false, err
+	}
+
+	db, err := DBFromContext(c)
+	if err != nil {
+		return false, err
+	}
+
+	var owner uint
+	err = db.QueryRow("SELECT userId FROM accounts WHERE id = $1", accountID).Scan(&owner)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":   err,
+			"userId":  userID,
+			"account": accountID,
+		}).Error("error checking owner of account")
+		return false, err
+	}
+
+	return owner == userID, nil
+}
+
+// UserOwnsTransaction checks if a user owns a transaction
+func UserOwnsTransaction(c context.Context, transactionID int) (bool, error) {
+	userID, err := UserIDFromContext(c)
+	if err != nil {
+		return false, err
+	}
+
+	db, err := DBFromContext(c)
+	if err != nil {
+		return false, err
+	}
+
+	var owner uint
+	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactions t ON t.accountId = a.id WHERE t.id = $1", transactionID).Scan(&owner)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":       err,
+			"userId":      userID,
+			"transaction": transactionID,
+		}).Error("error checking owner of transaction")
+		return false, err
+	}
+
+	return owner == userID, nil
+}

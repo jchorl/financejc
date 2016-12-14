@@ -34,7 +34,7 @@ func GetTemplates(c context.Context, accountID int) ([]Template, error) {
 		return transactions, err
 	}
 
-	valid, err := userOwnsAccount(c, accountID)
+	valid, err := util.UserOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return transactions, constants.ErrForbidden
 	}
@@ -79,7 +79,7 @@ func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.AccountID)
+	valid, err := util.UserOwnsAccount(c, transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden
 	}

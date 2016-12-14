@@ -194,14 +194,14 @@ func InitES(es *elastic.Client) error {
 
 // Get fetches transactions for a given account and page parameters
 func Get(c context.Context, accountID int, nextEncoded string) (Transactions, error) {
+	valid, err := util.UserOwnsAccount(c, accountID)
+	if err != nil || !valid {
+		return Transactions{}, constants.ErrForbidden
+	}
+
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return Transactions{}, err
-	}
-
-	valid, err := userOwnsAccount(c, accountID)
-	if err != nil || !valid {
-		return Transactions{}, constants.ErrForbidden
 	}
 
 	transactions := Transactions{}
@@ -275,7 +275,7 @@ func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transa
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, accountID)
+	valid, err := util.UserOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden
 	}
@@ -326,7 +326,7 @@ func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(ctx, query.AccountID)
+	valid, err := util.UserOwnsAccount(ctx, query.AccountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden
 	}
@@ -401,7 +401,7 @@ func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
 
 // New creates a new transaction for a user
 func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
-	valid, err := userOwnsAccount(ctx, transaction.AccountID)
+	valid, err := util.UserOwnsAccount(ctx, transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden
 	}
@@ -465,7 +465,7 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(ctx, transaction.AccountID)
+	valid, err := util.UserOwnsAccount(ctx, transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden
 	}
@@ -516,7 +516,7 @@ func Delete(ctx context.Context, transactionID int) error {
 		return err
 	}
 
-	valid, err := userOwnsTransaction(ctx, transactionID)
+	valid, err := util.UserOwnsTransaction(ctx, transactionID)
 	if err != nil || !valid {
 		return constants.ErrForbidden
 	}
@@ -616,56 +616,6 @@ func PushAllToES(c context.Context) error {
 	}
 
 	return nil
-}
-
-func userOwnsAccount(c context.Context, account int) (bool, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil {
-		return false, err
-	}
-
-	db, err := util.DBFromContext(c)
-	if err != nil {
-		return false, err
-	}
-
-	var owner uint
-	err = db.QueryRow("SELECT userId FROM accounts WHERE id = $1", account).Scan(&owner)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":   err,
-			"userId":  userID,
-			"account": account,
-		}).Error("error checking owner of account")
-		return false, err
-	}
-
-	return owner == userID, nil
-}
-
-func userOwnsTransaction(c context.Context, transaction int) (bool, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil {
-		return false, err
-	}
-
-	db, err := util.DBFromContext(c)
-	if err != nil {
-		return false, err
-	}
-
-	var owner uint
-	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactions t ON t.accountId = a.id WHERE t.id = $1", transaction).Scan(&owner)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":       err,
-			"userId":      userID,
-			"transaction": transaction,
-		}).Error("error checking owner of transaction")
-		return false, err
-	}
-
-	return owner == userID, nil
 }
 
 func encodeNextPage(decoded nextPageParams) (string, error) {

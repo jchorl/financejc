@@ -139,7 +139,7 @@ func TransferQIF(c context.Context, file io.Reader) error {
 			case 'M':
 				tr.Note = line[1:]
 			case '^':
-				tr.AccountID = acc.Id
+				tr.AccountID = acc.ID
 				tr, err = transaction.New(c, tr)
 				if err != nil {
 					return err

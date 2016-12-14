@@ -96,7 +96,7 @@ func GetRecurring(c context.Context, accountID int) ([]RecurringTransaction, err
 		return transactions, err
 	}
 
-	valid, err := userOwnsAccount(c, accountID)
+	valid, err := util.UserOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return transactions, constants.ErrForbidden
 	}
@@ -136,6 +136,7 @@ func GetRecurring(c context.Context, accountID int) ([]RecurringTransaction, err
 
 // NewRecurring creates a new recurring transaction
 func NewRecurring(c context.Context, transaction *RecurringTransaction) (*RecurringTransaction, error) {
+	logrus.Debug("calling new recurring")
 	db, err := util.DBFromContext(c)
 	if err != nil {
 		return nil, err
@@ -145,7 +146,7 @@ func NewRecurring(c context.Context, transaction *RecurringTransaction) (*Recurr
 		return nil, err
 	}
 
-	valid, err := userOwnsAccount(c, transaction.Transaction.AccountID)
+	valid, err := util.UserOwnsAccount(c, transaction.Transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden
 	}
@@ -188,7 +189,7 @@ func UpdateRecurring(c context.Context, transaction *RecurringTransaction) (*Rec
 	}
 
 	tdb := recurringToDB(*transaction)
-	_, err = db.Exec("UPDATE recurringTransactions SET name = $1, nextOccurs = $2, category = $3, amount = $4, note = $5, accountId = $6, scheduleType = $7, secondsBetween = $8, dayOf = $9, secondsBeforeToPost = $10", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost)
+	_, err = db.Exec("UPDATE recurringTransactions SET name = $1, nextOccurs = $2, category = $3, amount = $4, note = $5, accountId = $6, scheduleType = $7, secondsBetween = $8, dayOf = $9, secondsBeforeToPost = $10 WHERE id = $11", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost, tdb.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                  err,
