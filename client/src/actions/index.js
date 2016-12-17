@@ -6,6 +6,14 @@ const receiveAccounts = (accounts) => {
     };
 };
 
+export const SELECT_ACCOUNT = 'SELECT_ACCOUNT';
+export const selectAccount = (id) => {
+    return {
+        type: SELECT_ACCOUNT,
+        id
+    };
+};
+
 export const ADD_ACCOUNT = 'ADD_ACCOUNT';
 const addAccount = (account) => {
     return {
@@ -150,6 +158,9 @@ export function fetchAccounts() {
             .then(response => response.json())
             .then(json => {
                 dispatch(receiveAccounts(json));
+                if (json.length) {
+                    dispatch(selectAccount(json[0].id));
+                }
             });
     };
 }
@@ -288,7 +299,10 @@ export function newAccount(account) {
             headers: headers
         })
             .then(response => response.json())
-            .then(json => dispatch(addAccount(json)));
+            .then(json => {
+                dispatch(addAccount(json));
+                dispatch(selectAccount(json.id));
+            });
     };
 }
 

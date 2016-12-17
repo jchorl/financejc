@@ -23,30 +23,6 @@ class AccountsPage extends React.Component {
         children: React.PropTypes.element.isRequired
     }
 
-    constructor (props) {
-        super(props);
-        let selected = props.accounts.get('accounts').size !== 0
-            ? props.accounts.get('accounts').first().get('id')
-            : -1;
-        this.state = {
-            selected: selected
-        };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        let nextAccounts = nextProps.accounts.get('accounts');
-        let currIds = this.props.accounts.get('accounts').keySeq();
-        if (nextAccounts.size > currIds.size) {
-            this.selectAccount(nextAccounts.keySeq().find((id, i) => currIds.get(i) !== id));
-        }
-    }
-
-    selectAccount = (id) => {
-        this.setState({
-            selected: id
-        });
-    }
-
     importButton = () => {
         this.props.dispatch(importData());
     }
@@ -57,8 +33,8 @@ class AccountsPage extends React.Component {
             currencies,
             children
         } = this.props;
-        const selected = this.state.selected;
 
+        let selected = accounts.get('selected');
         let currency;
         if (selected !== -1) {
             let currencyCode = accounts.get('accounts').get(selected).get('currency');
@@ -68,7 +44,7 @@ class AccountsPage extends React.Component {
         return (
             <div className={ styles.accountsPage }>
                 <div className={ styles.accountList }>
-                    <AccountList selected={ selected } onSelect={ this.selectAccount } />
+                    <AccountList selected={ selected } />
                 </div>
                 {
                     selected !== -1 ? (
