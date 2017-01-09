@@ -300,14 +300,24 @@ func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) 
 			return tr.Transaction.Date.Add(time.Hour * time.Duration(24*(correctDayForMinMonth-minDay))), nil
 		}
 
+		logrus.Debug("gonna have to schedule for next month")
 		// minMonth didn't work out, so schedule for the next month
 		year := minYear
 		if minMonth == time.December {
 			year++
 		}
 		month := minMonth + 1
+
+		logrus.WithFields(logrus.Fields{
+			"month": month,
+			"year":  year,
+		}).Debug("about to calculate days in month")
 		daysInMonth := util.DaysIn(month, year)
+		logrus.WithField("daysInMonth", daysInMonth).Debug("found days in month")
+
 		correctDay := util.Min(desiredDay, daysInMonth)
+		logrus.WithField("correctDay", correctDay).Debug("found correct day")
+
 		return time.Date(year, month, correctDay, 0, 0, 0, 0, time.UTC), nil
 	case constants.FixedDayYear:
 		// just need to check if it can run this year or must be next year
