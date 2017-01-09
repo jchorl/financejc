@@ -306,7 +306,7 @@ func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) 
 		if minMonth == time.December {
 			year++
 		}
-		month := minMonth + 1
+		month := (minMonth % 12) + 1
 
 		logrus.WithFields(logrus.Fields{
 			"month": month,
