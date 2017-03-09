@@ -1,4 +1,4 @@
-package transfer
+package userTransfer
 
 import (
 	"bufio"
@@ -19,11 +19,14 @@ import (
 )
 
 const (
-	ACCOUNT          = "ACCOUNT"
-	TRANSACTION      = "TRANSACTION"
-	NONE             = ""
-	OPTION           = "OPTION"
-	DEFAULT_CURRENCY = "USD"
+	// currency to use when no currency is present
+	defaultCurrency = "USD"
+
+	// states while parsing QIF
+	accountState     = "ACCOUNT"
+	transactionState = "TRANSACTION"
+	noneState        = ""
+	optionState      = "OPTION"
 )
 
 func round(a float64) int {
@@ -33,13 +36,13 @@ func round(a float64) int {
 	return int(a + 0.5)
 }
 
-// currently only QIF is supported
+// Import imports a file for a user
 func Import(c context.Context, file io.Reader) error {
-	return TransferQIF(c, file)
+	return transferQIF(c, file)
 }
 
-func TransferQIF(c context.Context, file io.Reader) error {
-	userId, err := util.UserIDFromContext(c)
+func transferQIF(c context.Context, file io.Reader) error {
+	userID, err := util.UserIDFromContext(c)
 	if err != nil {
 		return err
 	}
@@ -49,7 +52,7 @@ func TransferQIF(c context.Context, file io.Reader) error {
 		return err
 	}
 
-	state := NONE
+	state := noneState
 	acc := &account.Account{}
 	tr := &transaction.Transaction{}
 	uncategorized := make([]*transaction.Transaction, 0)
@@ -68,39 +71,39 @@ func TransferQIF(c context.Context, file io.Reader) error {
 
 		// skip optional sections
 		if strings.HasPrefix(line, "!Option") {
-			state = OPTION
+			state = optionState
 		} else if strings.HasPrefix(line, "!Clear") {
-			state = NONE
+			state = noneState
 		}
 
-		if state == OPTION {
+		if state == optionState {
 			continue
 		}
 
 		if line == "!Account" {
-			state = ACCOUNT
+			state = accountState
 			acc = &account.Account{
-				Currency: DEFAULT_CURRENCY,
+				Currency: defaultCurrency,
 			}
 		} else if strings.HasPrefix(line, "!Type:Cat") {
-			state = NONE
+			state = noneState
 		} else if strings.HasPrefix(line, "!Type") {
-			state = TRANSACTION
+			state = transactionState
 		}
 
 		switch state {
-		case ACCOUNT:
+		case accountState:
 			switch line[0] {
 			case 'N':
 				acc.Name = line[1:]
 			case '^':
-				acc.User = userId
+				acc.User = userID
 				acc, err = account.New(c, acc)
 				if err != nil {
 					return err
 				}
 			}
-		case TRANSACTION:
+		case transactionState:
 			switch line[0] {
 			case 'P':
 				tr.Name = line[1:]

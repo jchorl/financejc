@@ -6,7 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 
-	"github.com/jchorl/financejc/api/transfer"
+	"github.com/jchorl/financejc/api/transfer/userTransfer"
 )
 
 // Transfer manages importing files
@@ -29,7 +29,7 @@ func Transfer(c echo.Context) error {
 		return writeError(c, err)
 	}
 	defer src.Close()
-	if err := transfer.Import(toContext(c), src); err != nil {
+	if err := userTransfer.Import(toContext(c), src); err != nil {
 		return writeError(c, err)
 	}
 
