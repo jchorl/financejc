@@ -10,7 +10,7 @@ network:
 
 ui: client/dest/bundle.js;
 client/dest/bundle.js: $(shell find client/src) client/webpack.production.config.js
-	docker run -it --rm \
+	docker container run -it --rm \
 		--name uibuild \
 		-v $(PWD)/client:/usr/src/app \
 		-w /usr/src/app \
@@ -18,7 +18,7 @@ client/dest/bundle.js: $(shell find client/src) client/webpack.production.config
 		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors; gzip -k -9 -f dest/bundle.js"
 
 ui-watch:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--name uiwatch \
 		-v $(PWD)/client:/usr/src/app \
 		-w /usr/src/app \
@@ -26,8 +26,8 @@ ui-watch:
 		/bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors --watch"
 
 db: network
-	docker ps | grep financejcdb || \
-		docker run -d \
+	docker container ps | grep financejcdb || \
+		docker container run -d \
 		--name financejcdb \
 		--restart=always \
 		--network financejcnet \
@@ -40,22 +40,22 @@ db: network
 		postgres
 
 backup:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--network financejcnet \
 		-v $(PWD)/backup:/backup \
 		postgres \
 		sh -c 'pg_dump -h financejcdb -U "$(POSTGRES_USER)" -Fc > /backup/$$(date +%Y_%m_%d__%H_%M_%S).sql'
 
 restore:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--network financejcnet \
 		-v $(PWD)/backup:/backup \
 		postgres \
 		pg_restore -h financejcdb -U '$(POSTGRES_USER)' --data-only -d '$(POSTGRES_USER)' --disable-triggers -Fc /$(BACKUP_FILE)
 
 es: network
-	docker ps | grep financejces || \
-		docker run -d \
+	docker container ps | grep financejces || \
+		docker container run -d \
 		--name financejces \
 		--restart=always \
 		--network financejcnet \
@@ -66,8 +66,8 @@ es: network
 		elasticsearch
 
 nginx: network
-	docker ps | grep financejcnginx || \
-		docker run -d \
+	docker container ps | grep financejcnginx || \
+		docker container run -d \
 		--name financejcnginx \
 		--restart=always \
 		--network financejcnet \
@@ -79,8 +79,8 @@ nginx: network
 		jchorl/financejcnginx
 
 nginx-dev: network
-	docker ps | grep financejcnginx || \
-		docker run -d \
+	docker container ps | grep financejcnginx || \
+		docker container run -d \
 		--name financejcnginx \
 		--restart=always \
 		--network financejcnet \
@@ -94,7 +94,7 @@ nginx-dev: network
 		jchorl/financejcnginx
 
 serve: network
-	docker run -d \
+	docker container run -d \
 		--name financejc \
 		--restart=always \
 		--network financejcnet \
@@ -107,7 +107,7 @@ serve: network
 		jchorl/financejc
 
 serve-dev: network
-	docker run -d \
+	docker container run -d \
 		--name financejc \
 		--restart=always \
 		--network financejcnet \
@@ -119,20 +119,20 @@ serve-dev: network
 		jchorl/financejc
 
 build-nginx: ui
-	docker build -t jchorl/financejcnginx -f nginx/Dockerfile .
+	docker image build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
 build:
-	docker run -it --rm \
+	docker container run -it --rm \
 		-v $(PWD):/go/src/github.com/jchorl/financejc \
 		-v $(PWD)/bin:/go/bin \
 		-w /go/src/github.com/jchorl/financejc \
 		golang \
 		sh -c 'go-wrapper download; go-wrapper install'
-	docker build -t jchorl/financejc .
+	docker image build -t jchorl/financejc .
 
 test: clean network db es test-all
 test-all:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--name financejctest \
 		--network financejcnet \
 		-v $(PWD):/go/src/github.com/jchorl/financejc \
@@ -141,11 +141,11 @@ test-all:
 		sh -c 'go test --tags=integration $$(go list ./... | grep -v /vendor/)'
 
 clean:
-	-docker rm -f financejcdbcon
-	-docker rm -f financejcdb
-	-docker rm -f financejces
-	-docker rm -f financejcnginx
-	-docker rm -f financejc
+	-docker container rm -f financejcdbcon
+	-docker container rm -f financejcdb
+	-docker container rm -f financejces
+	-docker container rm -f financejcnginx
+	-docker container rm -f financejc
 	-docker volume rm financejcpgdata
 	-docker volume rm financejcesdata
 	-docker network rm wellknown
@@ -153,7 +153,7 @@ clean:
 	-rm client/dest/*
 
 certs:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--name certbot \
 		-v financejcletsencrypt:/etc/letsencrypt \
 		-v financejcletsencryptvar:/var/lib/letsencrypt \
@@ -163,35 +163,35 @@ certs:
 		certonly --standalone --noninteractive --agree-tos --keep --expand -d finance.joshchorlton.com --email=josh@joshchorlton.com
 
 push:
-	docker push jchorl/financejc
-	docker push jchorl/financejcnginx
+	docker image push jchorl/financejc
+	docker image push jchorl/financejcnginx
 
 deploy:
-	docker pull jchorl/financejc
-	docker pull jchorl/financejcnginx
-	docker rm -f financejc
-	docker rm -f financejcnginx
+	docker image pull jchorl/financejc
+	docker image pull jchorl/financejcnginx
+	docker container rm -f financejc
+	docker container rm -f financejcnginx
 	$(MAKE) serve
 	$(MAKE) nginx
 
 # useful targets for dev
 # npm target makes it easy to add new npm packages
 npm:
-	docker run -it --rm \
+	docker container run -it --rm \
 		-v $(PWD)/client:/usr/src/app \
 		-w /usr/src/app \
 		node:latest /bin/bash
 
 # connect-db connects to the postgres instance
 connect-db:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--network financejcnet \
 		postgres \
 		psql -h financejcdb -U '$(POSTGRES_USER)'
 
 # golang makes it easy to use tools like godep
 golang:
-	docker run -it --rm \
+	docker container run -it --rm \
 		-v $(PWD):/go/src/github.com/jchorl/financejc \
 		-w /go/src/github.com/jchorl/financejc \
 		golang \
@@ -199,7 +199,7 @@ golang:
 
 # kibana makes it easy to view es data
 kibana:
-	docker run -it --rm \
+	docker container run -it --rm \
 		--name kibana \
 		--network financejcnet \
 		-e ELASTICSEARCH_URL=http://financejces:9200 \
