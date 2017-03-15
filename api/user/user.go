@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 
 	"github.com/jchorl/financejc/api/util"
+	"github.com/jchorl/financejc/constants"
 )
 
 // User represents a user
@@ -49,6 +50,49 @@ func Get(c context.Context) (User, error) {
 		Email:    email,
 		GoogleID: googleID,
 	}, nil
+}
+
+// GetAll queries for all users
+func GetAll(c context.Context) ([]User, error) {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return nil, constants.ErrForbidden
+	}
+
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	users := []User{}
+	rows, err := db.Query("SELECT id, googleId, email FROM users")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to fetch all users")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user userDB
+		if err := rows.Scan(&user.ID, &user.GoogleID, &user.Email); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to scan into user")
+			return nil, err
+		}
+
+		users = append(users, fromDB(user))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to get users from rows")
+		return nil, err
+	}
+
+	return users, nil
 }
 
 // FindOrCreateByGoogleID finds a user with the given googleId, otherwise it creates one and returns it
@@ -102,8 +146,8 @@ func toDB(user User) *userDB {
 	}
 }
 
-func fromDB(user userDB) *User {
-	return &User{
+func fromDB(user userDB) User {
+	return User{
 		ID:       user.ID,
 		Email:    user.Email,
 		GoogleID: util.FromNullStringNonEmpty(user.GoogleID),

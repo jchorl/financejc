@@ -64,6 +64,49 @@ func Get(c context.Context) ([]*Account, error) {
 	return accounts, nil
 }
 
+// GetAll queries for all accounts
+func GetAll(c context.Context) ([]Account, error) {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return nil, constants.ErrForbidden
+	}
+
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	accounts := []Account{}
+	rows, err := db.Query("SELECT id, name, currency, userId FROM accounts")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to fetch all accounts")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var account Account
+		if err := rows.Scan(&account.ID, &account.Name, &account.Currency, &account.User); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to scan into account")
+			return nil, err
+		}
+
+		accounts = append(accounts, account)
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to get all accounts from rows")
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
 // New creates a new account
 func New(c context.Context, account *Account) (*Account, error) {
 	userID, err := util.UserIDFromContext(c)

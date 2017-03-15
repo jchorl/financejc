@@ -72,6 +72,49 @@ func GetTemplates(c context.Context, accountID int) ([]Template, error) {
 	return transactions, nil
 }
 
+// GetAllTemplates queries for all templates
+func GetAllTemplates(c context.Context) ([]Template, error) {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return nil, constants.ErrForbidden
+	}
+
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	templates := []Template{}
+	rows, err := db.Query("SELECT id, templateName, name, category, amount, note, accountId FROM templates")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to fetch all templates")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var template templateDB
+		if err := rows.Scan(&template.ID, &template.TemplateName, &template.Name, &template.Category, &template.Amount, &template.Note, &template.AccountID); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to scan into template")
+			return nil, err
+		}
+
+		templates = append(templates, templateFromDB(template))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to get all templates from rows")
+		return nil, err
+	}
+
+	return templates, nil
+}
+
 // NewTemplate creates a new template
 func NewTemplate(c context.Context, transaction *Template) (*Template, error) {
 	db, err := util.DBFromContext(c)

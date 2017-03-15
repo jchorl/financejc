@@ -268,6 +268,49 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 	return transactions, nil
 }
 
+// GetAll queries for all transactions
+func GetAll(c context.Context) ([]Transaction, error) {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return nil, constants.ErrForbidden
+	}
+
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	transactions := []Transaction{}
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to fetch all transactions")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var transaction transactionDB
+		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionID, &transaction.AccountID); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to scan into transaction")
+			return nil, err
+		}
+
+		transactions = append(transactions, fromDB(transaction))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to get all transactions from rows")
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
 // GetFuture gets all transactions for an account after a given reference time
 func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transaction, error) {
 	db, err := util.DBFromContext(c)

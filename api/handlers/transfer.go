@@ -6,6 +6,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 
+	"github.com/jchorl/financejc/api/transfer/batchTransfer"
 	"github.com/jchorl/financejc/api/transfer/userTransfer"
 )
 
@@ -34,4 +35,14 @@ func Transfer(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// Export exports all system data
+func Export(c echo.Context) error {
+	results, err := batchTransfer.Export(toContext(c))
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.String(http.StatusOK, results)
 }

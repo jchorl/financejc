@@ -122,6 +122,11 @@ func UserIDFromContext(c context.Context) (uint, error) {
 	return userID, nil
 }
 
+// IsUserAdmin checks if a user id belongs to an admin user
+func IsUserAdmin(userID uint) bool {
+	return userID == constants.AdminUID
+}
+
 // DBFromContext pulls a database connection from a context
 func DBFromContext(c context.Context) (DB, error) {
 	db := c.Value(constants.CtxDB).(DB)

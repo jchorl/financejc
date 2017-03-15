@@ -118,6 +118,11 @@ serve-dev: network
 		-e DB_ADDRESS \
 		jchorl/financejc
 
+restart:
+	docker container rm -f financejc
+	$(MAKE) build
+	$(MAKE) serve-dev
+
 build-nginx: ui
 	docker image build -t jchorl/financejcnginx -f nginx/Dockerfile .
 

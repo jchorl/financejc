@@ -41,7 +41,7 @@ type recurringTransactionDB struct {
 func GenRecurringTransactions(c context.Context) error {
 	logrus.Debug("running GenRecurringTransactions")
 	userID, err := util.UserIDFromContext(c)
-	if err != nil || userID != constants.AdminUID {
+	if err != nil || !util.IsUserAdmin(userID) {
 		return constants.ErrForbidden
 	}
 
@@ -132,6 +132,49 @@ func GetRecurring(c context.Context, accountID int) ([]RecurringTransaction, err
 	}
 
 	return transactions, nil
+}
+
+// GetAllRecurring queries for all recurring transactions
+func GetAllRecurring(c context.Context) ([]RecurringTransaction, error) {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return nil, constants.ErrForbidden
+	}
+
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return nil, err
+	}
+
+	recurringTransactions := []RecurringTransaction{}
+	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions")
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to fetch all recurringTransactions")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var recurringTransaction recurringTransactionDB
+		if err := rows.Scan(&recurringTransaction.ID, &recurringTransaction.Name, &recurringTransaction.NextOccurs, &recurringTransaction.Category, &recurringTransaction.Amount, &recurringTransaction.Note, &recurringTransaction.AccountID, &recurringTransaction.ScheduleType, &recurringTransaction.SecondsBetween, &recurringTransaction.DayOf, &recurringTransaction.SecondsBeforeToPost); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("failed to scan into recurringTransaction")
+			return nil, err
+		}
+
+		recurringTransactions = append(recurringTransactions, recurringFromDB(recurringTransaction))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("failed to get all recurringTransactions from rows")
+		return nil, err
+	}
+
+	return recurringTransactions, nil
 }
 
 // NewRecurring creates a new recurring transaction
