@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/lib/pq"
 
 	"github.com/jchorl/financejc/api/util"
 	"github.com/jchorl/financejc/constants"
@@ -175,6 +176,60 @@ func GetAllRecurring(c context.Context) ([]RecurringTransaction, error) {
 	}
 
 	return recurringTransactions, nil
+}
+
+// BatchImportRecurringTransactions batch imports recurring transactions
+func BatchImportRecurringTransactions(c context.Context, recurringTransactions []RecurringTransaction) error {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return constants.ErrForbidden
+	}
+
+	db, err := util.SQLDBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	txn, err := db.Begin()
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin transaction when batch inserting recurringTransactions")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("recurringtransactions", "id", "name", "nextoccurs", "category", "amount", "note", "accountid", "scheduletype", "secondsbetween", "dayof", "secondsbeforetopost"))
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin copy in when batch inserting recurringTransactions")
+		return err
+	}
+
+	for _, recurringTransaction := range recurringTransactions {
+		rdb := recurringToDB(recurringTransaction)
+		_, err = stmt.Exec(rdb.ID, rdb.Name, rdb.NextOccurs, rdb.Category, rdb.Amount, rdb.Note, rdb.AccountID, rdb.ScheduleType, rdb.SecondsBetween, rdb.DayOf, rdb.SecondsBeforeToPost)
+		if err != nil {
+			logrus.WithError(err).Error("unable to exec recurringTransaction copy when batch inserting recurringTransactions")
+			return err
+		}
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		logrus.WithError(err).Error("unable to exec batch recurringTransaction copy when batch inserting recurringTransactions")
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		logrus.WithError(err).Error("unable to close recurringTransaction copy when batch inserting recurringTransactions")
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		logrus.WithError(err).Error("unable to commit recurringTransaction copy when batch inserting recurringTransactions")
+		return err
+	}
+
+	return nil
 }
 
 // NewRecurring creates a new recurring transaction

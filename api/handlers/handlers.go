@@ -47,4 +47,5 @@ func Init(api *echo.Group) {
 
 	api.POST("/import", Transfer, jwtMiddleware)
 	api.GET("/exportAll", Export, jwtMiddleware)
+	api.POST("/importAll", Import, jwtMiddleware)
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/lib/pq"
 
 	"github.com/jchorl/financejc/api/util"
 	"github.com/jchorl/financejc/constants"
@@ -266,6 +267,60 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 	}
 
 	return transactions, nil
+}
+
+// BatchImport batch imports transactions
+func BatchImport(c context.Context, transactions []Transaction) error {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return constants.ErrForbidden
+	}
+
+	db, err := util.SQLDBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	txn, err := db.Begin()
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin transaction when batch inserting transactions")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("transactions", "id", "name", "occurred", "category", "amount", "note", "relatedtransactionid", "accountid"))
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin copy in when batch inserting transactions")
+		return err
+	}
+
+	for _, transaction := range transactions {
+		tdb := toDB(transaction)
+		_, err = stmt.Exec(tdb.ID, tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.AccountID)
+		if err != nil {
+			logrus.WithError(err).Error("unable to exec transaction copy when batch inserting transactions")
+			return err
+		}
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		logrus.WithError(err).Error("unable to exec batch transaction copy when batch inserting transactions")
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		logrus.WithError(err).Error("unable to close transaction copy when batch inserting transactions")
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		logrus.WithError(err).Error("unable to commit transaction copy when batch inserting transactions")
+		return err
+	}
+
+	return nil
 }
 
 // GetAll queries for all transactions

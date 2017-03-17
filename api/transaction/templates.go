@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/lib/pq"
 
 	"github.com/jchorl/financejc/api/util"
 	"github.com/jchorl/financejc/constants"
@@ -70,6 +71,60 @@ func GetTemplates(c context.Context, accountID int) ([]Template, error) {
 	}
 
 	return transactions, nil
+}
+
+// BatchImportTemplates batch imports templates
+func BatchImportTemplates(c context.Context, templates []Template) error {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return constants.ErrForbidden
+	}
+
+	db, err := util.SQLDBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	txn, err := db.Begin()
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin transaction when batch inserting templates")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("templates", "id", "templatename", "name", "category", "amount", "note", "accountid"))
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin copy in when batch inserting templates")
+		return err
+	}
+
+	for _, template := range templates {
+		tdb := templateToDB(template)
+		_, err = stmt.Exec(tdb.ID, tdb.TemplateName, tdb.Name, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID)
+		if err != nil {
+			logrus.WithError(err).Error("unable to exec template copy when batch inserting templates")
+			return err
+		}
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		logrus.WithError(err).Error("unable to exec batch template copy when batch inserting templates")
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		logrus.WithError(err).Error("unable to close template copy when batch inserting templates")
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		logrus.WithError(err).Error("unable to commit template copy when batch inserting templates")
+		return err
+	}
+
+	return nil
 }
 
 // GetAllTemplates queries for all templates

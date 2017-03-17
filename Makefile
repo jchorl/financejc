@@ -119,7 +119,7 @@ serve-dev: network
 		jchorl/financejc
 
 restart:
-	docker container rm -f financejc
+	--docker container rm -f financejc
 	$(MAKE) build
 	$(MAKE) serve-dev
 

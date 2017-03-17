@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
@@ -45,4 +46,19 @@ func Export(c echo.Context) error {
 	}
 
 	return c.String(http.StatusOK, results)
+}
+
+// Import imports all system data
+func Import(c echo.Context) error {
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		logrus.WithError(err).Error("unable to read body of request")
+		return writeError(c, err)
+	}
+
+	if err := batchTransfer.Import(toContext(c), string(body)); err != nil {
+		return writeError(c, err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

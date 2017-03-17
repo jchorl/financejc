@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/lib/pq"
 
 	"github.com/jchorl/financejc/api/util"
 	"github.com/jchorl/financejc/constants"
@@ -93,6 +94,63 @@ func GetAll(c context.Context) ([]User, error) {
 	}
 
 	return users, nil
+}
+
+// BatchImport batch imports users
+func BatchImport(c context.Context, users []User) error {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return constants.ErrForbidden
+	}
+
+	db, err := util.SQLDBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	txn, err := db.Begin()
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin transaction when batch inserting users")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("users", "id", "googleid", "email"))
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin copy in when batch inserting users")
+		return err
+	}
+
+	for _, user := range users {
+		if util.IsUserAdmin(user.ID) {
+			continue
+		}
+		udb := toDB(user)
+		_, err = stmt.Exec(udb.ID, udb.GoogleID, udb.Email)
+		if err != nil {
+			logrus.WithError(err).Error("unable to exec user copy when batch inserting users")
+			return err
+		}
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		logrus.WithError(err).Error("unable to exec batch user copy when batch inserting users")
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		logrus.WithError(err).Error("unable to close user copy when batch inserting users")
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		logrus.WithError(err).Error("unable to commit user copy when batch inserting users")
+		return err
+	}
+
+	return nil
 }
 
 // FindOrCreateByGoogleID finds a user with the given googleId, otherwise it creates one and returns it

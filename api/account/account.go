@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/lib/pq"
 
 	"github.com/jchorl/financejc/api/util"
 	"github.com/jchorl/financejc/constants"
@@ -14,7 +15,7 @@ type Account struct {
 	ID          int     `json:"id,omitempty"`
 	Name        string  `json:"name"`
 	Currency    string  `json:"currency"`
-	User        uint    `json:"-"`
+	User        uint    `json:"user"`
 	FutureValue float64 `json:"futureValue"`
 }
 
@@ -62,6 +63,59 @@ func Get(c context.Context) ([]*Account, error) {
 	}
 
 	return accounts, nil
+}
+
+// BatchImport batch imports accounts
+func BatchImport(c context.Context, accounts []Account) error {
+	userID, err := util.UserIDFromContext(c)
+	if err != nil || !util.IsUserAdmin(userID) {
+		return constants.ErrForbidden
+	}
+
+	db, err := util.SQLDBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	txn, err := db.Begin()
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin transaction when batch inserting accounts")
+		return err
+	}
+
+	stmt, err := txn.Prepare(pq.CopyIn("accounts", "id", "name", "currency", "userid"))
+	if err != nil {
+		logrus.WithError(err).Error("unable to begin copy in when batch inserting accounts")
+		return err
+	}
+
+	for _, account := range accounts {
+		_, err = stmt.Exec(account.ID, account.Name, account.Currency, account.User)
+		if err != nil {
+			logrus.WithError(err).Error("unable to exec transaction copy when batch inserting accounts")
+			return err
+		}
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		logrus.WithError(err).Error("unable to exec batch account copy when batch inserting accounts")
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		logrus.WithError(err).Error("unable to close account copy when batch inserting accounts")
+		return err
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		logrus.WithError(err).Error("unable to commit account copy when batch inserting accounts")
+		return err
+	}
+
+	return nil
 }
 
 // GetAll queries for all accounts
