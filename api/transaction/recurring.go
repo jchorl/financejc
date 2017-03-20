@@ -102,7 +102,7 @@ func GetRecurring(c context.Context, accountID int) ([]RecurringTransaction, err
 		return transactions, constants.ErrForbidden
 	}
 
-	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE accountId = $1", accountID)
+	rows, err := db.Query("SELECT id, name, next_occurs, category, amount, note, account_id, schedule_type, seconds_between, day_of, seconds_before_to_post FROM recurring_transactions WHERE account_id = $1", accountID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -148,7 +148,7 @@ func GetAllRecurring(c context.Context) ([]RecurringTransaction, error) {
 	}
 
 	recurringTransactions := []RecurringTransaction{}
-	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions")
+	rows, err := db.Query("SELECT id, name, next_occurs, category, amount, note, account_id, schedule_type, seconds_between, day_of, seconds_before_to_post FROM recurring_transactions")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
@@ -196,7 +196,7 @@ func BatchImportRecurringTransactions(c context.Context, recurringTransactions [
 		return err
 	}
 
-	stmt, err := txn.Prepare(pq.CopyIn("recurringtransactions", "id", "name", "nextoccurs", "category", "amount", "note", "accountid", "scheduletype", "secondsbetween", "dayof", "secondsbeforetopost"))
+	stmt, err := txn.Prepare(pq.CopyIn("recurring_transactions", "id", "name", "next_occurs", "category", "amount", "note", "account_id", "schedule_type", "seconds_between", "day_of", "seconds_before_to_post"))
 	if err != nil {
 		logrus.WithError(err).Error("unable to begin copy in when batch inserting recurringTransactions")
 		return err
@@ -256,7 +256,7 @@ func NewRecurring(c context.Context, transaction *RecurringTransaction) (*Recurr
 
 	tdb := recurringToDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO recurringTransactions(name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost).Scan(&id)
+	err = db.QueryRow("INSERT INTO recurring_transactions(name, next_occurs, category, amount, note, account_id, schedule_type, seconds_between, day_of, seconds_before_to_post) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                  err,
@@ -287,7 +287,7 @@ func UpdateRecurring(c context.Context, transaction *RecurringTransaction) (*Rec
 	}
 
 	tdb := recurringToDB(*transaction)
-	_, err = db.Exec("UPDATE recurringTransactions SET name = $1, nextOccurs = $2, category = $3, amount = $4, note = $5, accountId = $6, scheduleType = $7, secondsBetween = $8, dayOf = $9, secondsBeforeToPost = $10 WHERE id = $11", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost, tdb.ID)
+	_, err = db.Exec("UPDATE recurring_transactions SET name = $1, next_occurs = $2, category = $3, amount = $4, note = $5, account_id = $6, schedule_type = $7, seconds_between = $8, day_of = $9, seconds_before_to_post = $10 WHERE id = $11", tdb.Name, tdb.NextOccurs, tdb.Category, tdb.Amount, tdb.Note, tdb.AccountID, tdb.ScheduleType, tdb.SecondsBetween, tdb.DayOf, tdb.SecondsBeforeToPost, tdb.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                  err,
@@ -312,7 +312,7 @@ func DeleteRecurring(ctx context.Context, transactionID int) error {
 		return constants.ErrForbidden
 	}
 
-	_, err = db.Exec("DELETE FROM recurringTransactions WHERE id = $1", transactionID)
+	_, err = db.Exec("DELETE FROM recurring_transactions WHERE id = $1", transactionID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                  err,
@@ -336,7 +336,7 @@ func userOwnsRecurringTransaction(c context.Context, recurringTransaction int) (
 	}
 
 	var owner uint
-	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN recurringTransactions t ON t.accountId = a.id WHERE t.id = $1", recurringTransaction).Scan(&owner)
+	err = db.QueryRow("SELECT a.user_id FROM accounts a JOIN recurring_transactions t ON t.account_id = a.id WHERE t.id = $1", recurringTransaction).Scan(&owner)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":                err,
@@ -447,7 +447,7 @@ func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) 
 
 func getRecurringToPost(db util.DB) ([]RecurringTransaction, error) {
 	// query for all recurring transactions where the next occurrance is within the time period before to post it to the account
-	rows, err := db.Query("SELECT id, name, nextOccurs, category, amount, note, accountId, scheduleType, secondsBetween, dayOf, secondsBeforeToPost FROM recurringTransactions WHERE nextOccurs - interval '1 second' * secondsBeforeToPost <= NOW()")
+	rows, err := db.Query("SELECT id, name, next_occurs, category, amount, note, account_id, schedule_type, seconds_between, day_of, seconds_before_to_post FROM recurring_transactions WHERE next_occurs - interval '1 second' * seconds_before_to_post <= NOW()")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,

@@ -37,7 +37,7 @@ func Get(c context.Context) (User, error) {
 	}
 
 	var email, googleID string
-	err = db.QueryRow("SELECT email, googleId FROM users WHERE id = $1", userID).Scan(&email, &googleID)
+	err = db.QueryRow("SELECT email, google_id FROM users WHERE id = $1", userID).Scan(&email, &googleID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,
@@ -66,7 +66,7 @@ func GetAll(c context.Context) ([]User, error) {
 	}
 
 	users := []User{}
-	rows, err := db.Query("SELECT id, googleId, email FROM users")
+	rows, err := db.Query("SELECT id, google_id, email FROM users")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
@@ -114,7 +114,7 @@ func BatchImport(c context.Context, users []User) error {
 		return err
 	}
 
-	stmt, err := txn.Prepare(pq.CopyIn("users", "id", "googleid", "email"))
+	stmt, err := txn.Prepare(pq.CopyIn("users", "id", "google_id", "email"))
 	if err != nil {
 		logrus.WithError(err).Error("unable to begin copy in when batch inserting users")
 		return err
@@ -161,7 +161,7 @@ func FindOrCreateByGoogleID(c context.Context, googleID, email string) (User, er
 	}
 
 	var id uint
-	err = db.QueryRow("SELECT id FROM users WHERE googleId = $1", googleID).Scan(&id)
+	err = db.QueryRow("SELECT id FROM users WHERE google_id = $1", googleID).Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,
@@ -181,7 +181,7 @@ func FindOrCreateByGoogleID(c context.Context, googleID, email string) (User, er
 		GoogleID: googleID,
 	}
 	udb := toDB(user)
-	err = db.QueryRow("INSERT INTO users (googleId, email) VALUES($1, $2) RETURNING id", udb.GoogleID, udb.Email).Scan(&id)
+	err = db.QueryRow("INSERT INTO users (google_id, email) VALUES($1, $2) RETURNING id", udb.GoogleID, udb.Email).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,

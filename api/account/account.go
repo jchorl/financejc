@@ -32,7 +32,7 @@ func Get(c context.Context) ([]*Account, error) {
 	}
 
 	accounts := []*Account{}
-	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.userId, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.accountId=a.id WHERE a.userId = $1 GROUP BY a.id", userID)
+	rows, err := db.Query("SELECT a.id, a.name, a.currency, a.user_id, COALESCE(SUM(t.amount), 0) FROM accounts a LEFT JOIN transactions t on t.account_id=a.id WHERE a.user_id = $1 GROUP BY a.id", userID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":  err,
@@ -83,7 +83,7 @@ func BatchImport(c context.Context, accounts []Account) error {
 		return err
 	}
 
-	stmt, err := txn.Prepare(pq.CopyIn("accounts", "id", "name", "currency", "userid"))
+	stmt, err := txn.Prepare(pq.CopyIn("accounts", "id", "name", "currency", "user_id"))
 	if err != nil {
 		logrus.WithError(err).Error("unable to begin copy in when batch inserting accounts")
 		return err
@@ -131,7 +131,7 @@ func GetAll(c context.Context) ([]Account, error) {
 	}
 
 	accounts := []Account{}
-	rows, err := db.Query("SELECT id, name, currency, userId FROM accounts")
+	rows, err := db.Query("SELECT id, name, currency, user_id FROM accounts")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
@@ -181,7 +181,7 @@ func New(c context.Context, account *Account) (*Account, error) {
 	}
 
 	var id int
-	err = db.QueryRow("INSERT INTO accounts(name, currency, userId) VALUES($1, $2, $3) RETURNING id", account.Name, account.Currency, account.User).Scan(&id)
+	err = db.QueryRow("INSERT INTO accounts(name, currency, user_id) VALUES($1, $2, $3) RETURNING id", account.Name, account.Currency, account.User).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"Error":   err,

@@ -213,7 +213,7 @@ func UserOwnsAccount(c context.Context, accountID int) (bool, error) {
 	}
 
 	var owner uint
-	err = db.QueryRow("SELECT userId FROM accounts WHERE id = $1", accountID).Scan(&owner)
+	err = db.QueryRow("SELECT user_id FROM accounts WHERE id = $1", accountID).Scan(&owner)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err,
@@ -239,7 +239,7 @@ func UserOwnsTransaction(c context.Context, transactionID int) (bool, error) {
 	}
 
 	var owner uint
-	err = db.QueryRow("SELECT a.userId FROM accounts a JOIN transactions t ON t.accountId = a.id WHERE t.id = $1", transactionID).Scan(&owner)
+	err = db.QueryRow("SELECT a.user_id FROM accounts a JOIN transactions t ON t.account_id = a.id WHERE t.id = $1", transactionID).Scan(&owner)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":       err,

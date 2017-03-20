@@ -224,7 +224,7 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 		"limitPerQuery": limitPerQuery,
 		"offset":        offset,
 	}).Info("about to query")
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountID, reference, limitPerQuery, offset)
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions WHERE account_id = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountID, reference, limitPerQuery, offset)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -287,7 +287,7 @@ func BatchImport(c context.Context, transactions []Transaction) error {
 		return err
 	}
 
-	stmt, err := txn.Prepare(pq.CopyIn("transactions", "id", "name", "occurred", "category", "amount", "note", "relatedtransactionid", "accountid"))
+	stmt, err := txn.Prepare(pq.CopyIn("transactions", "id", "name", "occurred", "category", "amount", "note", "related_transaction_id", "account_id"))
 	if err != nil {
 		logrus.WithError(err).Error("unable to begin copy in when batch inserting transactions")
 		return err
@@ -336,7 +336,7 @@ func GetAll(c context.Context) ([]Transaction, error) {
 	}
 
 	transactions := []Transaction{}
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions")
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
@@ -384,7 +384,7 @@ func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transa
 		now := time.Now()
 		reference = &now
 	}
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, relatedTransactionId, accountId FROM transactions WHERE accountId = $1 AND occurred > $2 ORDER BY occurred DESC, id", accountID, reference)
+	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions WHERE account_id = $1 AND occurred > $2 ORDER BY occurred DESC, id", accountID, reference)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
@@ -517,7 +517,7 @@ func newWithoutVerifyingAccountOwnership(ctx context.Context, transaction *Trans
 
 	tdb := toDB(*transaction)
 	var id int
-	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, relatedTransactionId, accountId) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.AccountID).Scan(&id)
+	err = db.QueryRow("INSERT INTO transactions(name, occurred, category, amount, note, related_transaction_id, account_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.AccountID).Scan(&id)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
@@ -569,7 +569,7 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 	}
 
 	tdb := toDB(*transaction)
-	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, relatedTransactionId = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.ID)
+	_, err = db.Exec("UPDATE transactions SET name = $1, occurred = $2, category = $3, amount = $4, note = $5, related_transaction_id = $6 WHERE id = $7", tdb.Name, tdb.Occurred, tdb.Category, tdb.Amount, tdb.Note, tdb.RelatedTransactionID, tdb.ID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":         err,
@@ -682,7 +682,7 @@ func PushAllToES(c context.Context) error {
 
 	esBulkReq := es.Bulk().Index(constants.ESIndex).Type(esType)
 
-	rows, err := db.Query("SELECT t.id, t.name, t.occurred, t.category, t.amount, t.note, t.relatedTransactionId, t.accountId, a.userId FROM transactions t JOIN accounts a on t.accountId = a.id")
+	rows, err := db.Query("SELECT t.id, t.name, t.occurred, t.category, t.amount, t.note, t.related_transaction_id, t.account_id, a.user_id FROM transactions t JOIN accounts a on t.account_id = a.id")
 	if err != nil {
 		logrus.WithError(err).Error("failed to fetch all transactions")
 		return err
