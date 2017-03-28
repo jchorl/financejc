@@ -88,6 +88,42 @@ func Import(c context.Context, encoded string) error {
 		return err
 	}
 
+	// update all the auto-increment sequences
+	db, err := util.DBFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Query(`SELECT setval('users_id_seq', (SELECT MAX(id) from "users"));`)
+	if err != nil {
+		logrus.WithError(err).Error("unable to update the users sequence")
+		return err
+	}
+
+	_, err = db.Query(`SELECT setval('accounts_id_seq', (SELECT MAX(id) from "accounts"));`)
+	if err != nil {
+		logrus.WithError(err).Error("unable to update the accounts sequence")
+		return err
+	}
+
+	_, err = db.Query(`SELECT setval('transactions_id_seq', (SELECT MAX(id) from "transactions"));`)
+	if err != nil {
+		logrus.WithError(err).Error("unable to update the transactions sequence")
+		return err
+	}
+
+	_, err = db.Query(`SELECT setval('recurring_transactions_id_seq', (SELECT MAX(id) from "recurring_transactions"));`)
+	if err != nil {
+		logrus.WithError(err).Error("unable to update the recurring_transactions sequence")
+		return err
+	}
+
+	_, err = db.Query(`SELECT setval('templates_id_seq', (SELECT MAX(id) from "templates"));`)
+	if err != nil {
+		logrus.WithError(err).Error("unable to update the templates sequence")
+		return err
+	}
+
 	return nil
 }
 
