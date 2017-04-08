@@ -22,8 +22,7 @@ type fjcData struct {
 
 // Export queries for all data, packages it up and exports it
 func Export(c context.Context) (string, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return "", constants.ErrForbidden
 	}
 

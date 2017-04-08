@@ -55,8 +55,7 @@ func Get(c context.Context) (User, error) {
 
 // GetAll queries for all users
 func GetAll(c context.Context) ([]User, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return nil, constants.ErrForbidden
 	}
 
@@ -98,8 +97,7 @@ func GetAll(c context.Context) ([]User, error) {
 
 // BatchImport batch imports users
 func BatchImport(c context.Context, users []User) error {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 
@@ -121,7 +119,8 @@ func BatchImport(c context.Context, users []User) error {
 	}
 
 	for _, user := range users {
-		if util.IsUserAdmin(user.ID) {
+		// skip admin user because they are already signed up
+		if user.Email == constants.AdminEmail {
 			continue
 		}
 		udb := toDB(user)

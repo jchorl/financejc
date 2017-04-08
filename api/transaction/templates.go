@@ -75,8 +75,7 @@ func GetTemplates(c context.Context, accountID int) ([]Template, error) {
 
 // BatchImportTemplates batch imports templates
 func BatchImportTemplates(c context.Context, templates []Template) error {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 
@@ -129,8 +128,7 @@ func BatchImportTemplates(c context.Context, templates []Template) error {
 
 // GetAllTemplates queries for all templates
 func GetAllTemplates(c context.Context) ([]Template, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return nil, constants.ErrForbidden
 	}
 

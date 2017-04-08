@@ -41,8 +41,7 @@ type recurringTransactionDB struct {
 // GenRecurringTransactions generates transactions from recurring transactions
 func GenRecurringTransactions(c context.Context) error {
 	logrus.Debug("running GenRecurringTransactions")
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 
@@ -137,8 +136,7 @@ func GetRecurring(c context.Context, accountID int) ([]RecurringTransaction, err
 
 // GetAllRecurring queries for all recurring transactions
 func GetAllRecurring(c context.Context) ([]RecurringTransaction, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return nil, constants.ErrForbidden
 	}
 
@@ -180,8 +178,7 @@ func GetAllRecurring(c context.Context) ([]RecurringTransaction, error) {
 
 // BatchImportRecurringTransactions batch imports recurring transactions
 func BatchImportRecurringTransactions(c context.Context, recurringTransactions []RecurringTransaction) error {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 

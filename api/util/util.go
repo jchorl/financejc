@@ -123,8 +123,33 @@ func UserIDFromContext(c context.Context) (uint, error) {
 }
 
 // IsUserAdmin checks if a user id belongs to an admin user
-func IsUserAdmin(userID uint) bool {
-	return userID == constants.AdminUID
+func IsAdminRequest(c context.Context) bool {
+	internalReq, ok := c.Value(constants.CtxInternalReq).(bool)
+	if ok && internalReq {
+		return true
+	}
+
+	userId, err := UserIDFromContext(c)
+	if err != nil {
+		return false
+	}
+
+	db, err := DBFromContext(c)
+	if err != nil {
+		return false
+	}
+
+	var email string
+	err = db.QueryRow("SELECT email FROM users WHERE id = $1", userId).Scan(&email)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":  err,
+			"userId": userId,
+		}).Error("failed to select user from users table when checking admin")
+		return false
+	}
+
+	return email == constants.AdminEmail
 }
 
 // DBFromContext pulls a database connection from a context

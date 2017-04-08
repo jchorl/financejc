@@ -67,8 +67,7 @@ func Get(c context.Context) ([]*Account, error) {
 
 // BatchImport batch imports accounts
 func BatchImport(c context.Context, accounts []Account) error {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 
@@ -120,8 +119,7 @@ func BatchImport(c context.Context, accounts []Account) error {
 
 // GetAll queries for all accounts
 func GetAll(c context.Context) ([]Account, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return nil, constants.ErrForbidden
 	}
 

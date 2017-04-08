@@ -271,8 +271,7 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 
 // BatchImport batch imports transactions
 func BatchImport(c context.Context, transactions []Transaction) error {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 
@@ -325,8 +324,7 @@ func BatchImport(c context.Context, transactions []Transaction) error {
 
 // GetAll queries for all transactions
 func GetAll(c context.Context) ([]Transaction, error) {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || !util.IsUserAdmin(userID) {
+	if !util.IsAdminRequest(c) {
 		return nil, constants.ErrForbidden
 	}
 
@@ -651,8 +649,7 @@ func Delete(ctx context.Context, transactionID int) error {
 
 // PushAllToES pushes all transactions to elasticsearch
 func PushAllToES(c context.Context) error {
-	userID, err := util.UserIDFromContext(c)
-	if err != nil || userID != constants.AdminUID {
+	if !util.IsAdminRequest(c) {
 		return constants.ErrForbidden
 	}
 

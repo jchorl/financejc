@@ -4,14 +4,15 @@ import (
 	"errors"
 )
 
-// AdminUID is the user ID of the admin
-const AdminUID = uint(1)
+// AdminEmail is the email of the admin
+const AdminEmail = "josh@joshchorlton.com"
 
 // Keys for values stored in context
 const (
-	CtxDB     = "database"
-	CtxES     = "elasticsearch"
-	CtxUserID = "user"
+	CtxDB          = "database"
+	CtxES          = "elasticsearch"
+	CtxUserID      = "user"
+	CtxInternalReq = "internal_request"
 )
 
 // ESIndex is the primary elasticsearch index used
@@ -34,10 +35,10 @@ var CtxKeys = [...]string{
 
 // Common errors that get mapped to proper http status codes in a handler helper function to return errors
 var (
-	ErrForbidden       = errors.New("User does not have permission to access this resource.")
-	ErrNotLoggedIn     = errors.New("User is not logged in.")
-	ErrBadRequest      = errors.New("Request contains malformed data.")
-	ErrInvalidCurrency = errors.New("The specified currency is not recognized.")
+	ErrForbidden       = errors.New("user does not have permission to access this resource")
+	ErrNotLoggedIn     = errors.New("user is not logged in")
+	ErrBadRequest      = errors.New("request contains malformed data")
+	ErrInvalidCurrency = errors.New("the specified currency is not recognized")
 )
 
 type currency struct {
