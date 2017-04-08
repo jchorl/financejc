@@ -49,6 +49,6 @@ export default class AccountForm extends React.Component {
         </div>
         <button type="submit">Save</button>
       </form>
-    );
+        );
     }
 }

@@ -1,3 +1,6 @@
+UID=$(shell id -u)
+GID=$(shell id -g)
+
 all: certs network db es build ui build-nginx serve nginx
 dev: network db es build serve-dev ui build-nginx nginx-dev
 images: build build-nginx
@@ -13,6 +16,7 @@ client/dest/bundle.js: $(shell find client/src) client/webpack.production.config
 	docker container run -it --rm \
 		--name uibuild \
 		-v $(PWD)/client:/usr/src/app \
+		-u $(UID):$(GID) \
 		-w /usr/src/app \
 		node:latest \
 		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors; gzip -k -9 -f dest/bundle.js"
@@ -21,6 +25,7 @@ ui-watch:
 	docker container run -it --rm \
 		--name uiwatch \
 		-v $(PWD)/client:/usr/src/app \
+		-u $(UID):$(GID) \
 		-w /usr/src/app \
 		node:latest \
 		/bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors --watch"
@@ -72,8 +77,8 @@ nginx: network
 		--restart=always \
 		--network financejcnet \
 		-e DOMAIN=finance.joshchorlton.com \
-		-v financejcletsencrypt:/etc/letsencrypt \
-		-v wellknown:/usr/share/nginx/wellknown \
+		-v financejcletsencrypt:/etc/letsencrypt:ro \
+		-v wellknown:/usr/share/nginx/wellknown:ro \
 		-p 80:80 \
 		-p 443:443 \
 		jchorl/financejcnginx
@@ -87,8 +92,8 @@ nginx-dev: network
 		-e DEV=1 \
 		-e DOMAIN=finance.joshchorlton.com \
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
-		-v financejcletsencrypt:/etc/letsencrypt \
-		-v wellknown:/usr/share/nginx/wellknown \
+		-v financejcletsencrypt:/etc/letsencrypt:ro \
+		-v wellknown:/usr/share/nginx/wellknown:ro \
 		-p 80:80 \
 		-p 443:443 \
 		jchorl/financejcnginx
@@ -184,6 +189,7 @@ deploy:
 npm:
 	docker container run -it --rm \
 		-v $(PWD)/client:/usr/src/app \
+		-u $(UID):$(GID) \
 		-w /usr/src/app \
 		node:latest /bin/bash
 

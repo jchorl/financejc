@@ -78,6 +78,6 @@ export default class App extends React.Component {
         </nav>
         { this.props.children }
       </div>
-    );
+        );
     }
 }

@@ -51,6 +51,6 @@ export default class GoogleLoginButton extends React.Component {
       <div id="googleBtn" className={ styles.loginButton } >
         Login
       </div>
-    );
+        );
     }
 }
