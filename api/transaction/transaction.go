@@ -194,7 +194,7 @@ func InitES(es *elastic.Client) error {
 }
 
 // Get fetches transactions for a given account and page parameters
-func Get(c context.Context, accountID int, nextEncoded string) (Transactions, error) {
+func Get(c context.Context, accountID int, previousNextPageEncoded string) (Transactions, error) {
 	valid, err := util.UserOwnsAccount(c, accountID)
 	if err != nil || !valid {
 		return Transactions{}, constants.ErrForbidden
@@ -207,29 +207,23 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 
 	transactions := Transactions{}
 
-	reference := time.Now().Add(time.Hour * time.Duration(24))
-	offset := 0
-	if nextEncoded != "" {
-		decoded, err := decodeNextPage(nextEncoded)
+	nextPage := nextPageParams{}
+	var rows *sql.Rows
+	if previousNextPageEncoded != "" {
+		nextPage, err = decodeNextPage(previousNextPageEncoded)
 		if err != nil {
 			return Transactions{}, err
 		}
 
-		reference, offset = decoded.Reference, decoded.Offset
+		rows, err = db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions WHERE account_id = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountID, nextPage.Reference, limitPerQuery, nextPage.Offset)
+	} else {
+		rows, err = db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions WHERE account_id = $1 ORDER BY occurred DESC, id LIMIT $2", accountID, limitPerQuery)
 	}
-
-	logrus.WithFields(logrus.Fields{
-		"accountId":     accountID,
-		"reference":     reference,
-		"limitPerQuery": limitPerQuery,
-		"offset":        offset,
-	}).Info("about to query")
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions WHERE account_id = $1 AND occurred < $2 ORDER BY occurred DESC, id LIMIT $3 OFFSET $4", accountID, reference, limitPerQuery, offset)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
 			"accountId": accountID,
-			"next":      nextEncoded,
+			"next":      previousNextPageEncoded,
 		}).Error("failed to fetch transactions")
 		return Transactions{}, err
 	}
@@ -241,7 +235,7 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 			logrus.WithFields(logrus.Fields{
 				"error":     err,
 				"accountId": accountID,
-				"next":      nextEncoded,
+				"next":      previousNextPageEncoded,
 			}).Error("failed to scan into transaction")
 			return Transactions{}, err
 		}
@@ -252,13 +246,20 @@ func Get(c context.Context, accountID int, nextEncoded string) (Transactions, er
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
 			"accountId": accountID,
-			"next":      nextEncoded,
+			"next":      previousNextPageEncoded,
 		}).Error("failed to get transactions from rows")
 		return Transactions{}, err
 	}
 
 	if len(transactions.Transactions) == limitPerQuery {
-		next, err := encodeNextPage(nextPageParams{reference, offset + limitPerQuery})
+		// either setting to limitPerQuery (no prev nextPage) or bumping (prev nextPage)
+		nextPage.Offset += limitPerQuery
+
+		// if there is no previous nextPage, set the reference
+		if previousNextPageEncoded == "" {
+			nextPage.Reference = transactions.Transactions[0].Date
+		}
+		next, err := encodeNextPage(nextPage)
 		if err != nil {
 			return Transactions{}, err
 		}
@@ -359,57 +360,6 @@ func GetAll(c context.Context) ([]Transaction, error) {
 			"error": err,
 		}).Error("failed to get all transactions from rows")
 		return nil, err
-	}
-
-	return transactions, nil
-}
-
-// GetFuture gets all transactions for an account after a given reference time
-func GetFuture(c context.Context, accountID int, reference *time.Time) ([]Transaction, error) {
-	db, err := util.DBFromContext(c)
-	if err != nil {
-		return nil, err
-	}
-
-	valid, err := util.UserOwnsAccount(c, accountID)
-	if err != nil || !valid {
-		return nil, constants.ErrForbidden
-	}
-
-	transactions := []Transaction{}
-
-	if reference == nil {
-		now := time.Now()
-		reference = &now
-	}
-	rows, err := db.Query("SELECT id, name, occurred, category, amount, note, related_transaction_id, account_id FROM transactions WHERE account_id = $1 AND occurred > $2 ORDER BY occurred DESC, id", accountID, reference)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":     err,
-			"accountId": accountID,
-		}).Error("failed to fetch future transactions")
-		return transactions, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var transaction transactionDB
-		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionID, &transaction.AccountID); err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":     err,
-				"accountId": accountID,
-			}).Error("failed to scan into transaction for future fetch")
-			return transactions, err
-		}
-
-		transactions = append(transactions, fromDB(transaction))
-	}
-	if err := rows.Err(); err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":     err,
-			"accountId": accountID,
-		}).Error("failed to get transactions from rows for future fetch")
-		return transactions, err
 	}
 
 	return transactions, nil
