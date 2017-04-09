@@ -12,7 +12,6 @@ network:
 		docker network create financejcnet
 
 ui: client/dest/bundle.js;
-client/dest/bundle.js: $(shell find client/src) client/webpack.production.config.js
 	docker container run -it --rm \
 		--name uibuild \
 		-v $(PWD)/client:/usr/src/app \
@@ -22,6 +21,8 @@ client/dest/bundle.js: $(shell find client/src) client/webpack.production.config
 		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors; gzip -k -9 -f dest/bundle.js"
 
 ui-watch:
+	# remove gzipped bundle.js because nginx prefers it
+	rm -rf client/dest/bundle.js.gz
 	docker container run -it --rm \
 		--name uiwatch \
 		-v $(PWD)/client:/usr/src/app \
