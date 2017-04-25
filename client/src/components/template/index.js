@@ -9,6 +9,7 @@ import { putTemplate, deleteTemplate } from '../../actions';
 
 export class Template extends React.Component {
     static propTypes = {
+        // TODO convert to shape
         template: React.PropTypes.object,
         currency: ImmutablePropTypes.map.isRequired,
     };
@@ -78,6 +79,7 @@ export class TemplateForm extends React.Component {
         initialValues: React.PropTypes.object.isRequired,
         // either template (for editing) or accountId (for new templates) should be passed
         accountId: React.PropTypes.number,
+        // TODO convert to shape
         template: ImmutablePropTypes.map,
         done: React.PropTypes.func
     };

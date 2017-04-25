@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import classNames from 'classnames';
 import { fetchRecurringTransactions } from '../../actions';
-import { toRFC3339 } from '../../utils';
 import styles from './recurringTransactionList.css';
 import { RecurringTransaction, RecurringTransactionForm } from '../recurringTransaction';
 
@@ -29,6 +28,7 @@ function fetchRecurringTransactionsIfNecessary(props) {
 export default class RecurringTransactionList extends React.Component {
     static propTypes = {
         accountId: React.PropTypes.number.isRequired,
+        // TODO convert to shape
         accountRecurringTransaction: ImmutablePropTypes.map.isRequired,
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired
@@ -71,9 +71,9 @@ export default class RecurringTransactionList extends React.Component {
         let initialValues = {
             transaction: {
                 name: '',
-                date: toRFC3339(new Date()),
+                date: new Date(),
                 category: '',
-                amount: '0'
+                amount: 0
             },
             scheduleType: 'fixedInterval',
             secondsBetween: 24*60*60*30,

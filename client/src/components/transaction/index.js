@@ -4,11 +4,12 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
 import styles from './transaction.css';
-import { toCurrency, toDate, toDecimal, toWhole, toRFC3339, queryByFieldAndVal } from '../../utils';
+import { formDateValueToDate, toCurrency, toDate, toDecimal, toRFC3339, toWhole, queryByFieldAndVal } from '../../utils';
 import { deleteTransaction, putTransaction } from '../../actions';
 
 export class Transaction extends React.Component {
     static propTypes = {
+        // TODO convert to shape
         transaction: React.PropTypes.object,
         currency: ImmutablePropTypes.map.isRequired,
     };
@@ -54,7 +55,7 @@ export class Transaction extends React.Component {
 function getFormInitialValues(transaction, currency) {
     return {
         name: transaction.get('name'),
-        date: toRFC3339(transaction.get('date')),
+        date: transaction.get('date'),
         category: transaction.get('category'),
         amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
     };
@@ -76,9 +77,15 @@ export class TransactionForm extends React.Component {
     static propTypes = {
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired,
-        initialValues: React.PropTypes.object.isRequired,
+        initialValues: React.PropTypes.shape({
+            name: React.PropTypes.string.isRequired,
+            category: React.PropTypes.string.isRequired,
+            date: React.PropTypes.instanceOf(Date),
+            amount: React.PropTypes.number
+        }).isRequired,
         // either transaction (for editing) or accountId (for new transactions) should be passed
         accountId: React.PropTypes.number,
+        // TODO put fields of map
         transaction: ImmutablePropTypes.map,
         done: React.PropTypes.func
     };
@@ -175,7 +182,11 @@ export class TransactionForm extends React.Component {
 
     fieldChange = name => e => {
         let newState = Object.assign({}, this.state.values);
-        newState[name] = e.target.value;
+        let newValue = e.target.value;
+        if (name === 'date') {
+            newValue = formDateValueToDate(newValue);
+        }
+        newState[name] = newValue;
         this.setState({
             values: newState
         });
@@ -204,7 +215,7 @@ export class TransactionForm extends React.Component {
 
         let obj = {
             name: e.target['name'].value,
-            date: new Date(e.target['date'].value),
+            date: formDateValueToDate(e.target['date'].value),
             category: e.target['category'].value,
             amount: toWhole(parseFloat(e.target['amount'].value), currency.get('digitsAfterDecimal')),
             accountId
@@ -260,7 +271,7 @@ export class TransactionForm extends React.Component {
                             renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
                             inputProps={ nameInputProps }
                             theme={ styles } />
-                        <input type="date" name="date" value={ values.date } onChange={ this.fieldChange('date') } className={ styles.transactionField } />
+                        <input type="date" name="date" value={ toRFC3339(values.date) } onChange={ this.fieldChange('date') } className={ styles.transactionField } />
                         <Autosuggest
                             id="category"
                             suggestions={ suggestions.category }

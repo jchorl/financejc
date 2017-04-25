@@ -7,12 +7,12 @@ import classNames from 'classnames';
 import { fetchTransactions, fetchTemplates } from '../../actions';
 import styles from './transactionList.css';
 import { Transaction, TransactionForm } from '../transaction';
-import { toRFC3339, toDecimal } from '../../utils';
+import { currentDateAsUtc, toDecimal } from '../../utils';
 
 function getEmptyTemplate() {
     return Immutable.Map({
         name: '',
-        date: toRFC3339(new Date()),
+        date: currentDateAsUtc(),
         category: '',
         amount: 0
     });
@@ -69,7 +69,7 @@ export default class TransactionList extends React.Component {
     startNewTransaction = template => () => {
         this.setState({
             newTransaction: true,
-            values: template.set('date', toRFC3339(new Date())).update('amount', am => toDecimal(am, this.props.currency.get('digitsAfterDecimal')))
+            values: template.set('date', new Date()).update('amount', am => toDecimal(am, this.props.currency.get('digitsAfterDecimal')))
         });
     }
 
@@ -112,32 +112,32 @@ export default class TransactionList extends React.Component {
         let templates = accountTemplate.get(accountId).get('templates');
 
         return (
-        <div>
-            <div className={ styles.headings }>
-            <span className={ styles.column }>Name</span>
-            <span className={ styles.column }>Date</span>
-            <span className={ styles.column }>Category</span>
-            <span className={ styles.column }>Amount</span>
-            </div>
-            { !this.state.newTransaction ?
+                <div>
+                    <div className={ styles.headings }>
+                        <span className={ styles.column }>Name</span>
+                        <span className={ styles.column }>Date</span>
+                        <span className={ styles.column }>Category</span>
+                        <span className={ styles.column }>Amount</span>
+                    </div>
+                    { !this.state.newTransaction ?
                     (
                     <div className={ styles.newTransactionRow }>
                         <div className={ styles.newBlock }>
                             New:
                         </div>
                         <div className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(getEmptyTemplate()) }>
-                        Empty
+                            Empty
                         </div>
                         { templates.map(template => (<div key={ template.get('id') } className={ classNames(styles.newBlock, styles.button) } onClick={ this.startNewTransaction(template) }>{ template.get('templateName') }</div>)).toOrderedSet().toArray() }
-                        </div>
-                        ) : (
-                            <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ values.toObject() } />
-                        )
-            }
-            <Infinite useWindowAsScrollContainer elementHeight={ 42 } onInfiniteLoad={ this.loadNextPage(accountId) } infiniteLoadBeginEdgeOffset={ 100 } >
-                { transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
-            </Infinite>
-        </div>
+                    </div>
+                    ) : (
+                    <TransactionForm accountId={ accountId } form='new' done={ this.exitNewTransaction } currency={ currency } initialValues={ values.toObject() } />
+                    )
+                    }
+                    <Infinite useWindowAsScrollContainer elementHeight={ 42 } onInfiniteLoad={ this.loadNextPage(accountId) } infiniteLoadBeginEdgeOffset={ 100 } >
+                        { transactions.map(transaction => (<Transaction key={ transaction.get('id') } transaction={ transaction } currency={ currency }/>)).toOrderedSet().toArray() }
+                    </Infinite>
+                </div>
         );
     }
 }

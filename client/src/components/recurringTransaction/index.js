@@ -4,7 +4,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import Autosuggest from 'react-autosuggest';
 import styles from './recurringTransaction.css';
-import { toCurrency, toDate, toDecimal, toWhole, toRFC3339, queryByFieldAndVal } from '../../utils';
+import { formDateValueToDate, toCurrency, toDate, toDecimal, toRFC3339, toWhole, queryByFieldAndVal } from '../../utils';
 import { putRecurringTransaction, deleteRecurringTransaction } from '../../actions';
 
 function getFixedType(scheduleType) {
@@ -18,6 +18,7 @@ function getFixedType(scheduleType) {
 export class RecurringTransaction extends React.Component {
     static propTypes = {
         recurringTransaction: React.PropTypes.object,
+        // TODO convert to shape
         currency: ImmutablePropTypes.map.isRequired
     };
 
@@ -75,7 +76,7 @@ function getFormInitialValues(recurringTransaction, currency) {
     return {
         transaction: {
             name: recurringTransaction.get('transaction').get('name'),
-            date: toRFC3339(recurringTransaction.get('transaction').get('date')),
+            date: recurringTransaction.get('transaction').get('date'),
             category: recurringTransaction.get('transaction').get('category'),
             amount: toDecimal(recurringTransaction.get('transaction').get('amount'), currency.get('digitsAfterDecimal'))
         },
@@ -101,9 +102,21 @@ export class RecurringTransactionForm extends React.Component {
     static propTypes = {
         currency: ImmutablePropTypes.map.isRequired,
         dispatch: React.PropTypes.func.isRequired,
-        initialValues: React.PropTypes.object.isRequired,
+        initialValues: React.PropTypes.shape({
+            dayOf: React.PropTypes.number,
+            scheduleType: React.PropTypes.string.isRequired,
+            secondsBeforeToPost: React.PropTypes.number.isRequired,
+            secondsBetween: React.PropTypes.number,
+            transaction: React.PropTypes.shape({
+                name: React.PropTypes.string.isRequired,
+                category: React.PropTypes.string.isRequired,
+                date: React.PropTypes.instanceOf(Date),
+                amount: React.PropTypes.number
+            }).isRequired
+        }).isRequired,
         // either recurringTransaction (for editing) or accountId (for new transactions) should be passed
         accountId: React.PropTypes.number,
+        // TODO convert to shape
         recurringTransaction: ImmutablePropTypes.map,
         done: React.PropTypes.func
     };
@@ -233,7 +246,11 @@ export class RecurringTransactionForm extends React.Component {
     transactionFieldChange = name => e => {
         let newState = Object.assign({}, this.state.values);
         newState.transaction = Object.assign({}, newState.transaction);
-        newState.transaction[name] = e.target.value;
+        let newValue = e.target.value;
+        if (name === 'date') {
+            newValue = formDateValueToDate(newValue);
+        }
+        newState.transaction[name] = newValue;
         this.setState({
             values: newState
         });
@@ -336,7 +353,7 @@ export class RecurringTransactionForm extends React.Component {
                             renderSuggestion={ renderSuggestion.bind(undefined, 'name') }
                             inputProps={ nameInputProps }
                             theme={ styles } />
-                        <input type="date" name="date" value={ values.transaction.date } onChange={ this.transactionFieldChange('date') } className={ styles.recurringTransactionField } />
+                        <input type="date" name="date" value={ toRFC3339(values.transaction.date) } onChange={ this.transactionFieldChange('date') } className={ styles.recurringTransactionField } />
                         <Autosuggest
                             id="category"
                             suggestions={ suggestions.category }
