@@ -25,9 +25,14 @@ export default (state = Immutable.Map({
                 .sort((c1, c2) => c1.name > c2.name)
                 .map(account => [account.id, Immutable.fromJS(account)])
                 );
+        let selected = state.get('selected');
+        if (selected === -1 && !sortedAccounts.isEmpty()) {
+            selected = sortedAccounts.first().get('id');
+        }
         return state
                 .set('fetched', true)
-                .set('accounts', sortedAccounts);
+                .set('accounts', sortedAccounts)
+                .set('selected', selected);
     }
 
     case UPDATE_ACCOUNT_VALUE:

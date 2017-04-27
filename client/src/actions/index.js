@@ -158,9 +158,6 @@ export function fetchAccounts() {
             .then(response => response.json())
             .then(json => {
                 dispatch(receiveAccounts(json));
-                if (json.length) {
-                    dispatch(selectAccount(json[0].id));
-                }
             });
     };
 }
