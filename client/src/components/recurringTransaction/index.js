@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import classNames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -17,7 +18,7 @@ function getFixedType(scheduleType) {
 
 export class RecurringTransaction extends React.Component {
     static propTypes = {
-        recurringTransaction: React.PropTypes.object,
+        recurringTransaction: PropTypes.object,
         // TODO convert to shape
         currency: ImmutablePropTypes.map.isRequired
     };
@@ -101,24 +102,24 @@ function renderSuggestion(field, suggestion) {
 export class RecurringTransactionForm extends React.Component {
     static propTypes = {
         currency: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired,
-        initialValues: React.PropTypes.shape({
-            dayOf: React.PropTypes.number,
-            scheduleType: React.PropTypes.string.isRequired,
-            secondsBeforeToPost: React.PropTypes.number.isRequired,
-            secondsBetween: React.PropTypes.number,
-            transaction: React.PropTypes.shape({
-                name: React.PropTypes.string.isRequired,
-                category: React.PropTypes.string.isRequired,
-                date: React.PropTypes.instanceOf(Date),
-                amount: React.PropTypes.number
+        dispatch: PropTypes.func.isRequired,
+        initialValues: PropTypes.shape({
+            dayOf: PropTypes.number,
+            scheduleType: PropTypes.string.isRequired,
+            secondsBeforeToPost: PropTypes.number.isRequired,
+            secondsBetween: PropTypes.number,
+            transaction: PropTypes.shape({
+                name: PropTypes.string.isRequired,
+                category: PropTypes.string.isRequired,
+                date: PropTypes.instanceOf(Date),
+                amount: PropTypes.number
             }).isRequired
         }).isRequired,
         // either recurringTransaction (for editing) or accountId (for new transactions) should be passed
-        accountId: React.PropTypes.number,
+        accountId: PropTypes.number,
         // TODO convert to shape
         recurringTransaction: ImmutablePropTypes.map,
-        done: React.PropTypes.func
+        done: PropTypes.func
     };
 
     constructor(props) {

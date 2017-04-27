@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 
@@ -25,8 +26,8 @@ function attachToButton(dispatcher, callback) {
 @connect()
 export default class GoogleLoginButton extends React.Component {
     static propTypes = {
-        dispatch: React.PropTypes.func.isRequired,
-        onLogin: React.PropTypes.func
+        dispatch: PropTypes.func.isRequired,
+        onLogin: PropTypes.func
     }
 
     componentDidMount() {

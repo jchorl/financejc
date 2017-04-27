@@ -1,10 +1,11 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import styles from './loader.css';
 
 export default class Loader extends React.Component {
     static propTypes = {
-        loading: React.PropTypes.bool.isRequired,
-        children: React.PropTypes.any
+        loading: PropTypes.bool.isRequired,
+        children: PropTypes.any
     }
 
     render () {

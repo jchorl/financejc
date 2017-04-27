@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import classNames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -10,7 +11,7 @@ import { putTemplate, deleteTemplate } from '../../actions';
 export class Template extends React.Component {
     static propTypes = {
         // TODO convert to shape
-        template: React.PropTypes.object,
+        template: PropTypes.object,
         currency: ImmutablePropTypes.map.isRequired,
     };
 
@@ -75,13 +76,13 @@ function renderSuggestion(field, suggestion) {
 export class TemplateForm extends React.Component {
     static propTypes = {
         currency: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired,
-        initialValues: React.PropTypes.object.isRequired,
+        dispatch: PropTypes.func.isRequired,
+        initialValues: PropTypes.object.isRequired,
         // either template (for editing) or accountId (for new templates) should be passed
-        accountId: React.PropTypes.number,
+        accountId: PropTypes.number,
         // TODO convert to shape
         template: ImmutablePropTypes.map,
-        done: React.PropTypes.func
+        done: PropTypes.func
     };
 
     constructor(props) {

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link, withRouter } from 'react-router';
@@ -13,9 +14,9 @@ import styles from './index.css';
 export default class App extends React.Component {
     static propTypes = {
         auth: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired,
-        children: React.PropTypes.element.isRequired,
-        router: React.PropTypes.object.isRequired
+        dispatch: PropTypes.func.isRequired,
+        children: PropTypes.element.isRequired,
+        router: PropTypes.object.isRequired
     }
 
     fileChange = e => {

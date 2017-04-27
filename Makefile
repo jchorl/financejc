@@ -11,7 +11,7 @@ network:
 	docker network ls | grep financejcnet || \
 		docker network create financejcnet
 
-ui: client/dest/bundle.js;
+ui: client/dest/bundle.js
 	docker container run -it --rm \
 		--name uibuild \
 		-v $(PWD)/client:/usr/src/app \

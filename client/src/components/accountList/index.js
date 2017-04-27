@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -16,7 +17,7 @@ export default class AccountList extends React.Component {
     static propTypes = {
         accounts: ImmutablePropTypes.map.isRequired,
         currencies: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: PropTypes.func.isRequired
     }
 
     render () {

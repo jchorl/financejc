@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -12,7 +13,7 @@ import { newAccount } from '../../actions';
 export default class AccountForm extends React.Component {
     static propTypes = {
         currencies: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: PropTypes.func.isRequired
     };
 
     onSubmit = (e) => {

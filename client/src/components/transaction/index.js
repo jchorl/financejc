@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import classNames from 'classnames';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -10,7 +11,7 @@ import { deleteTransaction, putTransaction } from '../../actions';
 export class Transaction extends React.Component {
     static propTypes = {
         // TODO convert to shape
-        transaction: React.PropTypes.object,
+        transaction: PropTypes.object,
         currency: ImmutablePropTypes.map.isRequired,
     };
 
@@ -76,18 +77,18 @@ function renderSuggestion(field, suggestion) {
 export class TransactionForm extends React.Component {
     static propTypes = {
         currency: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired,
-        initialValues: React.PropTypes.shape({
-            name: React.PropTypes.string.isRequired,
-            category: React.PropTypes.string.isRequired,
-            date: React.PropTypes.instanceOf(Date),
-            amount: React.PropTypes.number
+        dispatch: PropTypes.func.isRequired,
+        initialValues: PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            category: PropTypes.string.isRequired,
+            date: PropTypes.instanceOf(Date),
+            amount: PropTypes.number
         }).isRequired,
         // either transaction (for editing) or accountId (for new transactions) should be passed
-        accountId: React.PropTypes.number,
+        accountId: PropTypes.number,
         // TODO put fields of map
         transaction: ImmutablePropTypes.map,
-        done: React.PropTypes.func
+        done: PropTypes.func
     };
 
     constructor(props) {

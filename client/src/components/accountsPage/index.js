@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -19,8 +20,8 @@ class AccountsPage extends React.Component {
         accounts: ImmutablePropTypes.map.isRequired,
         accountTransaction: ImmutablePropTypes.map.isRequired,
         currencies: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired,
-        children: React.PropTypes.element.isRequired
+        dispatch: PropTypes.func.isRequired,
+        children: PropTypes.element.isRequired
     }
 
     importButton = () => {
@@ -73,8 +74,8 @@ export default class AccountsPageWrapper extends React.Component {
     static propTypes = {
         accounts: ImmutablePropTypes.map.isRequired,
         currencies: ImmutablePropTypes.map.isRequired,
-        children: React.PropTypes.element.isRequired,
-        dispatch: React.PropTypes.func.isRequired
+        children: PropTypes.element.isRequired,
+        dispatch: PropTypes.func.isRequired
     }
 
     constructor (props) {

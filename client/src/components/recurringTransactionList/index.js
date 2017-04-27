@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -27,11 +28,11 @@ function fetchRecurringTransactionsIfNecessary(props) {
 })
 export default class RecurringTransactionList extends React.Component {
     static propTypes = {
-        accountId: React.PropTypes.number.isRequired,
+        accountId: PropTypes.number.isRequired,
         // TODO convert to shape
         accountRecurringTransaction: ImmutablePropTypes.map.isRequired,
         currency: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: PropTypes.func.isRequired
     }
 
     constructor(props) {

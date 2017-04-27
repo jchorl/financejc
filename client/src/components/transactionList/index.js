@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import Immutable from 'immutable';
@@ -38,11 +39,11 @@ function fetchTemplatesIfNecessary(props) {
 })
 export default class TransactionList extends React.Component {
     static propTypes = {
-        accountId: React.PropTypes.number.isRequired,
+        accountId: PropTypes.number.isRequired,
         accountTransaction: ImmutablePropTypes.map.isRequired,
         accountTemplate: ImmutablePropTypes.map.isRequired,
         currency: ImmutablePropTypes.map.isRequired,
-        dispatch: React.PropTypes.func.isRequired
+        dispatch: PropTypes.func.isRequired
     };
 
     constructor (props) {
