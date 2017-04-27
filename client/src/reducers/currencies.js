@@ -1,15 +1,18 @@
-import { fromJS, Map, Seq } from 'immutable';
+import Immutable from 'immutable';
 import {
   RECEIVE_CURRENCIES
 } from '../actions';
 
-export default (state = Map({
+export default (state = Immutable.Map({
     fetched: false,
-    currencies: Map()
+    currencies: Immutable.Map()
 }), action) => {
     switch (action.type) {
     case RECEIVE_CURRENCIES: {
-        let sortedCurrencies = Seq(action.currencies).map(v => fromJS(v)).toOrderedMap();
+        let sortedCurrencies = Immutable.Seq(action.currencies)
+            .sort((c1, c2) => c1.code > c2.code)
+            .map(v => Immutable.fromJS(v))
+            .toOrderedMap();
         return state.set('fetched', true).set('currencies', sortedCurrencies);
     }
     default:
