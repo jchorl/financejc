@@ -78,8 +78,8 @@ nginx: network
 		--restart=always \
 		--network financejcnet \
 		-e DOMAIN=finance.joshchorlton.com \
-		-v financejcletsencrypt:/etc/letsencrypt:ro \
-		-v wellknown:/usr/share/nginx/wellknown:ro \
+		-v financejcletsencrypt:/etc/letsencrypt \
+		-v wellknown:/usr/share/nginx/wellknown \
 		-p 80:80 \
 		-p 443:443 \
 		jchorl/financejcnginx
@@ -93,8 +93,8 @@ nginx-dev: network
 		-e DEV=1 \
 		-e DOMAIN=finance.joshchorlton.com \
 		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
-		-v financejcletsencrypt:/etc/letsencrypt:ro \
-		-v wellknown:/usr/share/nginx/wellknown:ro \
+		-v financejcletsencrypt:/etc/letsencrypt \
+		-v wellknown:/usr/share/nginx/wellknown \
 		-p 80:80 \
 		-p 443:443 \
 		jchorl/financejcnginx
