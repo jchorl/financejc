@@ -15,7 +15,8 @@ function getEmptyTemplate() {
         name: '',
         date: currentDateAsUtc(),
         category: '',
-        amount: 0
+        amount: 0,
+        note: ''
     });
 }
 

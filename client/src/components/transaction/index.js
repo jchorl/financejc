@@ -58,7 +58,8 @@ function getFormInitialValues(transaction, currency) {
         name: transaction.get('name'),
         date: transaction.get('date'),
         category: transaction.get('category'),
-        amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal'))
+        amount: toDecimal(transaction.get('amount'), currency.get('digitsAfterDecimal')),
+        note: transaction.get('note')
     };
 }
 
@@ -82,7 +83,8 @@ export class TransactionForm extends React.Component {
             name: PropTypes.string.isRequired,
             category: PropTypes.string.isRequired,
             date: PropTypes.instanceOf(Date),
-            amount: PropTypes.number
+            amount: PropTypes.number,
+            note: PropTypes.string.isRequired
         }).isRequired,
         // either transaction (for editing) or accountId (for new transactions) should be passed
         accountId: PropTypes.number,
@@ -219,6 +221,7 @@ export class TransactionForm extends React.Component {
             date: formDateValueToDate(e.target['date'].value),
             category: e.target['category'].value,
             amount: toWhole(parseFloat(e.target['amount'].value), currency.get('digitsAfterDecimal')),
+            note: e.target['note'].value,
             accountId
         };
         let difference = obj.amount;
@@ -283,6 +286,9 @@ export class TransactionForm extends React.Component {
                             inputProps={ categoryInputProps }
                             theme={ styles } />
                         <input type="text" name="amount" value={ values.amount } onChange={ this.fieldChange('amount') } placeholder="0" className={ styles.transactionField } />
+                    </div>
+                    <div className={ styles.noteRow }>
+                        <div className={ styles.noteLabel }>Note: </div><input type="text" name="note" value={ values.note } onChange={ this.fieldChange('note') } className={ styles.noteField } />
                     </div>
                     <div className={ styles.saveExit }>
                         <button type="button" onClick={ this.props.done }>Cancel</button>

@@ -56,3 +56,16 @@
   .sectionContainer {}
   .sectionTitle {}
 }
+
+.noteRow {
+  display: flex;
+  padding: 5px;
+
+  .noteLabel {
+    margin-right: 5px;
+  }
+
+  .noteField {
+    width: 100%;
+  }
+}
