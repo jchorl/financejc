@@ -133,12 +133,6 @@ build-nginx: ui
 	docker image build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
 build:
-	docker container run -it --rm \
-		-v $(PWD):/go/src/github.com/jchorl/financejc \
-		-v $(PWD)/bin:/go/bin \
-		-w /go/src/github.com/jchorl/financejc \
-		golang \
-		sh -c 'go-wrapper download; go-wrapper install'
 	docker image build -t jchorl/financejc .
 
 test: clean network db es test-all
