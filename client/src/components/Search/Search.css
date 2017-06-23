@@ -1,0 +1,28 @@
+.search.container {
+  margin: 20px;
+  width: calc(100% - 40px);
+  height: calc(100% - 40px);
+  display: flex;
+  flex-direction: column;
+}
+
+.search .searchResultsList {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.search .searchTransaction {
+  display: grid;
+  grid-template-columns: 22% 17% 22% 17% 22%;
+  padding: 10px 5px;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.search .searchTransaction:hover {
+  background: #e6dacf;
+}
+
+.search .transactionEdit {
+  grid-template-columns: 22% 17% 22% 17% 22%;
+}

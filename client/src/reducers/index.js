@@ -1,16 +1,18 @@
 import { combineReducers } from 'redux';
-import auth from './auth';
-import accounts from './accounts';
-import accountTransaction from './accountTransaction';
-import accountRecurringTransaction from './accountRecurringTransaction';
-import accountTemplate from './accountTemplate';
-import currencies from './currencies';
+import account from './account';
+import accountData from './accountData';
+import autocomplete from './autocomplete';
+import currency from './currency';
+import search from './search';
+import summary from './summary';
+import user from './user';
 
 export default combineReducers({
-    auth,
-    accounts,
-    accountTransaction,
-    accountRecurringTransaction,
-    accountTemplate,
-    currencies
+    account,
+    accountData,
+    autocomplete,
+    currency,
+    search,
+    summary,
+    user
 });

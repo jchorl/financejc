@@ -1,0 +1,23 @@
+.suggestedInput {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestedInput .suggestionBoxWrapper {
+  position: relative;
+}
+
+.suggestedInput .suggestionBox {
+  position: absolute;
+  left: 10px;
+  background: #daad86;
+  width: calc(100% - 40px);
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.suggestedInput .suggestion {
+  padding: 10px;
+  cursor: pointer;
+}

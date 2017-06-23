@@ -1,0 +1,84 @@
+.accountsBar.container {
+  margin: 20px 0 20px 20px;
+  width: calc(100% - 20px);
+  height: calc(100% - 40px);
+  padding-left: 0;
+  padding-right: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.accountsBar .accountsLabel {
+  padding: 0 30px;
+  flex-shrink: 0;
+}
+
+.accountsBar .entries {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.accountsBar .entries .divider {
+  margin: 20px 50px;
+}
+
+.accountsBar .entry {
+  min-height: 60px;
+  cursor: pointer;
+  margin-right: 30px;
+}
+
+.accountsBar .entry .selectedBlock {
+  background: none;
+  width: 10px;
+}
+
+.accountsBar .entry:hover .selectedBlock {
+  background: #e6dacf;
+}
+
+.accountsBar .entry .selectedBlock.selected {
+  background: #daad86;
+}
+
+.accountsBar .entry.accountEntry {
+  display: grid;
+  grid-template-columns: 10px 0.3fr 0.7fr;
+  grid-column-gap: 20px;
+  grid-row-gap: 10px;
+}
+
+.accountsBar .accountEntry .selectedBlock {
+  grid-row-start: 1;
+  grid-row-end: 3;
+}
+
+.accountsBar .accountEntry .name {
+  justify-self: start;
+  grid-column-start: 2;
+  grid-column-end: 4;
+}
+
+.accountsBar .accountEntry .value {
+  justify-self: end;
+}
+
+.accountsBar .accountEntry .currency {
+  justify-self: start;
+  color: #9a9a9a;
+}
+
+.accountsBar .entry.iconLabelEntry {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  grid-column-gap: 20px;
+  margin-top: 20px;
+}
+
+.accountsBar .iconLabelEntry .label {
+  align-self: center;
+}
+
+.accountsBar .iconLabelEntry .text {
+  margin-left: 10px;
+}

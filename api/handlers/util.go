@@ -47,19 +47,19 @@ func writeError(c echo.Context, err error) error {
 }
 
 func idFromParam(c echo.Context, paramName string) (int, error) {
-	IDStr := c.Param(paramName)
-	ID, err := strconv.Atoi(IDStr)
+	idStr := c.Param(paramName)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":     err,
 			"context":   c,
-			"IDStr":     IDStr,
+			"idStr":     idStr,
 			"paramName": paramName,
 		})
 		return 0, constants.ErrBadRequest
 	}
 
-	return ID, nil
+	return id, nil
 }
 
 // toContext is supposed to take a context/middleware injected value

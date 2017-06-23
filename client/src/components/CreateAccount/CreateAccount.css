@@ -1,0 +1,19 @@
+.createAccount.container {
+  width: 35%;
+  min-width: 372px;
+}
+
+.createAccount .createAccountForm {
+  display: grid;
+  width: 80%;
+  margin: 30px auto;
+  grid-template-columns: 30% 70%;
+  grid-row-gap: 20px;
+  align-items: center;
+}
+
+.createAccount .submitButton {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  margin-top: 20px;
+}

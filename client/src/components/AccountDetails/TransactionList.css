@@ -1,0 +1,29 @@
+.transactionList {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.transactionList .templateBar {
+  display: flex;
+  justify-content: center;
+  margin: 10px;
+}
+
+.transactionList .templateButton {
+  padding: 10px 40px;
+  margin-right: 20px;
+  font-size: 0.8em;
+}
+
+.transactionList .transaction {
+  display: grid;
+  grid-template-columns: 23% 18% 25% 16% 18%;
+  grid-row-gap: 10px;
+  padding: 10px 5px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.transactionList .transaction:hover {
+  background: #e6dacf;
+}

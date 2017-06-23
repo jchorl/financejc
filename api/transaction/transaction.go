@@ -164,8 +164,16 @@ func InitES(es *elastic.Client) error {
 							"type":  "integer",
 							"index": false,
 						},
-						"note": map[string]string{
-							"type": "text",
+						"note": map[string]interface{}{
+							"type":            "text",
+							"analyzer":        "autocomplete_analyzer",
+							"search_analyzer": "whitespace_analyzer",
+							"fields": map[string]interface{}{
+								"raw": map[string]interface{}{
+									"type":  "keyword",
+									"index": "not_analyzed",
+								},
+							},
 						},
 						"relatedTransactionId": map[string]interface{}{
 							"type":  "integer",
@@ -270,6 +278,55 @@ func Get(c context.Context, accountID int, previousNextPageEncoded string) (Tran
 	return transactions, nil
 }
 
+// Summary returns all transactions for a user since a given timestamp
+func Summary(ctx context.Context, since time.Time) ([]Transaction, error) {
+	userID, err := util.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := util.DBFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	transactions := []Transaction{}
+	rows, err := db.Query("SELECT t.id, t.name, t.occurred, t.category, t.amount, t.note, t.related_transaction_id, t.account_id FROM transactions t JOIN accounts a ON t.account_id = a.id WHERE a.user_id = $1 AND t.occurred >= $2 AND t.occurred <= CURRENT_DATE ORDER BY t.occurred DESC", userID, since)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":  err,
+			"userID": userID,
+			"since":  since,
+		}).Error("failed to fetch transactions to find summary")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var transaction transactionDB
+		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.Occurred, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.RelatedTransactionID, &transaction.AccountID); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error":  err,
+				"userID": userID,
+				"since":  since,
+			}).Error("failed to scan into transaction when finding summary")
+			return nil, err
+		}
+
+		transactions = append(transactions, fromDB(transaction))
+	}
+	if err := rows.Err(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":  err,
+			"userID": userID,
+			"since":  since,
+		}).Error("failed to get transactions from rows when finding summary")
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
 // BatchImport batch imports transactions
 func BatchImport(c context.Context, transactions []Transaction) error {
 	if !util.IsAdminRequest(c) {
@@ -365,6 +422,48 @@ func GetAll(c context.Context) ([]Transaction, error) {
 	return transactions, nil
 }
 
+// SearchES does a general search over all fields in ES
+func SearchES(ctx context.Context, value string) ([]Transaction, error) {
+	userID, err := util.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	es, err := util.ESFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	searchResult, err := es.Search().Index(constants.ESIndex).Query(
+		elastic.NewBoolQuery().
+			Filter(elastic.NewTermQuery("userId", userID)).
+			Must(elastic.NewMatchQuery("_all", value).Operator("and").Fuzziness("AUTO")),
+	).
+		Sort("date", false).
+		Size(50).
+		Do(context.Background())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":   err,
+			"value":   value,
+			"context": ctx,
+		}).Error("error executing ES search")
+		return nil, err
+	}
+
+	results := []Transaction{}
+	for _, hit := range searchResult.Hits.Hits {
+		tr := transactionES{}
+		err = json.Unmarshal(*hit.Source, &tr)
+		if err != nil {
+			logrus.WithError(err).Error("unable to unmarshal json returned from es query")
+		}
+		results = append(results, fromES(tr))
+	}
+
+	return results, nil
+}
+
 // QueryES queries elasticsearch given query params
 func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
 	userID, err := util.UserIDFromContext(ctx)
@@ -377,26 +476,27 @@ func QueryES(ctx context.Context, query Query) ([]Transaction, error) {
 		return nil, constants.ErrForbidden
 	}
 
-	if query.Field != "name" && query.Field != "category" {
-		logrus.WithField("query.Field", query.Field).Error("querying for unsupported field")
-		return nil, constants.ErrBadRequest
-	}
-
 	es, err := util.ESFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	searchResult, err := es.Search().
-		Index(constants.ESIndex).
-		Query(
-			elastic.NewBoolQuery().
-				Filter(elastic.NewTermQuery("userId", userID)).
-				Must(elastic.NewMatchQuery(query.Field, query.Value).Operator("and").Fuzziness("AUTO")).
-				Should(elastic.NewTermQuery("accountId", query.AccountID))).
+	if query.Field != "name" && query.Field != "category" {
+		logrus.WithField("query.Field", query.Field).Error("querying for unsupported field")
+		return nil, constants.ErrBadRequest
+	}
+
+	searchResult, err := es.Search().Index(constants.ESIndex).Query(
+		elastic.NewBoolQuery().
+			Filter(elastic.NewTermQuery("userId", userID)).
+			Must(elastic.NewMatchQuery(query.Field, query.Value).Operator("and").Fuzziness("AUTO")).
+			Should(elastic.NewTermQuery("accountId", query.AccountID)),
+	).
 		Aggregation("top_agg",
-			elastic.NewTermsAggregation().Field(query.Field+".raw").Size(10).SubAggregation(
-				"top_agg_hits", elastic.NewTopHitsAggregation().Size(1))).
+			elastic.NewTermsAggregation().
+				Field(query.Field+".raw").
+				Size(10).SubAggregation("top_agg_hits", elastic.NewTopHitsAggregation().Size(1)),
+		).
 		Sort("date", false).
 		Size(50).
 		Do(context.Background())
@@ -511,6 +611,7 @@ func Update(ctx context.Context, transaction *Transaction) (*Transaction, error)
 		return nil, err
 	}
 
+	// Check account ownership instead of transaction in case transactions can be moved between accounts in the future
 	valid, err := util.UserOwnsAccount(ctx, transaction.AccountID)
 	if err != nil || !valid {
 		return nil, constants.ErrForbidden

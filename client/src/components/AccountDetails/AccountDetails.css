@@ -1,0 +1,40 @@
+.accountDetails.container {
+  margin: 20px;
+  width: calc(100% - 40px);
+  height: calc(100% - 40px);
+  display: flex;
+  flex-direction: column;
+}
+
+.accountDetails .nameAndNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.accountDetails .accountNav {
+  display: flex;
+}
+
+.accountDetails .accountNavItem {
+  margin-left: 40px;
+  cursor: pointer;
+}
+
+.accountDetails .accountNavItem .underline {
+  margin-top: 8px;
+  border-bottom: none;
+}
+
+.accountDetails .accountNavItem:hover .underline {
+  border-bottom: 1px solid #e6dacf;
+}
+
+.accountDetails .accountNavItem.selected .underline {
+  border-bottom: 1px solid #daad86;
+}
+
+.accountDetails .divider {
+  margin-bottom: 0;
+}

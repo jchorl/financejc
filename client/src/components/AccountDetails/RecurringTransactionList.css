@@ -1,0 +1,104 @@
+.recurringTransactionList {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.recurringTransactionList .newRecurringTransactionBar {
+  display: flex;
+  justify-content: center;
+  margin: 10px;
+}
+
+.recurringTransactionList button {
+  padding: 10px 40px;
+  margin-right: 20px;
+  font-size: 0.8em;
+}
+
+.recurringTransactionList .recurringTransaction {
+  display: grid;
+  grid-template-columns: 30% 20% 22% 16% 12%;
+  padding: 10px 5px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.recurringTransactionList .recurringTransaction:hover {
+  background: #e6dacf;
+}
+
+.recurringTransactionList .recurringTransaction .scheduleString {
+  grid-column-start: 1;
+  grid-column-end: 5;
+}
+
+.recurringTransactionList .recurringTransactionEdit {
+  display: grid;
+  background: #e6dacf;
+  grid-template-columns: 30% 22% 22% 14% 12%;
+  grid-row-gap: 10px;
+  padding: 15px 5px;
+  margin: 10px 0;
+  align-items: center;
+}
+
+.recurringTransactionList .recurringTransactionEdit .inputWithLabel {
+  display: flex;
+  align-items: center;
+}
+
+.recurringTransactionList .recurringTransactionEdit .scheduleTypeInputWithLabel {
+  grid-column-start: 1;
+  grid-column-end: 5;
+}
+
+.recurringTransactionList .recurringTransactionEdit .scheduleDetailsInputWithLabel {
+  grid-column-start: 1;
+  grid-column-end: 5;
+}
+
+.recurringTransactionList .recurringTransactionEdit .scheduleDetailsInputWithLabel label {
+  flex-shrink: 0;
+}
+
+.recurringTransactionList .recurringTransactionEdit .fixedIntervalInputWithLabel input {
+  max-width: 60px;
+  margin-right: 10px;
+}
+
+.recurringTransactionList .recurringTransactionEdit .secondsBeforeToPostInputWithLabel {
+  grid-column-start: 1;
+  grid-column-end: 5;
+}
+
+.recurringTransactionList .recurringTransactionEdit .secondsBeforeToPostInputWithLabel input {
+  max-width: 60px;
+  margin-right: 10px;
+}
+
+.recurringTransactionList .recurringTransactionEdit .inputWithLabel input {
+  margin: 0 30px 0 10px;
+  flex-grow: 1;
+  overflow: hidden;
+  padding: 5px;
+  height: 30px;
+}
+
+.recurringTransactionList .recurringTransactionEdit .inputWithLabel radiogroup {
+  margin: 0 30px 0 0;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  height: 30px;
+}
+
+.recurringTransactionList .recurringTransactionEdit .inputWithLabel input[type=radio] {
+  margin: 0 2px 0 15px;
+  padding: 0;
+}
+
+.recurringTransactionList .recurringTransactionEdit button {
+  padding: 5px 10px;
+  margin-right: 5px;
+  font-size: 0.8em;
+}

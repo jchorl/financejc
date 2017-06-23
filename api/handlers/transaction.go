@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
@@ -24,6 +25,28 @@ func GetTransactions(c echo.Context) error {
 	}
 
 	return writePaginatedEntity(c, transactions)
+}
+
+// GetSummary fetches all transactions since a given timestamp
+func GetSummary(c echo.Context) error {
+	sinceStr := c.QueryParam("since")
+	since, err := time.Parse(time.RFC3339, sinceStr)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":    err,
+			"context":  c,
+			"sinceStr": sinceStr,
+		})
+		writeError(c, constants.ErrBadRequest)
+		return constants.ErrBadRequest
+	}
+
+	transactions, err := transaction.Summary(toContext(c), since)
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, transactions)
 }
 
 // GetRecurringTransactions fetches recurring transactions
@@ -240,6 +263,16 @@ func QueryES(c echo.Context) error {
 		AccountID: accountID,
 	}
 	transactions, err := transaction.QueryES(toContext(c), query)
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, transactions)
+}
+
+// Search does a general search against all transactions
+func Search(c echo.Context) error {
+	transactions, err := transaction.SearchES(toContext(c), c.QueryParam("value"))
 	if err != nil {
 		return writeError(c, err)
 	}

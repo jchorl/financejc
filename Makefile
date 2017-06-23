@@ -11,25 +11,25 @@ network:
 	docker network ls | grep financejcnet || \
 		docker network create financejcnet
 
-ui: client/dest/bundle.js
+ui:
 	docker container run -it --rm \
 		--name uibuild \
 		-v $(PWD)/client:/usr/src/app \
 		-u $(UID):$(GID) \
 		-w /usr/src/app \
 		node:latest \
-		/bin/bash -c "npm install; NODE_ENV=production node ./node_modules/.bin/webpack -p --config webpack.production.config.js --progress --colors; gzip -k -9 -f dest/bundle.js"
+		/bin/bash -c "yarn; yarn run build; gzip --best -f --keep build/static/{js,css}/*"
 
-ui-watch:
-	# remove gzipped bundle.js because nginx prefers it
-	rm -rf client/dest/bundle.js.gz
+ui-dev: network
 	docker container run -it --rm \
-		--name uiwatch \
+		--name uidev \
 		-v $(PWD)/client:/usr/src/app \
-		-u $(UID):$(GID) \
 		-w /usr/src/app \
+		-u $(UID):$(GID) \
+		-p 3000:3000 \
+		--network financejcnet \
 		node:latest \
-		/bin/bash -c "npm install; node ./node_modules/.bin/webpack --progress --colors --watch"
+		/bin/bash -c "yarn; HTTPS=true yarn start"
 
 db: network
 	docker container ps | grep financejcdb || \
@@ -92,11 +92,11 @@ nginx-dev: network
 		--network financejcnet \
 		-e DEV=1 \
 		-e DOMAIN=finance.joshchorlton.com \
-		-v $(PWD)/client/dest:/usr/share/nginx/html:ro \
 		-v financejcletsencrypt:/etc/letsencrypt \
 		-v wellknown:/usr/share/nginx/wellknown \
 		-p 80:80 \
 		-p 443:443 \
+		-h financejcnginx \
 		jchorl/financejcnginx
 
 serve: network
@@ -186,8 +186,8 @@ deploy:
 	$(MAKE) nginx
 
 # useful targets for dev
-# npm target makes it easy to add new npm packages
-npm:
+# node target makes it easy to add new node packages
+node:
 	docker container run -it --rm \
 		-v $(PWD)/client:/usr/src/app \
 		-u $(UID):$(GID) \
@@ -218,4 +218,4 @@ kibana:
 		-p 5601:5601 \
 		kibana
 
-.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean npm connect-db golang backup restore images push deploy
+.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean node connect-db golang backup restore images push deploy

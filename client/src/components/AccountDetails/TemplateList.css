@@ -1,0 +1,56 @@
+.templateList {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.templateList .newTemplateBar {
+  display: flex;
+  justify-content: center;
+  margin: 10px;
+}
+
+.templateList button {
+  padding: 10px 40px;
+  margin-right: 20px;
+  font-size: 0.8em;
+}
+
+.templateList .template {
+  display: grid;
+  grid-template-columns: 26% 22% 24% 16% 12%;
+  padding: 10px 5px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.templateList .template:hover {
+  background: #e6dacf;
+}
+
+.templateList .templateEdit {
+  display: grid;
+  background: #e6dacf;
+  grid-template-columns: 26% 22% 24% 16% 12%;
+  padding: 15px 5px;
+  margin: 10px 0;
+  align-items: center;
+}
+
+.templateList .templateEdit .inputWithLabel {
+  display: flex;
+  align-items: center;
+}
+
+.templateList .templateEdit .inputWithLabel input {
+  margin: 0 30px 0 10px;
+  flex-grow: 1;
+  overflow: hidden;
+  padding: 5px;
+  height: 30px;
+}
+
+.templateList .templateEdit button {
+  padding: 5px 10px;
+  margin-right: 5px;
+  font-size: 0.8em;
+}

@@ -1,8 +1,103 @@
-@lost gutter 0;
-@lost flexbox flex;
+/* dark: #312c32
+ * light: #efefef
+ * blue: #98dafc
+ * orange: #daad86
+ * light orange: #e6dacf
+ */
+
+html {
+  height: 100%;
+}
 
 body {
-  font-family: 'Noto Sans', sans-serif;
+  height: 100%;
   margin: 0;
-  background: ~colors.background;
+  padding: 0;
+  font-family: sans-serif;
+  background: #312c32;
+  color: #312c32;
+  font-family: 'Merriweather Sans', sans-serif;
+}
+
+h1 {
+  font-size: 1.4em;
+  font-weight: 500;
+}
+
+h2 {
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+h3 {
+  margin-top: 0;
+  font-size: 1em;
+}
+
+button {
+  background: #daad86;
+  border: 1px solid #daad86;
+  border-radius: 5px;
+  padding: 15px;
+  font-size: 1em;
+  color: inherit;
+  transition: background 0.2s ease-out;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e6dacf;
+}
+
+button:focus {
+  outline: none;
+}
+
+input {
+  border: none;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+input:hover:not(:focus) {
+  outline: 1px solid #e6dacf;
+}
+
+input:focus {
+  outline-color: #daad86;
+  padding: 10px;
+}
+
+input[type=radio] {
+  margin: 0;
+  padding: 0;
+}
+
+select {
+  padding: 10px;
+  border: none;
+  background: white;
+}
+
+select:hover:not(:focus) {
+  outline: 1px solid #e6dacf;
+}
+
+select:focus {
+  outline-color: #daad86;
+}
+
+#root {
+  height: 100%;
+}
+
+.container {
+  background: #efefef;
+  border-radius: 5px;
+  padding: 20px 30px;
+  box-sizing: border-box;
+}
+
+.divider {
+  border-bottom: 1px solid #daad86;
 }

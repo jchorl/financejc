@@ -1,0 +1,96 @@
+.summary.container {
+  margin: 20px;
+  width: calc(100% - 40px);
+  height: calc(100% - 40px);
+  display: flex;
+  flex-direction: column;
+}
+
+.summary .nameAndPeriod {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.summary .periods {
+  display: flex;
+}
+
+.summary .period {
+  border: 1px solid #daad86;
+  background: #e6dacf;
+  padding: 5px 15px;
+  cursor: pointer;
+}
+
+.summary .period.selected {
+  background: #daad86;
+}
+
+.summary .period:first-child {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.summary .period:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.summary .divider {
+  margin-bottom: 0;
+}
+
+.summary .graphsAndTransactions {
+  width: 100%;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.summary .graphsSection, .summary .transactionsSection {
+  margin-top: 20px;
+}
+
+.summary .graphSections {
+  display: flex;
+}
+
+.summary .graphSection {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-basis: 0;
+}
+
+.summary .graphs {
+  display: flex;
+  justify-content: center;
+}
+
+.summary .graphWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary .graph {
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+}
+
+.summary .currencyLabel {
+  margin-top: 10px;
+}
+
+.summary .summaryTransaction {
+  display: grid;
+  grid-template-columns: 22% 17% 22% 17% 22%;
+  padding: 10px 5px;
+  margin: 5px 0;
+}
+
+.summary .summaryTransaction:hover {
+  background: #e6dacf;
+}

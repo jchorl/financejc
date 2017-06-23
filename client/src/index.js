@@ -1,66 +1,25 @@
 import React from 'react';
-import { Router, IndexRoute, Route, browserHistory } from 'react-router';
-import thunkMiddleware from 'redux-thunk';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
-import { fetchUser } from './actions';
-import App from './components/index';
-import Home from './components/home';
-import TransactionList from './components/transactionList';
-import RecurringTransactionList from './components/recurringTransactionList';
-import TemplateList from './components/templateList';
-import AccountsPage from './components/accountsPage';
+import thunk from 'redux-thunk';
+import App from './components/App';
 import reducers from './reducers';
+import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 
-const rootElement = document.getElementById('app');
-
 let store = createStore(
-  reducers,
-  applyMiddleware(
-    thunkMiddleware
-  )
-);
+        reducers,
+        applyMiddleware(thunk)
+        );
 
-function fetchAuth(nextState, replace, callback) {
-    if (!store.getState().auth.get('fetched')) {
-        store.dispatch(fetchUser(callback));
-    } else {
-        callback();
-    }
-}
-
-function checkAuth(nextState, replace, callback) {
-    if (!store.getState().auth.get('authd')) {
-        replace({
-            pathname: '/'
-        });
-    }
-    callback();
-}
-
-function goToTransactions(nextState, replace, callback) {
-    if (store.getState().auth.get('authd')) {
-        replace({
-            pathname: '/transactions'
-        });
-    }
-    callback();
-}
-
-render(
-  <Provider store={ store }>
-    <Router history={ browserHistory }>
-      <Route path="/" component={ App } onEnter={ fetchAuth }>
-        <IndexRoute component={ Home } onEnter={ goToTransactions }/>
-        <Route path="transactions" component={ AccountsPage } onEnter={ checkAuth }>
-          <IndexRoute component={ TransactionList } onEnter={ checkAuth }/>
-          <Route path="recurring" component={ RecurringTransactionList } onEnter={ checkAuth }/>
-          <Route path="templates" component={ TemplateList } onEnter={ checkAuth }/>
-        </Route>
-      </Route>
-    </Router>
-  </Provider>,
-  rootElement
-);
+    ReactDOM.render(
+            <Provider store={ store }>
+                <BrowserRouter>
+                    <App />
+                </BrowserRouter>
+            </Provider>,
+            document.getElementById('root')
+            );
+    registerServiceWorker();

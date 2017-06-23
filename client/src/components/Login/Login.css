@@ -1,0 +1,15 @@
+.login.container {
+  width: 25%;
+}
+
+.login .divider {
+  margin-bottom: 30px;
+}
+
+.login .loginButton {
+  width: 100%;
+}
+
+.login .loginButton .service {
+  margin-left: 10px;
+}
