@@ -33,8 +33,16 @@ class AccountsBar extends Component {
                         <div className="divider"></div>
                     </div>
                     <div className="entries">
-                        <SummaryEntry selected={ selected === SUMMARY_ID } />
-                        <div className="divider"></div>
+                        {
+                        !account.get('items').isEmpty()
+                        ? (
+                        <div>
+                            <SummaryEntry selected={ selected === SUMMARY_ID } />
+                            <div className="divider"></div>
+                        </div>
+                        )
+                        : null
+                        }
                         {
                         account
                         .get('items')
