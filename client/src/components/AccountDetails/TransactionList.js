@@ -11,9 +11,7 @@ import './TransactionList.css';
 
 export function emptyTransaction(accountId) {
     return Map({
-        id: NEW_TRANSACTION_ID,
         name: '',
-        date: new Date(),
         category: '',
         amount: 0,
         note: '',
@@ -107,7 +105,7 @@ class TransactionList extends Component {
     newTransaction = transactionTemplate => () => {
         this.setState({
             isEnteringTransaction: true,
-            transactionTemplate
+            transactionTemplate: transactionTemplate.set('date', new Date()).set('id', NEW_TRANSACTION_ID)
         });
     }
 
