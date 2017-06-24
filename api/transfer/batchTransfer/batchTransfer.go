@@ -62,6 +62,10 @@ func Export(c context.Context) (string, error) {
 
 // Import batch imports the result of an export
 func Import(c context.Context, encoded string) error {
+	if !util.IsAdminRequest(c) {
+		return constants.ErrForbidden
+	}
+
 	allData, err := decode(encoded)
 	if err != nil {
 		return err
