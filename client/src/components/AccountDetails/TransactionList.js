@@ -105,6 +105,7 @@ class TransactionList extends Component {
     newTransaction = transactionTemplate => () => {
         this.setState({
             isEnteringTransaction: true,
+            // need to set date and id because some transactions come from templates and some come from empty templates
             transactionTemplate: transactionTemplate.set('date', new Date()).set('id', NEW_TRANSACTION_ID)
         });
     }

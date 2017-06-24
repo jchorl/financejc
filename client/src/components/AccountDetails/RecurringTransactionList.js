@@ -13,7 +13,7 @@ import './RecurringTransactionList.css';
 function emptyRecurringTransaction(accountId) {
     return Map({
         id: NEW_RECURRING_TRANSACTION_ID,
-        transaction: emptyTransaction(accountId),
+        transaction: emptyTransaction(accountId).set('date', new Date()),
         scheduleType: SCHEDULE_TYPES.FIXED_DAY_MONTH,
         secondsBetween: null,
         dayOf: 1,
@@ -86,7 +86,6 @@ class RecurringTransactionList extends Component {
     }
 
     newRecurringTransaction = recurringTransaction => () => {
-        recurringTransaction = recurringTransaction.set('id', NEW_RECURRING_TRANSACTION_ID);
         this.setState({
             isEnteringRecurringTransaction: true,
             recurringTransaction
