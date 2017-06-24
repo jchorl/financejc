@@ -1,8 +1,8 @@
 UID=$(shell id -u)
 GID=$(shell id -g)
 
-all: certs network db es build ui build-nginx serve nginx
-dev: network db es build serve-dev ui build-nginx nginx-dev
+all: certs network db es build build-nginx serve nginx
+dev: network db es build serve-dev build-nginx nginx-dev
 images: build build-nginx
 
 POSTGRES_USER ?= postgres
@@ -10,15 +10,6 @@ POSTGRES_USER ?= postgres
 network:
 	docker network ls | grep financejcnet || \
 		docker network create financejcnet
-
-ui:
-	docker container run -it --rm \
-		--name uibuild \
-		-v $(PWD)/client:/usr/src/app \
-		-u $(UID):$(GID) \
-		-w /usr/src/app \
-		node:latest \
-		/bin/bash -c "yarn; yarn run build; gzip --best -f --keep build/static/{js,css}/*"
 
 ui-dev: network
 	docker container run -it --rm \
@@ -44,20 +35,6 @@ db: network
 		-e POSTGRES_USER \
 		-e POSTGRES_PASSWORD \
 		postgres
-
-backup:
-	docker container run -it --rm \
-		--network financejcnet \
-		-v $(PWD)/backup:/backup \
-		postgres \
-		sh -c 'pg_dump -h financejcdb -U "$(POSTGRES_USER)" -Fc > /backup/$$(date +%Y_%m_%d__%H_%M_%S).sql'
-
-restore:
-	docker container run -it --rm \
-		--network financejcnet \
-		-v $(PWD)/backup:/backup \
-		postgres \
-		pg_restore -h financejcdb -U '$(POSTGRES_USER)' --data-only -d '$(POSTGRES_USER)' --disable-triggers -Fc /$(BACKUP_FILE)
 
 es: network
 	docker container ps | grep financejces || \
@@ -129,7 +106,7 @@ restart:
 	$(MAKE) build
 	$(MAKE) serve-dev
 
-build-nginx: ui
+build-nginx:
 	docker image build -t jchorl/financejcnginx -f nginx/Dockerfile .
 
 build:
@@ -212,4 +189,4 @@ kibana:
 		-p 5601:5601 \
 		kibana
 
-.PHONY: all ui ui-watch network dev db es nginx serve serve-dev build build-nginx clean node connect-db golang backup restore images push deploy
+.PHONY: all dev ui-watch network db es nginx serve serve-dev build build-nginx clean node connect-db golang images push deploy
