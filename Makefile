@@ -87,6 +87,7 @@ serve: network
 		-e PORT=443 \
 		-e JWT_SIGNING_KEY \
 		-e DB_ADDRESS \
+		-e GCS_ACCOUNT_JSON \
 		jchorl/financejc
 
 serve-dev: network
@@ -99,6 +100,7 @@ serve-dev: network
 		-e DOMAIN=localhost \
 		-e PORT=443 \
 		-e DB_ADDRESS \
+		-e GCS_ACCOUNT_JSON \
 		jchorl/financejc
 
 restart:

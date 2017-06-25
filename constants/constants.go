@@ -4,8 +4,22 @@ import (
 	"errors"
 )
 
+/************************************
+*** DEPLOYMENT SPECIFIC CONSTANTS ***
+************************************/
+
+// GoogleProjectID is the project id on google cloud
+const GoogleProjectID = "financejc-1"
+
 // AdminEmail is the email of the admin
 const AdminEmail = "josh@joshchorlton.com"
+
+// GcsBackupBucket is the name of the bucket to backup to
+const GcsBackupBucket = "financejcbackups"
+
+/************************************
+******** GENERAL CONSTANTS **********
+************************************/
 
 // Keys for values stored in context
 const (

@@ -62,3 +62,13 @@ func Import(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+// BackupToGCS backs up all data to GCS
+func BackupToGCS(c echo.Context) error {
+	err := batchTransfer.BackupToGCS(toContext(c))
+	if err != nil {
+		return writeError(c, err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}

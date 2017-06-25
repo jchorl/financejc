@@ -9,7 +9,7 @@ import (
 
 var (
 	jwtMiddleware = middleware.JWTWithConfig(middleware.JWTConfig{
-		SigningKey:  []byte(constants.JWT_SIGNING_KEY),
+		SigningKey:  []byte(constants.JwtSigningKey),
 		TokenLookup: "cookie:Authorization",
 	})
 )
@@ -50,4 +50,5 @@ func Init(api *echo.Group) {
 	api.POST("/import", Transfer, jwtMiddleware)
 	api.GET("/exportAll", Export, jwtMiddleware)
 	api.POST("/importAll", Import, jwtMiddleware)
+	api.GET("/backupToGCS", BackupToGCS, jwtMiddleware)
 }

@@ -33,7 +33,7 @@ func AuthUser(c echo.Context) error {
 		"sub": user.ID,
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	})
-	tokenStr, err := token.SignedString([]byte(constants.JWT_SIGNING_KEY))
+	tokenStr, err := token.SignedString([]byte(constants.JwtSigningKey))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err,

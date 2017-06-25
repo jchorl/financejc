@@ -5,10 +5,9 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
 	"net/url"
-
-	"golang.org/x/net/context"
 
 	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
@@ -16,7 +15,7 @@ import (
 // DeleteService allows to delete a typed JSON document from a specified
 // index based on its id.
 //
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.0/docs-delete.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/docs-delete.html
 // for details.
 type DeleteService struct {
 	client              *Client
@@ -200,10 +199,12 @@ func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 
 // DeleteResponse is the outcome of running DeleteService.Do.
 type DeleteResponse struct {
-	// TODO _shards { total, failed, successful }
-	Found   bool   `json:"found"`
-	Index   string `json:"_index"`
-	Type    string `json:"_type"`
-	Id      string `json:"_id"`
-	Version int64  `json:"_version"`
+	Index         string      `json:"_index"`
+	Type          string      `json:"_type"`
+	Id            string      `json:"_id"`
+	Version       int64       `json:"_version"`
+	Shards        *shardsInfo `json:"_shards"`
+	Result        bool        `json:"string,omitempty"`
+	ForcedRefresh bool        `json:"forced_refresh,omitempty"`
+	Found         bool        `json:"found"`
 }

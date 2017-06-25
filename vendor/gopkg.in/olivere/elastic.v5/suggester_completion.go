@@ -7,7 +7,7 @@ package elastic
 import "errors"
 
 // CompletionSuggester is a fast suggester for e.g. type-ahead completion.
-// See http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/search-suggesters-completion.html
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-suggesters-completion.html
 // for more details.
 type CompletionSuggester struct {
 	Suggester
@@ -123,7 +123,7 @@ func (q *CompletionSuggester) Source(includeName bool) (interface{}, error) {
 				ctxq[k] = v
 			}
 		}
-		suggester["context"] = ctxq
+		suggester["contexts"] = ctxq
 	}
 
 	// TODO(oe) Add completion-suggester specific parameters here

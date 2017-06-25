@@ -14,6 +14,7 @@ import (
 
 	"github.com/jchorl/financejc/api/handlers"
 	"github.com/jchorl/financejc/api/transaction"
+	"github.com/jchorl/financejc/api/transfer/batchTransfer"
 	"github.com/jchorl/financejc/constants"
 )
 
@@ -21,12 +22,12 @@ func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 
-	db, err := sql.Open(constants.DB_DRIVER, constants.DB_ADDRESS)
+	db, err := sql.Open(constants.DbDriver, constants.DbAddress)
 	if err != nil {
 		logrus.WithField("error", err).Fatal("failed to connect to database")
 	}
 
-	es, err := elastic.NewClient(elastic.SetURL(constants.ES_ADDRESS))
+	es, err := elastic.NewClient(elastic.SetURL(constants.EsAddress))
 	if err != nil {
 		logrus.WithField("error", err).Fatal("failed to connect to elasticsearch")
 	}
@@ -40,6 +41,10 @@ func main() {
 	c.AddFunc("@daily", func() {
 		// ignore the error because it should already be logged in GenRecurringTransactions
 		transaction.GenRecurringTransactions(ctx)
+	})
+	c.AddFunc("@daily", func() {
+		// ignore the error because it should already be logged in BackupToGCS
+		batchTransfer.BackupToGCS(ctx)
 	})
 	c.Start()
 

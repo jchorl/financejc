@@ -20,7 +20,7 @@ import (
 )
 
 func FreshDB(t *testing.T) *sql.DB {
-	db, err := sql.Open(constants.DB_DRIVER, constants.DB_ADDRESS)
+	db, err := sql.Open(constants.DbDriver, constants.DbAddress)
 	require.NoError(t, err, "unable to connect to db")
 
 	rows, err := db.Query("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'")
@@ -50,7 +50,7 @@ func FreshDB(t *testing.T) *sql.DB {
 
 // ESConn returns a connection to elasticsearch, not necessarily fresh
 func ESConn(t *testing.T) *elastic.Client {
-	es, err := elastic.NewClient(elastic.SetURL(constants.ES_ADDRESS))
+	es, err := elastic.NewClient(elastic.SetURL(constants.EsAddress))
 	require.NoError(t, err, "unable to connect to ES")
 	return es
 }

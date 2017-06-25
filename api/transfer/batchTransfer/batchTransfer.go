@@ -3,8 +3,15 @@ package batchTransfer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/Sirupsen/logrus"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
+
 	"github.com/jchorl/financejc/api/account"
 	"github.com/jchorl/financejc/api/transaction"
 	"github.com/jchorl/financejc/api/user"
@@ -18,6 +25,76 @@ type fjcData struct {
 	Transactions          []transaction.Transaction          `json:"transactions"`
 	RecurringTransactions []transaction.RecurringTransaction `json:"recurringTransactions"`
 	Templates             []transaction.Template             `json:"templates"`
+}
+
+// BackupToGCS exports all app data and pushes it to a GCS bucket
+func BackupToGCS(c context.Context) error {
+	logrus.Debug("starting regular backup to GCS")
+	if !util.IsAdminRequest(c) {
+		return constants.ErrForbidden
+	}
+
+	conf, err := google.JWTConfigFromJSON([]byte(constants.GcsAccountJSON), storage.ScopeReadWrite)
+	if err != nil {
+		logrus.WithError(err).Error("failed to create jwt config from json")
+		return err
+	}
+
+	gctx := context.Background()
+	client, err := storage.NewClient(
+		gctx,
+		option.WithTokenSource(conf.TokenSource(gctx)),
+	)
+	if err != nil {
+		logrus.WithError(err).Error("unable to create storage client")
+		return err
+	}
+
+	backupsBucketExists := false
+	bucketIter := client.Buckets(gctx, constants.GoogleProjectID)
+	for {
+		bucketAttrs, err := bucketIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			logrus.WithError(err).Error("error iterating gcs buckets")
+			return err
+		}
+
+		if bucketAttrs.Name == constants.GcsBackupBucket {
+			backupsBucketExists = true
+		}
+	}
+
+	bucket := client.Bucket(constants.GcsBackupBucket)
+	if !backupsBucketExists {
+		if err := bucket.Create(gctx, constants.GoogleProjectID, &storage.BucketAttrs{StorageClass: "REGIONAL", Location: "us-central1"}); err != nil {
+			logrus.WithError(err).Error("error creating backup bucket")
+			return err
+		}
+	}
+
+	content, err := Export(c)
+	if err != nil {
+		logrus.WithError(err).Error("failed to generate export for periodic backup")
+		return err
+	}
+
+	filename := time.Now().Format("20060102T150405")
+	obj := bucket.Object(filename)
+	w := obj.NewWriter(gctx)
+	if _, err := fmt.Fprintf(w, content); err != nil {
+		logrus.WithError(err).Error("unable to write to object when creating backup")
+		return err
+	}
+	if err := w.Close(); err != nil {
+		logrus.WithError(err).Error("unable to close writer when creating backup")
+		return err
+	}
+
+	logrus.Debugf("backup finished successfully with filename: %s", filename)
+	return nil
 }
 
 // Export queries for all data, packages it up and exports it
