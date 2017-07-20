@@ -552,12 +552,17 @@ func New(ctx context.Context, transaction *Transaction) (*Transaction, error) {
 		return nil, constants.ErrForbidden
 	}
 
-	return newWithoutVerifyingAccountOwnership(ctx, transaction)
+	userID, err := util.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return newWithoutVerifyingAccountOwnership(ctx, transaction, userID)
 }
 
 // newWithoutVerifyingAccountOwnership creates a new transaction without checking that the context has the owner
 // of the account. This is useful when generating a transaction on behalf of a user, e.g. recurringTransaction
-func newWithoutVerifyingAccountOwnership(ctx context.Context, transaction *Transaction) (*Transaction, error) {
+func newWithoutVerifyingAccountOwnership(ctx context.Context, transaction *Transaction, userID uint) (*Transaction, error) {
 	db, err := util.DBFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -578,11 +583,6 @@ func newWithoutVerifyingAccountOwnership(ctx context.Context, transaction *Trans
 	transaction.ID = id
 
 	es, err := util.ESFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	userID, err := util.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}

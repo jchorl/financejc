@@ -50,7 +50,7 @@ func GenRecurringTransactions(c context.Context) error {
 		return err
 	}
 
-	recurringTransactions, err := getRecurringToPost(db)
+	recurringTransactions, userIDs, err := getRecurringToPost(db)
 	if err != nil {
 		return err
 	}
@@ -66,9 +66,9 @@ func GenRecurringTransactions(c context.Context) error {
 	// replace the sql Db in the context with the sql Tx
 	c = context.WithValue(c, constants.CtxDB, tx)
 
-	for _, recurringTransaction := range recurringTransactions {
+	for i, recurringTransaction := range recurringTransactions {
 		logrus.WithField("recurringTransaction", recurringTransaction).Debug("about to generate recurring transaction")
-		if err := generateFromRecurringAndUpdateRecurring(c, recurringTransaction); err != nil {
+		if err := generateFromRecurringAndUpdateRecurring(c, recurringTransaction, userIDs[i]); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -442,44 +442,53 @@ func getNextRun(tr *RecurringTransaction, allowSameDay bool) (time.Time, error) 
 	return time.Time{}, err
 }
 
-func getRecurringToPost(db util.DB) ([]RecurringTransaction, error) {
+func getRecurringToPost(db util.DB) ([]RecurringTransaction, []uint, error) {
 	// query for all recurring transactions where the next occurrance is within the time period before to post it to the account
-	rows, err := db.Query("SELECT id, name, next_occurs, category, amount, note, account_id, schedule_type, seconds_between, day_of, seconds_before_to_post FROM recurring_transactions WHERE next_occurs - interval '1 second' * seconds_before_to_post <= NOW()")
+	rows, err := db.Query(
+		`SELECT r.id, r.name, r.next_occurs, r.category, r.amount, r.note, r.account_id, r.schedule_type, r.seconds_between, r.day_of, r.seconds_before_to_post, u.id
+		FROM recurring_transactions r
+		INNER JOIN accounts a ON r.account_id = a.id
+		INNER JOIN users u ON a.user_id = u.id
+		WHERE r.next_occurs - interval '1 second' * r.seconds_before_to_post <= NOW()`,
+	)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
 		}).Error("failed to fetch recurring transactions to post to accounts")
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 
 	recurringTransactions := []RecurringTransaction{}
+	userIDs := []uint{}
 	for rows.Next() {
 		var transaction recurringTransactionDB
-		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.NextOccurs, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountID, &transaction.ScheduleType, &transaction.SecondsBetween, &transaction.DayOf, &transaction.SecondsBeforeToPost); err != nil {
+		var userID uint
+		if err := rows.Scan(&transaction.ID, &transaction.Name, &transaction.NextOccurs, &transaction.Category, &transaction.Amount, &transaction.Note, &transaction.AccountID, &transaction.ScheduleType, &transaction.SecondsBetween, &transaction.DayOf, &transaction.SecondsBeforeToPost, &userID); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 			}).Error("failed to scan into recurring transaction to generate transaction")
-			return nil, err
+			return nil, nil, err
 		}
 
 		recurringTransactions = append(recurringTransactions, recurringFromDB(transaction))
+		userIDs = append(userIDs, userID)
 	}
 	if err := rows.Err(); err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
 		}).Error("failed to get recurring transactions from rows to generate transactions")
-		return nil, err
+		return nil, nil, err
 	}
 
-	return recurringTransactions, nil
+	return recurringTransactions, userIDs, nil
 }
 
-func generateFromRecurringAndUpdateRecurring(ctx context.Context, recurringTransaction RecurringTransaction) error {
+func generateFromRecurringAndUpdateRecurring(ctx context.Context, recurringTransaction RecurringTransaction, userID uint) error {
 	// keep generating until it is too early to post the next transaction
 	now := time.Now()
 	for recurringTransaction.Transaction.Date.Add(time.Second * time.Duration(-recurringTransaction.SecondsBeforeToPost)).Before(now) {
-		if _, err := newWithoutVerifyingAccountOwnership(ctx, &recurringTransaction.Transaction); err != nil {
+		if _, err := newWithoutVerifyingAccountOwnership(ctx, &recurringTransaction.Transaction, userID); err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":                err,
 				"recurringTransaction": recurringTransaction,
