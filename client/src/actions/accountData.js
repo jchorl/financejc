@@ -285,3 +285,30 @@ function editRecurringTransactionSuccess(recurringTransaction) {
         recurringTransaction
     }
 }
+
+export function deleteRecurringTransaction(recurringTransaction) {
+    return function(dispatch) {
+        let headers = new Headers();
+        headers.append('Accept', 'application/json');
+        headers.append('Content-Type', 'application/json');
+        return fetch(`/api/recurringTransaction/${recurringTransaction.id}`, {
+            headers,
+            method: 'DELETE',
+            credentials: 'include',
+        })
+        .then(handleErrors)
+            .then(() => {
+                dispatch(deleteRecurringTransactionSuccess(recurringTransaction));
+                return recurringTransaction;
+            })
+        .catch(e => console.error(e));
+    }
+}
+
+export const DELETE_RECURRING_TRANSACTION_SUCCESS = 'DELETE_RECURRING_TRANSACTION_SUCCESS';
+function deleteRecurringTransactionSuccess(recurringTransaction) {
+    return {
+        type: DELETE_RECURRING_TRANSACTION_SUCCESS,
+        recurringTransaction,
+    }
+}

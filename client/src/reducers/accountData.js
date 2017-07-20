@@ -9,6 +9,7 @@ import {
     FETCH_TEMPLATES_START,
     RECEIVE_TEMPLATES_SUCCESS,
     EDIT_RECURRING_TRANSACTION_SUCCESS,
+    DELETE_RECURRING_TRANSACTION_SUCCESS,
     FETCH_RECURRING_TRANSACTIONS_START,
     RECEIVE_RECURRING_TRANSACTIONS_SUCCESS
 } from '../actions/accountData';
@@ -137,6 +138,12 @@ export default function(state = Map(), action) {
                 return state.setIn([accountId, 'recurringTransactions', 'items', index], recurringTransaction);
             }
             return state.updateIn([accountId, 'recurringTransactions', 'items'], items => items.push(recurringTransaction));
+        }
+
+        case DELETE_RECURRING_TRANSACTION_SUCCESS: {
+            const recurringTransaction = action.recurringTransaction;
+            const accountId = recurringTransaction.transaction.accountId;
+            return state.updateIn([accountId, 'recurringTransactions', 'items'], items => items.filter(rt => rt.get('id') !== recurringTransaction.id));
         }
 
         default:

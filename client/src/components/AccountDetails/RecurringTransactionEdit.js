@@ -4,7 +4,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { fromRFC3339, toRFC3339 } from '../../util';
 import { NEW_RECURRING_TRANSACTION_ID, SCHEDULE_TYPES } from '../../constants';
-import { editRecurringTransaction, newRecurringTransaction } from '../../actions/accountData';
+import { editRecurringTransaction, deleteRecurringTransaction, newRecurringTransaction } from '../../actions/accountData';
 import SuggestedInput from '../SuggestedInput';
 
 class RecurringTransactionEdit extends Component {
@@ -92,6 +92,15 @@ class RecurringTransactionEdit extends Component {
         }
 
         this.setState(newState);
+    }
+
+    deleteRecurringTransaction = () => {
+        const {
+            dispatch,
+            recurringTransaction,
+        } = this.props;
+
+        dispatch(deleteRecurringTransaction(recurringTransaction.toJS()));
     }
 
     onSubmit = e => {
@@ -315,6 +324,14 @@ class RecurringTransactionEdit extends Component {
                             />Fixed Interval
                         </radiogroup>
                     </div>
+                    {
+                    recurringTransaction.get('id') !== NEW_RECURRING_TRANSACTION_ID
+                    ? (
+                    <div>
+                        <button type="button" className="deleteButton" onClick={ this.deleteRecurringTransaction }>Delete</button>
+                    </div>
+                    ) : null
+                    }
                     <div className="inputWithLabel scheduleDetailsInputWithLabel">
                         {(() => {
                         switch (this.state.scheduleType) {
