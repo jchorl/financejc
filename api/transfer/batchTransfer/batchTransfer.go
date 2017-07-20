@@ -84,7 +84,7 @@ func BackupToGCS(c context.Context) error {
 	filename := time.Now().Format("20060102T150405")
 	obj := bucket.Object(filename)
 	w := obj.NewWriter(gctx)
-	if _, err := fmt.Fprintf(w, content); err != nil {
+	if _, err := fmt.Fprint(w, content); err != nil {
 		logrus.WithError(err).Error("unable to write to object when creating backup")
 		return err
 	}
