@@ -1,6 +1,6 @@
 import { List, Map, fromJS } from 'immutable';
 import { CLEAR_SEARCH_RESULTS, RECEIVE_SEARCH_RESULTS_SUCCESS } from '../actions/search';
-import { EDIT_TRANSACTION_SUCCESS } from '../actions/accountData';
+import { EDIT_TRANSACTION_SUCCESS, DELETE_TRANSACTION_SUCCESS } from '../actions/accountData';
 import { dateStringToDate } from './util';
 
 export default function(state = Map({
@@ -30,6 +30,9 @@ export default function(state = Map({
             }
             return state;
         }
+
+        case DELETE_TRANSACTION_SUCCESS:
+            return state.update('items', items => items.filter(t => t.get('id') !== action.transaction.id));
 
         default:
             return state;

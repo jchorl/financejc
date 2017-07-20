@@ -53,6 +53,15 @@ button:focus {
   outline: none;
 }
 
+button.deleteButton {
+  background: #de9292;
+  border: 1px solid #de9292;
+}
+
+button.deleteButton:hover {
+  background: #dcb7b7;
+}
+
 input {
   border: none;
   padding: 10px;

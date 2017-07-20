@@ -87,6 +87,33 @@ function editTransactionSuccess(transaction, amountDifference) {
     }
 }
 
+export function deleteTransaction(transaction) {
+    return function(dispatch) {
+        let headers = new Headers();
+        headers.append('Accept', 'application/json');
+        headers.append('Content-Type', 'application/json');
+        return fetch(`/api/transaction/${transaction.id}`, {
+            headers,
+            method: 'DELETE',
+            credentials: 'include',
+        })
+        .then(handleErrors)
+            .then(() => {
+                dispatch(deleteTransactionSuccess(transaction));
+                return transaction;
+            })
+        .catch(e => console.error(e));
+    }
+}
+
+export const DELETE_TRANSACTION_SUCCESS = 'DELETE_TRANSACTION_SUCCESS';
+function deleteTransactionSuccess(transaction) {
+    return {
+        type: DELETE_TRANSACTION_SUCCESS,
+        transaction,
+    }
+}
+
 export function fetchTemplates(accountId) {
     return function(dispatch) {
         dispatch(fetchTemplatesStart(accountId));

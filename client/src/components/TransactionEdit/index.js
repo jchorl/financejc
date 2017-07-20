@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { newTransaction, editTransaction } from '../../actions/accountData';
+import { newTransaction, editTransaction, deleteTransaction } from '../../actions/accountData';
 import { fromRFC3339, toRFC3339 } from '../../util';
 import { NEW_TRANSACTION_ID } from '../../constants';
 import SuggestedInput from '../SuggestedInput';
@@ -72,6 +72,15 @@ class TransactionEdit extends Component {
         }
 
         this.setState(newState);
+    }
+
+    deleteTransaction = () => {
+        const {
+            dispatch,
+            transaction,
+        } = this.props;
+
+        dispatch(deleteTransaction(transaction.toJS()));
     }
 
     onSubmit = e => {
@@ -271,6 +280,14 @@ class TransactionEdit extends Component {
                             onChange={ this.handleChange('note') }
                         />
                     </div>
+                    {
+                    transaction.get('id') !== NEW_TRANSACTION_ID
+                    ? (
+                    <div>
+                        <button type="button" className="deleteButton" onClick={ this.deleteTransaction }>Delete</button>
+                    </div>
+                    ) : null
+                    }
                 </form>
                 );
     }

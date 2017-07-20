@@ -2,6 +2,7 @@ import { Map, List, Seq, fromJS } from 'immutable';
 import { CREATE_ACCOUNT_SUCCESS, RECEIVE_ACCOUNTS_SUCCESS } from '../actions/account';
 import {
     EDIT_TRANSACTION_SUCCESS,
+    DELETE_TRANSACTION_SUCCESS,
     FETCH_TRANSACTIONS_START,
     RECEIVE_TRANSACTIONS_SUCCESS,
     EDIT_TEMPLATE_SUCCESS,
@@ -76,6 +77,19 @@ export default function(state = Map(), action) {
             let accountId = parsed.get('accountId');
             state = state.setIn([accountId, 'transactions', 'data', parsed.get('id')], parsed);
             state = state.updateIn([accountId, 'transactions', 'futureValue'], fv => fv + action.amountDifference);
+            state = state.setIn([accountId, 'transactions', 'calculatedValues'], calculateValues(
+                        state.getIn([accountId, 'transactions', 'data']),
+                        state.getIn([accountId, 'transactions', 'futureValue']),
+                        ));
+
+            return state;
+        }
+
+        case DELETE_TRANSACTION_SUCCESS: {
+            let transaction = action.transaction;
+            let accountId = transaction.accountId;
+            state = state.deleteIn([accountId, 'transactions', 'data', transaction.id]);
+            state = state.updateIn([accountId, 'transactions', 'futureValue'], fv => fv - transaction.amount);
             state = state.setIn([accountId, 'transactions', 'calculatedValues'], calculateValues(
                         state.getIn([accountId, 'transactions', 'data']),
                         state.getIn([accountId, 'transactions', 'futureValue']),

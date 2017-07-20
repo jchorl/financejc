@@ -1,6 +1,6 @@
 import { Map, Seq, fromJS } from 'immutable';
 import { CREATE_ACCOUNT_SUCCESS, RECEIVE_ACCOUNTS_SUCCESS } from '../actions/account';
-import { EDIT_TRANSACTION_SUCCESS } from '../actions/accountData';
+import { EDIT_TRANSACTION_SUCCESS, DELETE_TRANSACTION_SUCCESS } from '../actions/accountData';
 
 export default function(state = Map({
     fetched: false,
@@ -21,6 +21,9 @@ export default function(state = Map({
 
         case EDIT_TRANSACTION_SUCCESS:
             return state.updateIn(['items', action.transaction.accountId, 'futureValue'], fv => fv + action.amountDifference);
+
+        case DELETE_TRANSACTION_SUCCESS:
+            return state.updateIn(['items', action.transaction.accountId, 'futureValue'], fv => fv - action.transaction.amount);
 
         default:
             return state;
