@@ -33,16 +33,24 @@ class CategoryGraph extends Component {
                 ).isRequired
     }
 
-    renderChart = chart => {
+    componentWillReceiveProps(nextProps) {
+        this.renderChart(this.chartCtx, nextProps);
+    }
+
+    renderChart = (chart, props) => {
         if (chart === null) {
             return;
+        }
+        this.chartCtx = chart;
+        if (this.chart) {
+            this.chart.destroy();
         }
 
         const {
             currency,
             currencyCode,
             transactions
-        } = this.props;
+        } = props;
 
         const totalsByCategory = transactions.groupBy(t => t.get('category'))
             .map(transactionList => transactionList.reduce(
@@ -88,7 +96,7 @@ class CategoryGraph extends Component {
         return (
                 <div className="graphWrapper">
                     <div className="graph">
-                        <canvas ref={ chart => this.renderChart(chart) }></canvas>
+                        <canvas ref={ chart => this.renderChart(chart, this.props) }></canvas>
                     </div>
                     <div className="currencyLabel">{ currencyCode }</div>
                 </div>
