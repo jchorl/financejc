@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { googleLogin } from '../../actions/user';
-import './googleLoginClient';
 
 class GoogleLoginButton extends Component {
     static propTypes = {
